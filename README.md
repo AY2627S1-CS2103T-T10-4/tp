@@ -1,15 +1,21 @@
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+# Mentora
+
+[![CI Status](https://github.com/AY2627S1-CS2103T-T10-4/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-T10-4/tp/actions)
 
 ![Ui](docs/images/Ui.png)
 
-
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+* **Mentora is a keyboard-first desktop application for managing student and guardian contacts at small private tuition centres in Singapore.**
+  * It is designed for coordinators who manage approximately 30-200 active and prospective secondary-school students.
+  * It helps coordinators keep related student and guardian information together, retrieve the right contacts quickly, and maintain accurate enrolment-related records without relying on cumbersome spreadsheets or mouse-heavy systems.
+* Mentora's core MVP focuses on:
+  * adding, updating, viewing, searching, and deleting student records;
+  * adding and updating guardian records;
+  * linking a student to one guardian while allowing siblings to share the same guardian record;
+  * assigning students to configured subject or class groups;
+  * displaying a student's academic level, assignments, and linked guardian; and
+  * saving records locally and restoring them when the application is reopened.
+* Mentora is optimized for **fast typed commands** and clear feedback, while retaining a graphical interface for viewing student profiles and contact information.
+* The MVP is intended for one coordinator using the application locally at a time. It does not manage attendance, grades, fees, payroll, accounting, lesson content, or direct messaging through WhatsApp, SMS, or email.
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org)
+* For usage instructions, see the [User Guide](docs/UserGuide.md).
+* For development and architecture details, see the [Developer Guide](docs/DeveloperGuide.md).
