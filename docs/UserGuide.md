@@ -3,196 +3,335 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+# Mentora User Guide
+
+Mentora helps coordinators of small private tuition centres in Singapore manage student and guardian contacts through typed commands. It is designed for one coordinator working locally with approximately 30–200 active and prospective secondary-school students.
+
+Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
+
+> **MVP preview:** This guide describes the intended Mentora MVP in the [feature specification](FeatureSpecification.md). The current code still implements the original AddressBook commands; the Mentora commands and behaviours below are planned and are not yet available in that build. All interface images in this guide are mockups, and example IDs and record counts are illustrative.
 
 * Table of Contents
 {:toc}
 
---------------------------------------------------------------------------------------------------------------------
+## Getting started
 
-## Quick start
+### Installation
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+The project currently targets Java `25`. Release packages will be distributed through the [Mentora project releases](https://github.com/AY2627S1-CS2103T-T10-4/tp/releases). Use the package and launch instructions supplied with a release that supports the Mentora commands.
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+For the current source build, follow [Setting up and getting started](SettingUp.md). Its generated JAR is named `addressbook.jar` and can be launched from its folder with `java -jar addressbook.jar`; it runs the AddressBook implementation rather than the MVP described here.
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+### Finding your way around
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+![Mentora mockup showing a student list, command box, result panel, and student profile](mockup/open-student-profile.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
-   Some example commands you can try:
+The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results, or configured groups. The **student profile** shows a student's academic level, assignments, and linked guardian. The **status bar** reports local saving and loading.
 
-   * `list` : Lists all contacts.
+### Registering your first student
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+Once using a release with the MVP commands, try this workflow:
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+1. Enter `add-student n/Mei Lin al/Sec 2`. Note the student ID in the result.
+2. Enter `add-guardian n/Anita Lim p/91234567`. Note the guardian ID in the result.
+3. Link the records with `link-guardian sid/S-0007 gid/G-0003`, replacing both example IDs with the IDs you received.
+4. Enter `list-groups` to see the available subjects and classes.
+5. Enter `assign-group sid/S-0007 g/MAT`, replacing the student ID and using a code from the catalogue.
+6. Enter `view-student sid/S-0007`, using your student ID, to check the student's details and guardian contact.
 
-   * `clear` : Deletes all contacts.
+Successful changes are saved locally. Use `help` to see the commands or, for example, `help add-student` for help with one command.
 
-   * `exit` : Exits the app.
+## Understanding commands and values
 
-1. Refer to the [Features](#features) section below for details of each command.
+Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei Lin`. Do not type the placeholder itself. Square brackets mark an optional argument: `help [COMMAND]` means either `help` or, for example, `help add-student`.
 
---------------------------------------------------------------------------------------------------------------------
+* Commands and prefixes are case-insensitive. Use the lowercase spellings shown in this guide for consistency.
+* Prefixes identify fields: `n/` for a name or query, `al/` for academic level, `p/` for phone, `sid/` for student ID, `gid/` for guardian ID, and `g/` for group code.
+* Prefixed fields can appear in any order, but each prefix may appear only once. All fields shown outside square brackets are required and must contain a value.
+* Unknown text, unknown prefixes, repeated prefixes, and missing required fields produce `Invalid command format. Use: FORMAT`, where `FORMAT` is the correct command syntax.
+* Commands that take no arguments, such as `list-students`, `list-groups`, and `exit`, reject extra text.
+* Leading and trailing spaces in values are removed. Repeated spaces within names and search queries become one space. Name casing is retained for display but ignored for matching.
+* Use permanent IDs such as `S-0007` and `G-0003`, **not list positions**. Searching or sorting does not change an ID. IDs are generated by Mentora and cannot be edited; they use uppercase `S-` or `G-` followed by at least four digits.
 
-## Features
+### Accepted values
 
-<div markdown="block" class="alert alert-info">
+| Value | What you can enter | Examples |
+|---|---|---|
+| Name | 1–80 characters after spaces are normalized. Must start and end with a Unicode letter; only letters, spaces, apostrophes, hyphens, and periods between letters are allowed. | `Mei Lin`, `O'Connor`, `S. Kumar` |
+| Academic level | `Sec 1` through `Sec 5`, or `IP 1` through `IP 6`, case-insensitive. | `Sec 2`, `ip 4` (displayed as `IP 4`) |
+| Phone | Eight digits starting with `3`, `6`, `8`, or `9`, optionally preceded by `+65` and a single space. No hyphens, brackets, or extensions. | `91234567`, `+6591234567`, `+65 91234567` all display as `+65 91234567` |
+| Student or guardian ID | An existing generated ID of the correct type. | `sid/S-0007`, `gid/G-0003` |
+| Group code | An exact code in `list-groups`, case-insensitive. Codes display in uppercase. | `MAT`, `S2-MAT-A` |
+| Search query | 1–80 characters after spaces are normalized, following the name character rules. Can be a whole or partial name. | `mei`, `Mei Lin` |
 
-**:information_source: Notes about the command format:**<br>
+## Managing students
 
-* Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
+### Adding a student: `add-student`
 
-* Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+Format: `add-student n/NAME al/ACADEMIC_LEVEL`
 
-* Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
-
-* Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
-
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
-
-* If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
-</div>
-
-### Viewing help: `help`
-
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
-
-Format: `help`
-
-
-### Adding a person: `add`
-
-Adds a person to the address book.
-
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
-
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
-</div>
+Creates a student with a generated ID, no guardian, and no subject or class assignments. The list refreshes and selects the new student.
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+* `add-student n/Mei Lin al/Sec 2`
+* `add-student al/IP 4 n/S. Kumar`
 
-Shows a list of all persons in the address book.
+Example result: `Added student S-0007: Mei Lin (Sec 2).`
 
-Format: `list`
+![Mockup of a newly added student with no assignments or guardian](mockup/add-student.png)
 
-### Editing a person: `edit`
+A student with the same normalized name and academic level is rejected with, for example, `A student named Mei Lin at Sec 2 already exists.` The same name at different levels is allowed.
 
-Edits an existing person in the address book.
+**MVP limitation:** This rule also rejects two different students who share both their name and academic level. The MVP does not yet provide a way to distinguish them.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
+### Updating academic level: `edit-student`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+Format: `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL`
 
-Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+Example: `edit-student sid/S-0007 al/Sec 3`
 
-### Locating persons by name: `find`
+Changes the student's academic level. The list and profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` The linked guardian and group assignments remain unchanged. Review class assignments separately when a student moves up a level.
 
-Finds persons whose names contain any of the given keywords.
+If the change would duplicate another student's name and level, it is rejected: `Cannot update S-0007: a student named Mei Lin at Sec 3 already exists.` This command only changes academic level; it does not edit names.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+### Listing students: `list-students`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+Format: `list-students`
+
+Shows every registered student's ID, name, academic level, and guardian status, sorted by normalized name and then ID. Use it to return to the full list after a search.
+
+The result reports the number of students, for example `Listed 8 student(s).` If there are none, it says `No students registered.`
+
+### Finding students by name: `find-student`
+
+Format: `find-student n/QUERY`
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a person: `delete`
+* `find-student n/mei` finds names containing `mei`, such as `Mei Lin` and `Mei Wen`.
+* `find-student n/Mei Lin` finds names containing the phrase `Mei Lin`.
 
-Deletes the specified person from the address book.
+Matching ignores case and uses a substring of the normalized name, so partial names work. A multiword query is one phrase, not separate alternative keywords. This command does not search guardian names, academic levels, or assignments.
 
-Format: `delete INDEX`
+The main list shows all matches and reports, for example, `Found 2 student(s) matching "mei".` A valid query with no matches reports `No students match "mei".`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, …​
+![Mockup of student search results for mei](mockup/search-students-by-name.png)
+
+### Opening a student profile: `view-student`
+
+Format: `view-student sid/STUDENT_ID`
+
+Example: `view-student sid/S-0007`
+
+Opens the student's read-only profile and reports `Opened profile for S-0007.` The profile shows their academic level, all assignments with codes and labels, and the linked guardian's name and current phone number. If there is no link, it shows `Guardian: none`.
+
+Use the ID shown in the student list or search results. To change information, use the relevant editing, linking, or assignment command.
+
+### Deleting a student: `delete-student`
+
+Format: `delete-student sid/STUDENT_ID`
+
+Example: `delete-student sid/S-0007`
+
+**Deletion permanently removes the student record.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
+
+The student's guardian link is removed, but the guardian record and links to other students are retained. The list refreshes and an open profile closes.
+
+Example result: `Deleted student S-0007: Mei Lin. Guardian link removed; guardian G-0003 was retained.` If the student had no guardian, the guardian sentence is omitted.
+
+## Managing guardians and relationships
+
+### Adding a guardian: `add-guardian`
+
+Format: `add-guardian n/NAME p/PHONE`
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
-### Clearing all entries: `clear`
+* `add-guardian n/Anita Lim p/91234567`
+* `add-guardian p/+65 61234567 n/Raj Kumar`
 
-Clears all entries from the address book.
+Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Creating a guardian does not automatically link it to the selected student. Use `link-guardian` afterwards.
 
-Format: `clear`
+Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number in the MVP.
 
-### Exiting the program: `exit`
+### Updating a guardian's phone: `edit-guardian`
 
-Exits the program.
+Format: `edit-guardian gid/GUARDIAN_ID p/PHONE`
+
+Example: `edit-guardian gid/G-0003 p/+65 98765432`
+
+Updates the shared guardian record. Every linked student profile then shows the new number, including an affected profile that is already open.
+
+Example result: `Updated guardian G-0003 phone to +65 98765432. Updated contact will appear in 2 linked student profile(s).` The count depends on the guardian's links.
+
+If another guardian already uses the number, the update is rejected with, for example, `Phone +65 98765432 is already used by guardian G-0004.` This command only edits phone numbers.
+
+### Linking a guardian: `link-guardian`
+
+Format: `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID`
+
+Example: `link-guardian sid/S-0007 gid/G-0003`
+
+Links an existing student to an existing guardian. The student's profile immediately shows the guardian's name and number.
+
+Example result: `Linked student S-0007 (Mei Lin) to guardian G-0003 (Anita Lim, +65 91234567).`
+
+![Mockup of two siblings sharing a guardian record](mockup/link-guardian.png)
+
+Each student can have **one guardian** in the MVP. A guardian can be linked to multiple students: for example, `link-guardian sid/S-0008 gid/G-0003` links a second student to the same guardian.
+
+Repeating a link reports `Student S-0007 is already linked to guardian G-0003.` Trying to link a different guardian while a link exists reports `Student S-0007 already has guardian G-0003. Unlink it before linking another guardian.`
+
+### Removing or correcting a guardian link: `unlink-guardian`
+
+Format: `unlink-guardian sid/STUDENT_ID`
+
+Example: `unlink-guardian sid/S-0007`
+
+Removes the relationship while keeping both records and the guardian's links to other students. The profile shows `Guardian: none`.
+
+Example result: `Removed guardian G-0003 from student S-0007. Guardian record was retained.` If there is no existing link, it reports `Student S-0007 has no guardian to unlink.`
+
+To correct a link, first unlink the student, then run `link-guardian` with the correct guardian ID.
+
+## Managing subjects and classes
+
+### Viewing available groups: `list-groups`
+
+Format: `list-groups`
+
+Shows the configured group catalogue, including each group's code, label, and kind (Subject or Class). Subject codes include `ENG`, `MAT`, `SCI`, and `CHI`. A class code might be `S2-MAT-A` for Secondary 2 Mathematics A. Always use `list-groups` to check the full catalogue available in your installation.
+
+![Mockup of the configured subject and class catalogue](mockup/view-configured-groups.png)
+
+The result reports the catalogue size, for example `Listed 24 configured group(s).` Creating new groups through commands is outside the MVP.
+
+### Assigning a group: `assign-group`
+
+Format: `assign-group sid/STUDENT_ID g/GROUP_CODE`
+
+Examples:
+
+* `assign-group sid/S-0007 g/MAT`
+* `assign-group g/S2-MAT-A sid/S-0007`
+
+Adds one configured subject or class group to the student's profile. A student may have multiple different assignments. `MAT` and `S2-MAT-A` are separate assignments; add both if both are needed.
+
+Example result: `Assigned group S2-MAT-A (Secondary 2 Mathematics A) to student S-0007.` The profile's assignments refresh.
+
+The same group cannot be added twice: `Student S-0007 is already assigned to S2-MAT-A.` An unavailable code reports `Group CODE is not configured. Run list-groups to see available groups.`
+
+### Removing a group assignment: `unassign-group`
+
+Format: `unassign-group sid/STUDENT_ID g/GROUP_CODE`
+
+Example: `unassign-group sid/S-0007 g/S2-MAT-A`
+
+Removes that assignment from the student and refreshes the profile. It leaves the group catalogue and the student's other assignments unchanged.
+
+Example result: `Removed group S2-MAT-A from student S-0007.` If the configured group is not assigned to the student, it reports `Student S-0007 is not assigned to S2-MAT-A.`
+
+When a student changes class, remove their old class assignment and assign the new class using its configured code.
+
+## Help, saving, and closing
+
+### Getting help: `help`
+
+Format: `help [COMMAND]`
+
+Enter `help` to open or bring forward the help panel with all commands. Enter `help add-student`, for example, to see that command's syntax, examples, validation rules, and common errors. The result says `Showing help for add-student.`
+
+![Mockup of command-specific help](mockup/command-help.png)
+
+The optional command name is case-insensitive and has no prefix. An unrecognized name reports `No help is available for "COMMAND". Run help to see all commands.` Supplying more than one word reports `Invalid command format. Use: help [COMMAND]`.
+
+### Saving and reopening
+
+Mentora's planned MVP saves all records locally after every successful command that changes data. There is no manual save command, account, or network connection required for this workflow. The status bar shows `Saved locally` after a successful change.
+
+When Mentora reopens, it reloads the saved records and reports the counts, for example `Loaded 18 students and 12 guardians from local storage.`
+
+**If saving fails**, the triggering change is rolled back. The result begins with `Could not save changes.` and identifies what was not saved. Do not assume an edit succeeded: resolve the storage problem and retry the command.
+
+**If loading fails**, the planned MVP preserves the original file, opens an empty recovery model, and disables saving. It reports:
+
+> Could not load local data. Your original data file was not changed; restore or replace it before saving.
+
+An empty list in this recovery state does not mean your original records have been deleted. Close the application, preserve a copy of the original data, and restore a valid backup or obtain help repairing it before reopening. Unreadable or malformed data, duplicate IDs, missing referenced guardians, or unknown group codes can cause this error. An unreadable group catalogue also prevents assignments; duplicate catalogue codes produce `Configured group codes must be unique.`
+
+The Mentora data-file location and backup procedure have not yet been specified. Do not assume the original AddressBook data file supports Mentora records or edit it using this preview. The recovery behaviour above is planned for Mentora and does not describe the current AddressBook build.
+
+### Closing Mentora: `exit`
 
 Format: `exit`
 
-### Saving the data
+Closes the application after pending writes have completed and reports `Closing Mentora.` Extra arguments are rejected with `Invalid command format. Use: exit`.
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+## Troubleshooting
 
-### Editing the data file
+| Message or problem | What to do |
+|---|---|
+| `Invalid command format. Use: FORMAT` | Follow the displayed format. Include each required prefix once, provide non-empty values, and remove unknown or extra input. Use `help COMMAND` for an example. |
+| `Name must be 1-80 characters and contain letters, spaces, apostrophes, hyphens, or periods only.` | Check the length and characters, including that the name starts and ends with a letter. |
+| `Academic level must be Sec 1-5 or IP 1-6.` | Enter a value such as `Sec 2` or `IP 4`, rather than `Secondary two`. |
+| `Phone number must be an 8-digit Singapore number, optionally prefixed by +65.` | Use eight digits starting with 3, 6, 8, or 9. Remove hyphens, brackets, and extensions. |
+| `Search query must be 1-80 characters and contain name characters only.` | Search with a whole or partial name following the accepted name rules. |
+| `Student S-0007 does not exist.` | Run `list-students` or `find-student` and copy the correct student ID. Do not use the row number. |
+| `Guardian G-0003 does not exist.` | Check the ID from guardian creation or a linked student's profile. Create the guardian first if it has not been registered. |
+| No students match a query | Try a shorter part of the name or run `list-students`. Search does not cover guardian names, levels, or groups. |
+| A duplicate student or phone number is rejected | Check whether the record already exists. Reuse a shared guardian's ID for siblings. See the duplicate restrictions in the adding sections. |
+| A group code is not configured | Run `list-groups` and use an exact listed code. |
+| `Could not save changes.` | The change did not take effect. Check that the storage location is writable and has space, then retry. |
+| A load error appears with an empty list | Follow the recovery guidance under [Saving and reopening](#saving-and-reopening); preserve the original file. |
+| Mentora commands are reported as unknown in the current build | The current implementation still uses AddressBook commands. The commands in this preview require the Mentora MVP implementation. |
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+## Scope and limitations
 
-<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
-</div>
+The MVP supports student records, one guardian per student, shared guardians, configured group assignments, student-name search, profiles, command help, and local storage for one coordinator at a time.
 
-### Archiving data files `[coming in v2.0]`
+The following are **not included in the MVP**:
 
-_Details coming soon ..._
+* Multiple guardians per student or creation of new groups through commands.
+* Guardian-name search, filtering students by subject or level, and a command to jump to an edit screen.
+* Prospect-to-active conversion, active-only lists, and archiving withdrawn or graduated students.
+* Class guardian contact lists and deduplicated, copyable lists for announcements.
+* Importing or exporting contact lists and general incomplete-record reporting.
 
---------------------------------------------------------------------------------------------------------------------
+The phone-number validation documented here is included in the detailed MVP specification. The broader product ideas and future increments are not promises that every suggested feature will be delivered.
 
-## FAQ
+Mentora does not manage attendance, lesson content, grades, fees, payroll, or accounting. It does not send WhatsApp, SMS, or email messages or provide real-time collaboration between staff.
 
-**Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+## Frequently asked questions
 
---------------------------------------------------------------------------------------------------------------------
+**Can siblings share a guardian?** Yes. Add the guardian once and link each student to the same guardian ID. Editing the guardian's phone updates the details shown for every linked student.
 
-## Known issues
+**Does deleting a student delete their guardian?** No. It removes that student and their relationship, preserving the guardian and other students' links.
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+**Does changing academic level move the student to a new class?** No. Use `unassign-group` and `assign-group` to update class assignments separately.
 
---------------------------------------------------------------------------------------------------------------------
+**Can I keep a withdrawn student's record without showing it in the main list?** Archiving and active-only lists are deferred. Deletion is permanent and is not an archive operation.
+
+**Can two guardians use the same number?** The MVP treats the normalized phone number as unique, so separate guardian records cannot share a number.
 
 ## Command summary
 
-Action | Format, Examples
---------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
-**Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list`
-**Help** | `help`
+All commands below describe the planned MVP. Replace example IDs with IDs from your own records.
+
+| Action | Format | Example |
+|---|---|---|
+| Add student | `add-student n/NAME al/ACADEMIC_LEVEL` | `add-student n/Mei Lin al/Sec 2` |
+| Update academic level | `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL` | `edit-student sid/S-0007 al/Sec 3` |
+| Delete student permanently | `delete-student sid/STUDENT_ID` | `delete-student sid/S-0007` |
+| List all students | `list-students` | `list-students` |
+| Find students by name | `find-student n/QUERY` | `find-student n/mei` |
+| Open student profile | `view-student sid/STUDENT_ID` | `view-student sid/S-0007` |
+| Add guardian | `add-guardian n/NAME p/PHONE` | `add-guardian n/Anita Lim p/91234567` |
+| Update guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` | `edit-guardian gid/G-0003 p/98765432` |
+| Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
+| Unlink guardian | `unlink-guardian sid/STUDENT_ID` | `unlink-guardian sid/S-0007` |
+| View configured groups | `list-groups` | `list-groups` |
+| Assign group | `assign-group sid/STUDENT_ID g/GROUP_CODE` | `assign-group sid/S-0007 g/MAT` |
+| Remove group assignment | `unassign-group sid/STUDENT_ID g/GROUP_CODE` | `unassign-group sid/S-0007 g/MAT` |
+| Get help | `help [COMMAND]` | `help add-student` |
+| Exit | `exit` | `exit` |
