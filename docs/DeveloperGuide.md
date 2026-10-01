@@ -261,71 +261,260 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* coordinates a small private tuition centre in Singapore;
+* manages approximately 30–200 active and prospective secondary-school students;
+* frequently updates student and guardian contact details, enrolment statuses, academic levels, and class or subject assignments;
+* needs to retrieve individual contacts and contact groups quickly for administrative work;
+* can type quickly and prefers fast keyboard-driven workflows to mouse-heavy systems; and
+* is the sole user of a local desktop application and does not require real-time collaboration.
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Manage every student and guardian contact accurately, and find the right people in seconds using fast typed commands.
+
+Mentora will:
+
+* manage contact and basic administrative information for students and their guardians;
+* represent student–guardian relationships without duplicating shared guardian records;
+* help coordinators organize, find, update, and act on contacts by academic level, class, subject, or enrolment status;
+* treat people and their contact information as its primary focus; and
+* support keyboard-first, local desktop usage by one coordinator at a time.
+
+Mentora will not:
+
+* manage lesson content, attendance, grades, fees, payroll, or accounting;
+* replace a full student-management or learning-management system;
+* send WhatsApp, SMS, or email messages directly;
+* support real-time collaboration between multiple staff members; or
+* target large schools, universities, or multi-branch education businesses.
 
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priorities: High (must have) - `* * *`, Medium (should have) - `* *`, Low (possible future direction) - `*`.
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| ID | Priority | As a …​ | I want to …​ | So that I can …​ |
+| -- | -------- | ------- | -------------- | ----------------- |
+| US01 | `* * *` | new coordinator | view command help and clear examples | learn or recall how to use Mentora without leaving the application |
+| US02 | `* * *` | coordinator | add a student with a name and academic level | create a basic student record |
+| US03 | `* * *` | coordinator | update a student's academic level | keep the record accurate when the student advances or a mistake is found |
+| US04 | `* * *` | coordinator | delete a student while preserving any shared guardian record | remove an incorrect student record without affecting siblings |
+| US05 | `* * *` | coordinator | add a guardian with a name and phone number | retain the student's administrative contact information |
+| US06 | `* * *` | coordinator | update a guardian's phone number once | show the new number in every linked student's profile |
+| US07 | `* * *` | coordinator | link a student to a guardian | see the appropriate contact from the student's profile |
+| US08 | `* * *` | coordinator | link siblings to the same guardian record | avoid entering and maintaining duplicate contact details |
+| US09 | `* * *` | coordinator | assign a student to an existing subject or class group | record the student's tuition arrangements |
+| US10 | `* * *` | coordinator | view a student's group assignments in the student's profile | understand the student's current tuition arrangements |
+| US11 | `* * *` | coordinator | list all registered students | browse the centre's records |
+| US12 | `* * *` | coordinator | search for a student by name | answer enquiries without scanning multiple spreadsheets |
+| US13 | `* * *` | coordinator | open a student's profile | see the academic level, assignments, and linked guardian together |
+| US14 | `* * *` | coordinator | perform core record-management tasks using typed commands | work quickly without switching repeatedly between keyboard and mouse |
+| US15 | `* * *` | coordinator | receive clear feedback for successful and invalid commands | know whether the intended change was made and how to correct errors |
+| US16 | `* * *` | coordinator | have records saved locally and reloaded when Mentora reopens | continue working without an account, network connection, or manual save step |
+| US17 | `* *` | coordinator | search for guardians by name | retrieve an existing guardian record quickly |
+| US18 | `* *` | coordinator | filter students by subject or academic level | review a relevant cohort without scanning all records |
+| US19 | `* *` | coordinator | jump directly to a student's edit workflow using a command | update frequently changing information with minimal interruption |
+| US20 | `* *` | coordinator | mark a prospective student as active | keep the enrolment status current when the student enrols |
+| US21 | `* *` | coordinator | display only active students | keep daily work focused on currently enrolled students |
+| US22 | `* *` | coordinator | archive withdrawn or graduated students | retain historical records without cluttering active lists |
+| US23 | `* *` | coordinator | display guardian contacts for a selected class | prepare the correct audience for an announcement |
+| US24 | `* *` | coordinator | obtain a copyable class contact list containing each shared guardian once | use the list in an external messaging application without sending duplicate messages |
+| US25 | `* *` | coordinator | require guardian phone numbers to contain eight digits and explain invalid entries | correct contact details before they are saved |
+| US26 | `*` | coordinator | link a student to more than one guardian | retain multiple valid contacts for the same student |
+| US27 | `*` | coordinator | record a student's school | retain additional context useful for administration |
+| US28 | `*` | coordinator | filter contacts by class or enrolment status | retrieve other useful contact groups quickly |
+| US29 | `*` | coordinator | detect incomplete or duplicate records | correct inconsistent data before it causes administrative mistakes |
+| US30 | `*` | coordinator | import and export contact lists | move existing spreadsheet data into or out of Mentora efficiently |
+| US31 | `*` | coordinator | create and update subject or class groups using commands | adapt Mentora when the centre's class structure changes |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `Mentora` and the **Actor** is the tuition-centre coordinator, unless specified otherwise.)
 
-**Use case: Delete a person**
+**Use case UC01: Register a new student with a guardian and group assignment**
+
+**Preconditions:** Mentora has loaded a writable local data file.
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Coordinator requests to add a guardian with the guardian's name and phone number.
+2. Mentora creates the guardian record.
+3. Coordinator requests to add a student with the student's name and academic level.
+4. Mentora creates the student record.
+5. Coordinator requests to link the student to the guardian.
+6. Mentora creates the student–guardian relationship.
+7. Coordinator requests to assign an existing subject or class group to the student.
+8. Mentora adds the group assignment.
+9. Coordinator requests to view the student's profile.
+10. Mentora displays the student's academic level, group assignment, and linked guardian contact.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The guardian already has a record in Mentora.
+  * 1a1. Coordinator searches for the guardian by name.
+  * 1a2. Mentora displays the matching guardian record.
 
-  Use case ends.
+    Use case resumes at step 3.
 
-* 3a. The given index is invalid.
+* 1b. The guardian details are invalid.
+  * 1b1. Mentora explains why the guardian cannot be added.
 
-    * 3a1. AddressBook shows an error message.
+    Use case resumes at step 1.
 
-      Use case resumes at step 2.
+* 3a. The student details are invalid or match an existing student record.
+  * 3a1. Mentora explains why the student cannot be added.
 
-*{More to be added}*
+    Use case resumes at step 3.
+
+* 5a. The student already has the maximum number of guardians supported by the current product version.
+  * 5a1. Mentora informs the coordinator that another guardian cannot be linked.
+
+    Use case ends.
+
+* 7a. The selected group does not exist.
+  * 7a1. Mentora displays the configured groups.
+
+    Use case resumes at step 7.
+
+* \*a. At any time, Mentora cannot save a requested change.
+  * \*a1. Mentora leaves the last valid data unchanged and reports the failure.
+
+    Use case ends.
+
+**Use case UC02: Handle a parent enquiry and update the guardian's phone number**
+
+**Preconditions:** The student and linked guardian have existing records, and Mentora has loaded a writable local data file.
+
+**MSS**
+
+1. Coordinator searches for the student by name.
+2. Mentora displays matching students.
+3. Coordinator requests to view the required student's profile.
+4. Mentora displays the student's academic level, assignments, and linked guardian contact.
+5. Coordinator requests to update the guardian's phone number.
+6. Mentora updates the guardian record and confirms the change.
+7. Coordinator requests to view the student's profile again.
+8. Mentora displays the updated guardian phone number.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. No student matches the search.
+  * 2a1. Mentora reports that no student was found.
+
+    Use case ends.
+
+* 5a. The new phone number is invalid.
+  * 5a1. Mentora explains the required phone-number format.
+
+    Use case resumes at step 5.
+
+* 5b. The new phone number duplicates another guardian's number.
+  * 5b1. Mentora identifies the duplicate record and does not update the guardian.
+
+    Use case ends.
+
+* 6a. Mentora cannot save the updated number.
+  * 6a1. Mentora retains the previous number and reports the failure.
+
+    Use case ends.
+
+**Use case UC03: Review a cohort and archive an inactive student**
+
+**Preconditions:** Mentora contains student records and has loaded a writable local data file.
+
+**MSS**
+
+1. Coordinator requests students belonging to a subject or academic level.
+2. Mentora displays matching active students.
+3. Coordinator selects a student who has withdrawn or graduated.
+4. Coordinator requests to archive the selected student.
+5. Mentora retains the record but removes it from active-student results.
+6. Coordinator requests to display active students again.
+7. Mentora displays the active students without the archived record.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. No active students match the selected subject or level.
+  * 2a1. Mentora reports that no matching students were found.
+
+    Use case ends.
+
+* 4a. The selected student is already archived.
+  * 4a1. Mentora informs the coordinator that no change is required.
+
+    Use case ends.
+
+* 5a. Mentora cannot save the archival change.
+  * 5a1. Mentora keeps the student active and reports the failure.
+
+    Use case ends.
+
+**Use case UC04: Prepare a class contact list for an external announcement**
+
+**Preconditions:** The selected class and its students exist in Mentora.
+
+**MSS**
+
+1. Coordinator requests to view students in a selected class.
+2. Mentora displays the matching students.
+3. Coordinator requests the guardian contacts for those students.
+4. Mentora displays a copyable contact list containing each shared guardian once.
+5. Coordinator copies the list for use in an external messaging application.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The selected class contains no students.
+  * 2a1. Mentora reports that there are no contacts to display.
+
+    Use case ends.
+
+* 3a. One or more students have no linked guardian.
+  * 3a1. Mentora identifies those students and displays the remaining available contacts.
+
+    Use case resumes at step 4.
+
+* 3b. Multiple students share the same guardian.
+  * 3b1. Mentora includes that guardian only once in the contact list.
+
+    Use case resumes at step 4.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1. **NFR01 — Platform independence:** Mentora should work on Windows, Linux, and macOS computers that have Java 25 installed.
+2. **NFR02 — Portability:** Mentora should run without an installer and should be distributed as a single JAR file.
+3. **NFR03 — Local single-user operation:** Mentora should support one coordinator operating one local data set at a time and should not require an account, Internet connection, remote server, or real-time collaboration service.
+4. **NFR04 — Human-editable storage:** Mentora should store its persistent data locally in a human-editable text format such as JSON and should not require a database management system.
+5. **NFR05 — Capacity and responsiveness:** With 200 student records and their associated guardian, enrolment, and group data, Mentora should complete a valid command within one second on a reference computer with a 2 GHz four-core processor, 8 GB of RAM, an SSD, and Java 25.
+6. **NFR06 — Startup performance:** With the data volume specified in NFR05, Mentora should load the local data and become ready for commands within three seconds on the same reference computer.
+7. **NFR07 — Data integrity:** A state-changing command should either be saved completely or leave both the in-memory and persisted data unchanged. Mentora should preserve an unreadable or invalid data file instead of overwriting it.
+8. **NFR08 — Keyboard accessibility:** Every core record-management function should be usable through typed commands without requiring a mouse.
+9. **NFR09 — Screen compatibility:** The GUI should work without resolution-related inconvenience at 1920×1080 or higher with 100% or 125% display scaling, and all functions should remain usable at 1280×720 or higher with 150% scaling.
+10. **NFR10 — Deliverable size:** The distributed JAR or ZIP file should not exceed 100 MB and should not contain unnecessarily large assets or unused libraries.
+11. **NFR11 — External dependencies:** Any third-party libraries should be free, open-source, permissively licensed, and should not require separate installation by the user.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Academic level**: A student's current Singapore secondary-school level, such as Secondary 1 or Integrated Programme Year 4.
+* **Active student**: A student currently enrolled at the tuition centre.
+* **Archived student**: A withdrawn or graduated student whose record is retained but excluded from active-student lists.
+* **Class group**: A tuition class to which one or more students are assigned.
+* **Contact list**: A copyable collection of guardian contact details prepared for use in an external messaging application.
+* **Coordinator**: The single tuition-centre staff member who operates Mentora and maintains its records.
+* **Enrolment status**: The stage of a student's relationship with the centre, such as prospective, active, withdrawn, or graduated.
+* **Guardian**: A parent or other responsible person whose contact record may be linked to one or more students.
+* **Guardian link**: The relationship connecting a student to a guardian. The MVP supports one guardian per student and allows one guardian to be linked to multiple students; support for multiple guardians per student is deferred.
+* **Group assignment**: A relationship indicating that a student belongs to a configured subject or class group.
+* **Keyboard-first**: Designed so that core tasks can be completed efficiently using typed commands without requiring mouse input.
+* **Prospective student**: A student whose details are recorded before enrolment is confirmed.
+* **Shared guardian**: One guardian record linked to multiple students, such as siblings.
+* **Student**: An active or prospective secondary-school learner whose contact and basic administrative information is managed in Mentora.
+* **Subject group**: A configured tuition subject to which students may be assigned.
 
 --------------------------------------------------------------------------------------------------------------------
 
