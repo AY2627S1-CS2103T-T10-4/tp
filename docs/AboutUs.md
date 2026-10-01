@@ -9,15 +9,15 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Valentino Nathan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/valentinonathan.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/valentinonathan)]
+[[portfolio](team/valentino-nathan.md)]
 
 * Role: Project Advisor
+* Responsibility: UI
 
 ### Jane Doe
 
