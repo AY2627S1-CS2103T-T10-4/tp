@@ -40,7 +40,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Koh Wee Sheng Raynor
 
-<img src="images/raynor-koh.jpeg" width="200px">
+<img src="images/raynor-koh.png" width="200px">
 
 [[github](http://github.com/raynor-koh)]
 [[portfolio](team/raynor-koh.md)]
