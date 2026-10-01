@@ -1,19 +1,18 @@
 ---
 layout: page
-title: AddressBook Level 3
+title: Mentora
 ---
-
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
 
 ![Ui](images/Ui.png)
 
-**AddressBook is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+**Mentora** is a keyboard-first, local desktop application for coordinators of small private tuition centres in Singapore. It is designed for one coordinator managing 30–200 secondary-school students and their guardians, keeping student profiles, academic levels, subject or class assignments, and guardian links together so contacts can be found and updated quickly with typed commands.
 
-* If you are interested in using AddressBook, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing AddressBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+* To learn how to use the application, start with the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
+* To learn how to build and extend the application, see the [**Developer Guide**](DeveloperGuide.html).
+* Meet the project team on the [**About Us**](AboutUs.html) page.
 
 
 **Acknowledgements**
 
-* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
+* Built with JavaFX, Jackson, and JUnit 5.
