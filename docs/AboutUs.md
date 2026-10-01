@@ -29,11 +29,11 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Team Lead
 * Responsibilities: UI
 
-### Johnny Doe
+### Gabriel Chan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/hiimhey.png" width="200px">
 
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/HIIMHEY)]
 
 * Role: Developer
 * Responsibilities: Data
