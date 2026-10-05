@@ -25,7 +25,7 @@ The window defaults to `1000 × 650` and restores larger saved dimensions. Previ
 |---|---|---|---|
 | Application window | `MainWindow` | `MainWindow.fxml` | Composes the screen, keeps File/Help behavior, binds the visible contact count, and connects contact selection to the details panel. |
 | Command input and Run button | `CommandBox` | `CommandBox.fxml` | Accepts commands, executes them on Enter or button press, clears successful input, and marks invalid input. |
-| Latest command result | `ResultDisplay` | `ResultDisplay.fxml` | Displays command feedback in a one-line-high empty state, then grows the complete result row to fit wrapped or multi-line output. |
+| Latest command result | `ResultDisplay` | `ResultDisplay.fxml` | Reserves one line of content when empty, measures wrapped or multi-line feedback, and supplies the preferred content height used by the complete result row. |
 | Contact list | `PersonListPanel` | `PersonListPanel.fxml` | Owns the `ListView<Person>`, creates list cells, and exposes the selected person. |
 | Contact list row | `PersonCard` | `PersonListCard.fxml` | Shows the list position, name, tags, and phone number for one person. |
 | Selected contact details | `PersonDetailsPanel` | `PersonDetailsPanel.fxml` | Shows all current `Person` fields: name, tags, phone, email, and address. It also supplies the no-selection state. |
@@ -42,8 +42,10 @@ All paths above are relative to `src/main/java/seedu/address/ui/` for Java class
 
 The list itself continues to use `Logic#getFilteredPersonList()`. Commands and storage behavior are unchanged by the visual redesign.
 
+`ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
+
 ## Styling
 
-`DarkTheme.css` is retained as the shared stylesheet filename for compatibility, but now contains the light Mentora theme. It defines the white and soft-green palette, typography, list selection, detail layout, command controls, status bar, menus, and dialogs. `Extensions.css` contains small state-specific rules such as command errors and empty list cells. `HelpWindow.css` gives the existing help window the same light visual language.
+`DarkTheme.css` is retained as the shared stylesheet filename for compatibility, but now contains the light Mentora theme. It defines the white and soft-green palette, typography, list selection, detail layout, command controls, status bar, menus, and dialogs. `Extensions.css` contains small state-specific rules such as command errors and empty list cells. `HelpWindow.css` gives the existing help window the same light visual language. The Mentora image resource is used in both the brand header and the application window icon.
 
 The design uses only JavaFX controls and CSS. No web view, second runtime, or backend is introduced.
