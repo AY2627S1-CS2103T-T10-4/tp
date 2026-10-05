@@ -3,12 +3,16 @@ package seedu.address.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
@@ -25,17 +29,19 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final double MINIMUM_WINDOW_HEIGHT = 600;
+    private static final double MINIMUM_WINDOW_WIDTH = 900;
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
-    private Stage primaryStage;
-    private Logic logic;
-    private Path dataFilePath;
+    private final Stage primaryStage;
+    private final Logic logic;
+    private final Path dataFilePath;
+    private final HelpWindow helpWindow;
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
-    private HelpWindow helpWindow;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -47,7 +53,16 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane personListPanelPlaceholder;
 
     @FXML
+    private StackPane personDetailsPanelPlaceholder;
+
+    @FXML
+    private Label personCountLabel;
+
+    @FXML
     private StackPane resultDisplayPlaceholder;
+
+    @FXML
+    private HBox resultSection;
 
     @FXML
     private StackPane statusbarPlaceholder;
@@ -92,15 +107,14 @@ public class MainWindow extends UiPart<Stage> {
          * https://bugs.openjdk.java.net/browse/JDK-8131666
          * is fixed in a later version of the SDK.
          *
-         * According to the bug report, TextInputControl (TextField, TextArea) will
-         * consume function-key events. Because CommandBox contains a TextField and
-         * ResultDisplay contains a TextArea, some accelerators (e.g., F1) will
-         * not work when the focus is in them because the key event is consumed by
-         * the TextInputControl(s).
+         * According to the bug report, TextInputControl will consume function-key
+         * events. Because CommandBox contains a TextField, some accelerators (e.g., F1)
+         * will not work when the focus is in it because the key event is consumed by
+         * the TextInputControl.
          *
          * For now, we add the following event filter to capture such key events and open
          * the help window purposely so as to support accelerators even when focus is
-         * in CommandBox or ResultDisplay.
+         * in CommandBox.
          */
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getTarget() instanceof TextInputControl && keyCombination.match(event)) {
@@ -114,25 +128,61 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
+        fillPersonPanels();
+        fillResultDisplay();
+        fillStatusBar();
+        fillCommandBox();
+    }
+
+    private void fillPersonPanels() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
+        PersonDetailsPanel personDetailsPanel = new PersonDetailsPanel();
+        personDetailsPanelPlaceholder.getChildren().add(personDetailsPanel.getRoot());
+        personListPanel.selectedPersonProperty().addListener((observable, oldPerson, newPerson) ->
+                personDetailsPanel.setPerson(newPerson));
+        personCountLabel.textProperty().bind(
+                Bindings.size(logic.getFilteredPersonList()).asString("%d contacts"));
+        personListPanel.selectFirstPerson();
+    }
+
+    private void fillResultDisplay() {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        bindResultSectionHeight();
+    }
 
+    private void fillStatusBar() {
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
+    }
 
+    private void fillCommandBox() {
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    /**
+     * Keeps the complete result row in step with wrapped or multi-line feedback.
+     */
+    private void bindResultSectionHeight() {
+        DoubleBinding resultSectionHeight = Bindings.createDoubleBinding(() ->
+                resultDisplay.getRoot().getPrefHeight()
+                        + resultSection.getInsets().getTop()
+                        + resultSection.getInsets().getBottom(),
+                resultDisplay.getRoot().prefHeightProperty(), resultSection.insetsProperty());
+        resultSection.minHeightProperty().bind(resultSectionHeight);
+        resultSection.prefHeightProperty().bind(resultSectionHeight);
+        resultSection.maxHeightProperty().bind(resultSectionHeight);
     }
 
     /**
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(guiSettings.getWindowHeight());
-        primaryStage.setWidth(guiSettings.getWindowWidth());
+        primaryStage.setHeight(Math.max(MINIMUM_WINDOW_HEIGHT, guiSettings.getWindowHeight()));
+        primaryStage.setWidth(Math.max(MINIMUM_WINDOW_WIDTH, guiSettings.getWindowWidth()));
         if (guiSettings.getWindowCoordinates() != null) {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());

@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -27,8 +28,12 @@ public class CommandBox extends UiPart<Region> {
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
         this.commandExecutor = commandExecutor;
-        // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        configureCommandTextField();
+    }
+
+    private void configureCommandTextField() {
+        commandTextField.textProperty().addListener((observable, oldText, newText) -> setStyleToDefault());
+        Platform.runLater(commandTextField::requestFocus);
     }
 
     /**
@@ -37,7 +42,7 @@ public class CommandBox extends UiPart<Region> {
     @FXML
     private void handleCommandEntered() {
         String commandText = commandTextField.getText();
-        if (commandText.equals("")) {
+        if (commandText.isEmpty()) {
             return;
         }
 

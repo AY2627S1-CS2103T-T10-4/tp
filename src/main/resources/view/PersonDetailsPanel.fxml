@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="detailsRoot" spacing="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <VBox fx:id="emptyState" alignment="CENTER" spacing="8" VBox.vgrow="ALWAYS">
+    <Label text="No contact selected" styleClass="empty-state-title" />
+    <Label text="Choose a contact from the list to view their details." styleClass="empty-state-copy" />
+  </VBox>
+
+  <VBox fx:id="detailsContent" managed="false" spacing="0" visible="false">
+    <Label text="CONTACT DETAILS" styleClass="eyebrow-label" />
+    <Label fx:id="name" styleClass="profile-name" wrapText="true">
+      <VBox.margin>
+        <Insets top="8" />
+      </VBox.margin>
+    </Label>
+    <FlowPane fx:id="tags" hgap="7" vgap="6">
+      <VBox.margin>
+        <Insets top="12" bottom="22" />
+      </VBox.margin>
+    </FlowPane>
+    <Separator />
+
+    <VBox spacing="6" styleClass="detail-group">
+      <Label text="PHONE" styleClass="detail-key" />
+      <Label fx:id="phone" styleClass="detail-value" wrapText="true" />
+    </VBox>
+    <VBox spacing="6" styleClass="detail-group">
+      <Label text="EMAIL" styleClass="detail-key" />
+      <Label fx:id="email" styleClass="detail-value" wrapText="true" />
+    </VBox>
+    <VBox spacing="6" styleClass="detail-group">
+      <Label text="ADDRESS" styleClass="detail-key" />
+      <Label fx:id="address" styleClass="detail-value" wrapText="true" />
+    </VBox>
+  </VBox>
+</VBox>

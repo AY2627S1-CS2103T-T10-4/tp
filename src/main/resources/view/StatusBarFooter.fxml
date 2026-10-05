@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 
-<GridPane styleClass="status-bar" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10" />
-  </columnConstraints>
-  <Label fx:id="saveLocationStatus" />
-</GridPane>
+<HBox alignment="CENTER_LEFT" styleClass="status-bar" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
+  <Label text="Saved locally" styleClass="save-state" />
+  <Label text="  •  " styleClass="status-muted" />
+  <Label fx:id="saveLocationStatus" styleClass="status-muted" />
+  <Region HBox.hgrow="ALWAYS" />
+  <Label text="Keyboard-first  •  Enter to run  •  F1 for help" styleClass="status-muted" />
+</HBox>
