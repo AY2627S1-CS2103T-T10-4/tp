@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.Scene?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         title="Address App" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
+         title="Mentora" minWidth="820" minHeight="560" onCloseRequest="#handleExit">
   <icons>
-    <Image url="@/images/address_book_32.png" />
+    <Image url="@/images/mentora_logo.png" />
   </icons>
   <scene>
     <Scene>
@@ -23,35 +26,58 @@
         <URL value="@Extensions.css" />
       </stylesheets>
 
-      <VBox>
-        <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
-          <Menu mnemonicParsing="false" text="File">
-            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
-          </Menu>
-        </MenuBar>
+      <VBox styleClass="app-shell">
+        <HBox alignment="CENTER_LEFT" styleClass="app-header" spacing="10">
+          <ImageView fitHeight="38" fitWidth="38" preserveRatio="true" smooth="true" styleClass="brand-logo">
+            <image>
+              <Image url="@/images/mentora_logo.png" />
+            </image>
+          </ImageView>
+          <VBox alignment="CENTER_LEFT" spacing="0">
+            <Label text="Mentora" styleClass="brand-name" />
+            <Label text="Your people, clearly organised" styleClass="brand-tagline" />
+          </VBox>
+          <Region HBox.hgrow="ALWAYS" />
+          <MenuBar fx:id="menuBar" styleClass="header-menu" HBox.hgrow="NEVER">
+            <Menu mnemonicParsing="false" text="File">
+              <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+              <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help (F1)" />
+            </Menu>
+          </MenuBar>
+        </HBox>
 
-        <StackPane VBox.vgrow="NEVER" fx:id="commandBoxPlaceholder" styleClass="pane-with-border">
-          <padding>
-            <Insets top="5" right="10" bottom="5" left="10" />
-          </padding>
-        </StackPane>
-
-        <StackPane VBox.vgrow="NEVER" fx:id="resultDisplayPlaceholder" styleClass="pane-with-border"
-                   minHeight="100" prefHeight="100" maxHeight="100">
-          <padding>
-            <Insets top="5" right="10" bottom="5" left="10" />
-          </padding>
-        </StackPane>
-
-        <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
+        <VBox styleClass="command-section" spacing="7" VBox.vgrow="NEVER">
+          <HBox alignment="CENTER_LEFT">
+            <Label text="COMMAND / LATEST INPUT" styleClass="eyebrow-label" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Type a command, then press Enter" styleClass="helper-label" />
+          </HBox>
+          <StackPane fx:id="commandBoxPlaceholder" />
         </VBox>
+
+        <HBox fx:id="resultSection" alignment="CENTER_LEFT" styleClass="result-section" spacing="14"
+              VBox.vgrow="NEVER">
+          <Label text="RESULT" styleClass="result-label" />
+          <StackPane fx:id="resultDisplayPlaceholder" HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <SplitPane dividerPositions="0.43" styleClass="workspace" VBox.vgrow="ALWAYS">
+          <VBox minWidth="320" styleClass="list-panel">
+            <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
+              <Label text="Contacts" styleClass="section-title" />
+              <Region HBox.hgrow="ALWAYS" />
+              <Label fx:id="personCountLabel" text="0 contacts" styleClass="record-count" />
+            </HBox>
+            <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
+              <Label text="NAME / TAGS" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+              <Label text="CONTACT" minWidth="94" />
+            </HBox>
+            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+          <StackPane fx:id="personDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
+        </SplitPane>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>
