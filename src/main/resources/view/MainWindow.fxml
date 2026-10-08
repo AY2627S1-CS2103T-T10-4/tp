@@ -35,7 +35,7 @@
           </ImageView>
           <VBox alignment="CENTER_LEFT" spacing="0">
             <Label text="Mentora" styleClass="brand-name" />
-            <Label text="Your people, clearly organised" styleClass="brand-tagline" />
+            <Label text="Student records, clearly organised" styleClass="brand-tagline" />
           </VBox>
           <Region HBox.hgrow="ALWAYS" />
           <MenuBar fx:id="menuBar" styleClass="header-menu" HBox.hgrow="NEVER">
@@ -68,15 +68,15 @@
             <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
               <Label text="Students" styleClass="section-title" />
               <Region HBox.hgrow="ALWAYS" />
-              <Label fx:id="personCountLabel" text="0 students" styleClass="record-count" />
+              <Label fx:id="studentCountLabel" text="0 students" styleClass="record-count" />
             </HBox>
             <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
               <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
               <Label text="LEVEL" minWidth="94" />
             </HBox>
-            <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+            <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
           </VBox>
-          <StackPane fx:id="personDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
+          <StackPane fx:id="studentDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
         </SplitPane>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />

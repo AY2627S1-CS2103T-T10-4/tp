@@ -23,7 +23,7 @@ The window defaults to `1000 × 650` and restores larger saved dimensions. Previ
 
 | Visible component | Java class | FXML | Responsibility |
 |---|---|---|---|
-| Application window | `MainWindow` | `MainWindow.fxml` | Composes the screen, keeps File/Help behavior, binds the visible contact count, and connects contact selection to the details panel. |
+| Application window | `MainWindow` | `MainWindow.fxml` | Composes the screen, keeps File/Help behavior, binds the student count, and connects student selection to the details panel. |
 | Command input and Run button | `CommandBox` | `CommandBox.fxml` | Accepts commands, executes them on Enter or button press, clears successful input, and marks invalid input. |
 | Latest command result | `ResultDisplay` | `ResultDisplay.fxml` | Reserves one line of content when empty, measures wrapped or multi-line feedback, and supplies the preferred content height used by the complete result row. |
 | Student list | `StudentListPanel` | `StudentListPanel.fxml` | Displays students with ID, name, and academic level; selection uses the stable student ID. |
@@ -39,10 +39,13 @@ All paths above are relative to `src/main/java/seedu/address/ui/` for Java class
 
 `MainWindow` creates the student list and details panel and passes the selected student to the details view. The first student is selected at startup. After `add-student`, the command result carries the generated ID and the list selects that student after the observable collection refreshes.
 
-The student list uses `Logic#getStudentList()`. Legacy Address Book person APIs remain in the codebase for other unimplemented features, but are not shown in this workspace.
+The student list uses `Logic#getStudentList()`. The active model and persistence layer store students only. Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
 [Open Student Profile Handover](OpenStudentProfileHandover.md).
+
+For the student-only model migration and PR #45 selection compatibility, see
+[Person to Student Migration Handover](PersonToStudentMigrationHandover.md).
 
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
 

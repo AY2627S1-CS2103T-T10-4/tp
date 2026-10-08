@@ -1,15 +1,17 @@
-# Add Student handover
+# Student-only model migration handover
 
 ## Implemented
 
 - Added `StudentId`, `StudentName`, `AcademicLevel`, and immutable `Student` values in `model/student/`.
-- Added a sorted student collection to `AddressBook`, exposed it through `Model` and `Logic`, and added `add-student` parsing and command execution.
-- Persisted students alongside the legacy `persons` JSON property. Loaded IDs advance the process-wide ID generator, preventing reuse after restart.
-- Added a student list and details view. A successful add returns its generated ID to `MainWindow`, which selects the matching list item.
-- `LogicManager` snapshots the model before executing a command and restores it if persistence fails. Add Student reports the specified save failure message.
+- `AddressBook`, `ReadOnlyAddressBook`, `Model`, and `ModelManager` now store and expose student records only.
+- The active parser accepts `add-student`, `help`, and `exit`; legacy Person commands are no longer reachable from the command box.
+- JSON persistence writes student records only and ignores a legacy `persons` property when reading old Address Book files.
+- The main window displays a student list and details view. Command results select students by stable ID. PR #45's Person row-index selection is retired and ignored.
+- `LogicManager` snapshots the student-only model before executing a command and restores it if persistence fails for `add-student`.
+- New installs start with sample student records. The command box prompt and user guide match the supported command set.
 
 ## Remaining scope
 
-The app still retains the Address Book `Person` model, APIs, commands, serialization, and unused contact UI classes so existing features continue to compile. This increment does not implement guardians, assignments, search, profile relationships, or the full Person-to-Student migration. Existing persisted `persons` data is retained; the application displays only student records in the main workspace.
+Legacy Person value classes, command implementations, parser helpers, and unused UI components remain in the source tree for compatibility with existing source-level tests. They are not exposed by the parser, are not part of the student model or persistence schema, and their model mutation APIs are deprecated and unsupported. Legacy `persons` entries are not migrated into students because they lack academic levels; saving the student-only model removes those entries. Guardian records, assignments, student edit/delete, search, and profile commands remain future work.
 
-`compileJava` completed successfully. Tests and UI launch were not run. Continue by adding focused tests for student values, parser edge cases, duplicate rules, JSON reload/ID continuity, save rollback, and list selection, then migrate the remaining feature APIs and storage under coordinated follow-on work.
+Tests and UI launch were not run. Continue by removing the retired Person compatibility source and updating the old Person-focused test suites, then implement the remaining specified student and guardian features.
