@@ -1,5 +1,6 @@
 package seedu.address.model.student;
 
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /** Stable identifier for a student. */
@@ -18,7 +19,7 @@ public final class StudentId implements Comparable<StudentId> {
 
     /** Returns a unique ID in the {@code S-0001} format. */
     public static StudentId generate() {
-        return new StudentId(String.format("S-%04d", NEXT.getAndIncrement()));
+        return new StudentId(String.format(Locale.ROOT, "S-%04d", NEXT.getAndIncrement()));
     }
 
     @Override
