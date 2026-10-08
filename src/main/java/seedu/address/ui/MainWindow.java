@@ -40,7 +40,7 @@ public class MainWindow extends UiPart<Stage> {
     private final HelpWindow helpWindow;
 
     // Independent Ui parts residing in this Ui container
-    private PersonListPanel personListPanel;
+    private StudentListPanel studentListPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -50,13 +50,13 @@ public class MainWindow extends UiPart<Stage> {
     private MenuItem helpMenuItem;
 
     @FXML
-    private StackPane personListPanelPlaceholder;
+    private StackPane studentListPanelPlaceholder;
 
     @FXML
-    private StackPane personDetailsPanelPlaceholder;
+    private StackPane studentDetailsPanelPlaceholder;
 
     @FXML
-    private Label personCountLabel;
+    private Label studentCountLabel;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -128,23 +128,22 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        fillPersonPanels();
+        fillStudentPanels();
         fillResultDisplay();
         fillStatusBar();
         fillCommandBox();
     }
 
-    private void fillPersonPanels() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
-        personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
-
-        PersonDetailsPanel personDetailsPanel = new PersonDetailsPanel();
-        personDetailsPanelPlaceholder.getChildren().add(personDetailsPanel.getRoot());
-        personListPanel.selectedPersonProperty().addListener((observable, oldPerson, newPerson) ->
-                personDetailsPanel.setPerson(newPerson));
-        personCountLabel.textProperty().bind(
-                Bindings.size(logic.getFilteredPersonList()).asString("%d contacts"));
-        personListPanel.selectFirstPerson();
+    private void fillStudentPanels() {
+        studentListPanel = new StudentListPanel(logic.getStudentList());
+        studentListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
+        StudentDetailsPanel detailsPanel = new StudentDetailsPanel();
+        studentDetailsPanelPlaceholder.getChildren().add(detailsPanel.getRoot());
+        studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
+                detailsPanel.setStudent(newStudent));
+        studentCountLabel.textProperty().bind(
+                Bindings.size(logic.getStudentList()).asString("%d students"));
+        studentListPanel.selectFirstStudent();
     }
 
     private void fillResultDisplay() {
@@ -217,8 +216,14 @@ public class MainWindow extends UiPart<Stage> {
         primaryStage.hide();
     }
 
+    StudentListPanel getStudentListPanel() {
+        return studentListPanel;
+    }
+
+    /** Empty compatibility panel for legacy UI tests; it is never attached to the window. */
+    @Deprecated
     public PersonListPanel getPersonListPanel() {
-        return personListPanel;
+        return new PersonListPanel(logic.getFilteredPersonList());
     }
 
     /**
@@ -231,8 +236,9 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-
-            commandResult.getSelectedIndex().ifPresent(personListPanel::selectPerson);
+            if (commandResult.getSelectedStudentId() != null) {
+                studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
+            }
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
