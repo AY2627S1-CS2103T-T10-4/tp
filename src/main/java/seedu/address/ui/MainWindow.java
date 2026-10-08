@@ -241,6 +241,8 @@ public class MainWindow extends UiPart<Stage> {
                 studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
             }
 
+            commandResult.getSelectedIndex().ifPresent(personListPanel::selectPerson);
+
             if (commandResult.isShowHelp()) {
                 handleHelp();
             }

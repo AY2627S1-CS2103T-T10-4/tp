@@ -41,6 +41,9 @@ All paths above are relative to `src/main/java/seedu/address/ui/` for Java class
 
 The student list uses `Logic#getStudentList()`. Legacy Address Book person APIs remain in the codebase for other unimplemented features, but are not shown in this workspace.
 
+For the command-driven selection API and Feature 13 integration notes, see
+[Open Student Profile Handover](OpenStudentProfileHandover.md).
+
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
 
 ## Styling
