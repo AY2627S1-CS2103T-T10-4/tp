@@ -2,16 +2,16 @@ package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Comparator;
 import java.util.List;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
-import javafx.collections.FXCollections;
-import java.util.Comparator;
 
 /**
  * Wraps all data at the address-book level.
@@ -57,13 +57,17 @@ public class AddressBook implements ReadOnlyAddressBook {
         newStudents.forEach(this::addStudent);
     }
 
+    /** Returns whether a student with the same ID or normalized name and level exists. */
     public boolean hasStudent(Student student) {
         return students.stream().anyMatch(existing -> existing.getId().equals(student.getId())
                 || existing.sameIdentity(student));
     }
 
+    /** Adds a student while enforcing unique IDs and identities. */
     public void addStudent(Student student) {
-        if (hasStudent(student)) { throw new IllegalArgumentException("Duplicate student ID or identity."); }
+        if (hasStudent(student)) {
+            throw new IllegalArgumentException("Duplicate student ID or identity.");
+        }
         students.add(student);
         students.sort(Comparator.comparing((Student s) -> s.getName().normalized()).thenComparing(Student::getId));
     }
@@ -113,10 +117,11 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .add("persons", persons)
-                .add("students", students)
-                .toString();
+        ToStringBuilder builder = new ToStringBuilder(this).add("persons", persons);
+        if (!students.isEmpty()) {
+            builder.add("students", students);
+        }
+        return builder.toString();
     }
 
     @Override

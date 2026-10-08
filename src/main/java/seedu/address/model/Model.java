@@ -71,10 +71,14 @@ public interface Model {
     }
 
     /** Returns true when this student duplicates an existing ID or normalized name and level. */
-    default boolean hasStudent(Student student) { return false; }
+    default boolean hasStudent(Student student) {
+        return false;
+    }
 
     /** Adds a student record. */
-    default void addStudent(Student student) { throw new UnsupportedOperationException(); }
+    default void addStudent(Student student) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.

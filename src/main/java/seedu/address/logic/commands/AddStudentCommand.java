@@ -15,7 +15,11 @@ public class AddStudentCommand extends Command {
     private final StudentName name;
     private final AcademicLevel level;
 
-    public AddStudentCommand(StudentName name, AcademicLevel level) { this.name = name; this.level = level; }
+    /** Creates an add command for the supplied student name and academic level. */
+    public AddStudentCommand(StudentName name, AcademicLevel level) {
+        this.name = name;
+        this.level = level;
+    }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {

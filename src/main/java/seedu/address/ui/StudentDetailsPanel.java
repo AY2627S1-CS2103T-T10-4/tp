@@ -14,11 +14,16 @@ public class StudentDetailsPanel extends UiPart<Region> {
     @FXML private Label id;
     @FXML private Label name;
     @FXML private Label academicLevel;
-    public StudentDetailsPanel() { super(FXML); }
+    public StudentDetailsPanel() {
+        super(FXML);
+    }
+
     public void setStudent(Student student) {
         boolean selected = student != null;
-        emptyState.setVisible(!selected); emptyState.setManaged(!selected);
-        detailsContent.setVisible(selected); detailsContent.setManaged(selected);
+        emptyState.setVisible(!selected);
+        emptyState.setManaged(!selected);
+        detailsContent.setVisible(selected);
+        detailsContent.setManaged(selected);
         if (selected) {
             id.setText(student.getId().toString());
             name.setText(student.getName().toString());

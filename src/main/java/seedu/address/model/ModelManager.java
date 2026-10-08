@@ -111,9 +111,20 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
-    @Override public ObservableList<Student> getStudentList() { return addressBook.getStudentList(); }
-    @Override public boolean hasStudent(Student student) { return addressBook.hasStudent(student); }
-    @Override public void addStudent(Student student) { addressBook.addStudent(student); }
+    @Override
+    public ObservableList<Student> getStudentList() {
+        return addressBook.getStudentList();
+    }
+
+    @Override
+    public boolean hasStudent(Student student) {
+        return addressBook.hasStudent(student);
+    }
+
+    @Override
+    public void addStudent(Student student) {
+        addressBook.addStudent(student);
+    }
 
     @Override
     public boolean equals(Object other) {

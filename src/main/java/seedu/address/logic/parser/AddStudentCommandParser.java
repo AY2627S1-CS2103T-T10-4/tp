@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.student.AcademicLevel;
@@ -22,18 +23,22 @@ public class AddStudentCommandParser implements Parser<AddStudentCommand> {
         }
         ArgumentMultimap arg = ArgumentTokenizer.tokenize(" " + canonical,
                 CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL);
-        if (!arg.getPreamble().isEmpty()) { throw new ParseException(AddStudentCommand.MESSAGE_USAGE); }
+        if (!arg.getPreamble().isEmpty()) {
+            throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
+        }
         try {
             arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL);
-            String rawName = arg.getValue(CliSyntax.PREFIX_NAME).orElseThrow(
-                    () -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
-            String rawLevel = arg.getValue(CliSyntax.PREFIX_ACADEMIC_LEVEL).orElseThrow(
-                    () -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
+            String rawName = arg.getValue(CliSyntax.PREFIX_NAME)
+                    .orElseThrow(() -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
+            String rawLevel = arg.getValue(CliSyntax.PREFIX_ACADEMIC_LEVEL)
+                    .orElseThrow(() -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
             return new AddStudentCommand(new StudentName(rawName), new AcademicLevel(rawLevel));
         } catch (ParseException e) {
             throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
         } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals(AddStudentCommand.MESSAGE_USAGE)) { throw new ParseException(e.getMessage()); }
+            if (e.getMessage().equals(AddStudentCommand.MESSAGE_USAGE)) {
+                throw new ParseException(e.getMessage());
+            }
             throw new ParseException(e.getMessage());
         }
     }

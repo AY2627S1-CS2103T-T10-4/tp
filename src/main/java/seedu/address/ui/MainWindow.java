@@ -137,6 +137,7 @@ public class MainWindow extends UiPart<Stage> {
 
     private void fillPersonPanels() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList()); // retained for legacy UI callers
+        personListPanel.selectFirstPerson();
         studentListPanel = new StudentListPanel(logic.getStudentList());
         personListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
         StudentDetailsPanel detailsPanel = new StudentDetailsPanel();

@@ -27,6 +27,9 @@ public class CommandResult {
         this(feedbackToUser, showHelp, exit, null);
     }
 
+    /**
+     * Constructs a result and optionally identifies the student to select in the UI.
+     */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, String selectedStudentId) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
@@ -54,7 +57,9 @@ public class CommandResult {
         return exit;
     }
 
-    public String getSelectedStudentId() { return selectedStudentId; }
+    public String getSelectedStudentId() {
+        return selectedStudentId;
+    }
 
     @Override
     public boolean equals(Object other) {
@@ -80,12 +85,14 @@ public class CommandResult {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
+        ToStringBuilder builder = new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
-                .add("exit", exit)
-                .add("selectedStudentId", selectedStudentId)
-                .toString();
+                .add("exit", exit);
+        if (selectedStudentId != null) {
+            builder.add("selectedStudentId", selectedStudentId);
+        }
+        return builder.toString();
     }
 
 }

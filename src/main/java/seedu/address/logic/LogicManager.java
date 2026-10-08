@@ -7,16 +7,16 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
-import seedu.address.model.AddressBook;
 import seedu.address.storage.Storage;
 
 /**
@@ -55,10 +55,10 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            model.setAddressBook(beforeCommand);
+            rollbackStudentAdd(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException ioe) {
-            model.setAddressBook(beforeCommand);
+            rollbackStudentAdd(command, beforeCommand);
             throw new CommandException(getSaveError(command, ioe), ioe);
         }
 
@@ -68,6 +68,12 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    private void rollbackStudentAdd(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand) {
+            model.setAddressBook(beforeCommand);
+        }
     }
 
     private String getSaveError(Command command, IOException cause) {
@@ -80,7 +86,10 @@ public class LogicManager implements Logic {
         return String.format(FILE_OPS_ERROR_FORMAT, cause.getMessage());
     }
 
-    @Override public ObservableList<Student> getStudentList() { return model.getStudentList(); }
+    @Override
+    public ObservableList<Student> getStudentList() {
+        return model.getStudentList();
+    }
 
     @Override
     public GuiSettings getGuiSettings() {

@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
@@ -17,11 +18,14 @@ class JsonAdaptedStudent {
     @JsonCreator
     JsonAdaptedStudent(@JsonProperty("id") String id, @JsonProperty("name") String name,
             @JsonProperty("academicLevel") String academicLevel) {
-        this.id = id; this.name = name; this.academicLevel = academicLevel;
+        this.id = id;
+        this.name = name;
+        this.academicLevel = academicLevel;
     }
 
     JsonAdaptedStudent(Student student) {
-        id = student.getId().value; name = student.getName().toString();
+        id = student.getId().value;
+        name = student.getName().toString();
         academicLevel = student.getAcademicLevel().toString();
     }
 
