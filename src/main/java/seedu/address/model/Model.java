@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 
 /**
  * The API of the Model component.
@@ -62,6 +63,18 @@ public interface Model {
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
+
+    /** Returns the current student records. */
+    default ObservableList<Student> getStudentList() {
+        return javafx.collections.FXCollections.unmodifiableObservableList(
+                javafx.collections.FXCollections.observableArrayList());
+    }
+
+    /** Returns true when this student duplicates an existing ID or normalized name and level. */
+    default boolean hasStudent(Student student) { return false; }
+
+    /** Adds a student record. */
+    default void addStudent(Student student) { throw new UnsupportedOperationException(); }
 
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.

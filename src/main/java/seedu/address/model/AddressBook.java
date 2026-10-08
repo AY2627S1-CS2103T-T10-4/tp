@@ -8,6 +8,10 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
+import javafx.collections.FXCollections;
+import java.util.Comparator;
 
 /**
  * Wraps all data at the address-book level.
@@ -16,6 +20,7 @@ import seedu.address.model.person.UniquePersonList;
 public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniquePersonList persons = new UniquePersonList();
+    private final javafx.collections.ObservableList<Student> students = FXCollections.observableArrayList();
 
     public AddressBook() {}
 
@@ -44,6 +49,27 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(newData);
 
         setPersons(newData.getPersonList());
+        setStudents(newData.getStudentList());
+    }
+
+    public void setStudents(List<Student> newStudents) {
+        students.clear();
+        newStudents.forEach(this::addStudent);
+    }
+
+    public boolean hasStudent(Student student) {
+        return students.stream().anyMatch(existing -> existing.getId().equals(student.getId())
+                || existing.sameIdentity(student));
+    }
+
+    public void addStudent(Student student) {
+        if (hasStudent(student)) { throw new IllegalArgumentException("Duplicate student ID or identity."); }
+        students.add(student);
+        students.sort(Comparator.comparing((Student s) -> s.getName().normalized()).thenComparing(Student::getId));
+    }
+
+    public boolean hasStudentId(StudentId id) {
+        return students.stream().anyMatch(student -> student.getId().equals(id));
     }
 
     //// person-level operations
@@ -89,12 +115,18 @@ public class AddressBook implements ReadOnlyAddressBook {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("persons", persons)
+                .add("students", students)
                 .toString();
     }
 
     @Override
     public ObservableList<Person> getPersonList() {
         return persons.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public ObservableList<Student> getStudentList() {
+        return FXCollections.unmodifiableObservableList(students);
     }
 
     @Override
@@ -108,11 +140,11 @@ public class AddressBook implements ReadOnlyAddressBook {
             return false;
         }
 
-        return persons.equals(otherAddressBook.persons);
+        return persons.equals(otherAddressBook.persons) && students.equals(otherAddressBook.students);
     }
 
     @Override
     public int hashCode() {
-        return persons.hashCode();
+        return 31 * persons.hashCode() + students.hashCode();
     }
 }
