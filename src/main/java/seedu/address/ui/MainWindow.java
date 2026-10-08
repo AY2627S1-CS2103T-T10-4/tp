@@ -232,6 +232,8 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
+            commandResult.getSelectedIndex().ifPresent(personListPanel::selectPerson);
+
             if (commandResult.isShowHelp()) {
                 handleHelp();
             }

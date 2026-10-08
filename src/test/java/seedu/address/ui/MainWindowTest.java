@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
@@ -30,6 +31,41 @@ public class MainWindowTest {
     @BeforeAll
     static void startJavaFxToolkit() {
         JavaFxTestUtils.startJavaFxToolkit();
+    }
+
+    @Test
+    public void submitCommand_selectionResult_updatesSelectionAndDetails() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
+            mainWindow.fillInnerParts();
+            stage.getScene().getRoot().applyCss();
+            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+            logic.commandResult = new CommandResult("Opened profile", INDEX_SECOND_PERSON);
+
+            input.setText("profile-selection-test");
+            submit(input);
+
+            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
+            assertEquals(BENSON.getName().fullName, getDetailsLabel(stage, "#name").getText());
+            assertEquals(BENSON.getPhone().value, getDetailsLabel(stage, "#phone").getText());
+            assertEquals(BENSON.getEmail().value, getDetailsLabel(stage, "#email").getText());
+            assertEquals(BENSON.getAddress().value, getDetailsLabel(stage, "#address").getText());
+            assertEquals("Opened profile", getLabel(stage, "#resultDisplay").getText());
+
+            logic.commandResult = new CommandResult("Command completed");
+            input.setText("list");
+            submit(input);
+            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
+
+            logic.commandFailure = new ParseException("Invalid command format!");
+            input.setText("invalid");
+            submit(input);
+            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
+            assertEquals(BENSON.getName().fullName, getDetailsLabel(stage, "#name").getText());
+            stage.close();
+        });
     }
 
     @Test
@@ -74,6 +110,10 @@ public class MainWindowTest {
         });
     }
 
+    private static Label getDetailsLabel(Stage stage, String selector) {
+        return (Label) stage.getScene().lookup("#detailsRoot").lookup(selector);
+    }
+
     private static Label getLabel(Stage stage, String selector) {
         return (Label) stage.getScene().lookup(selector);
     }
@@ -87,6 +127,7 @@ public class MainWindowTest {
         private GuiSettings guiSettings;
         private String lastCommand;
         private ParseException commandFailure;
+        private CommandResult commandResult = new CommandResult("Command completed");
 
         TestLogic(GuiSettings guiSettings) {
             this.guiSettings = guiSettings;
@@ -98,7 +139,7 @@ public class MainWindowTest {
             if (commandFailure != null) {
                 throw commandFailure;
             }
-            return new CommandResult("Command completed");
+            return commandResult;
         }
 
         @Override
