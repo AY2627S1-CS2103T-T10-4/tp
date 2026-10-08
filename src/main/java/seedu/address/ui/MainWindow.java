@@ -41,6 +41,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private StudentListPanel studentListPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -135,16 +136,16 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void fillPersonPanels() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
-        personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
-
-        PersonDetailsPanel personDetailsPanel = new PersonDetailsPanel();
-        personDetailsPanelPlaceholder.getChildren().add(personDetailsPanel.getRoot());
-        personListPanel.selectedPersonProperty().addListener((observable, oldPerson, newPerson) ->
-                personDetailsPanel.setPerson(newPerson));
+        personListPanel = new PersonListPanel(logic.getFilteredPersonList()); // retained for legacy UI callers
+        studentListPanel = new StudentListPanel(logic.getStudentList());
+        personListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
+        StudentDetailsPanel detailsPanel = new StudentDetailsPanel();
+        personDetailsPanelPlaceholder.getChildren().add(detailsPanel.getRoot());
+        studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
+                detailsPanel.setStudent(newStudent));
         personCountLabel.textProperty().bind(
-                Bindings.size(logic.getFilteredPersonList()).asString("%d contacts"));
-        personListPanel.selectFirstPerson();
+                Bindings.size(logic.getStudentList()).asString("%d students"));
+        studentListPanel.selectFirstStudent();
     }
 
     private void fillResultDisplay() {
@@ -231,6 +232,9 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            if (commandResult.getSelectedStudentId() != null) {
+                studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
+            }
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

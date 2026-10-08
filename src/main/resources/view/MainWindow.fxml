@@ -66,13 +66,13 @@
         <SplitPane dividerPositions="0.43" styleClass="workspace" VBox.vgrow="ALWAYS">
           <VBox minWidth="320" styleClass="list-panel">
             <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
-              <Label text="Contacts" styleClass="section-title" />
+              <Label text="Students" styleClass="section-title" />
               <Region HBox.hgrow="ALWAYS" />
-              <Label fx:id="personCountLabel" text="0 contacts" styleClass="record-count" />
+              <Label fx:id="personCountLabel" text="0 students" styleClass="record-count" />
             </HBox>
             <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
-              <Label text="NAME / TAGS" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-              <Label text="CONTACT" minWidth="94" />
+              <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+              <Label text="LEVEL" minWidth="94" />
             </HBox>
             <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
           </VBox>

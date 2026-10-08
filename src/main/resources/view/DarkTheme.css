@@ -203,6 +203,7 @@
 
 .list-cell:filled:selected {
     -fx-background-color: #e5f1ed;
+    -fx-text-fill: #173b33;
     -fx-border-color: transparent transparent #d6e5df #1a7863;
     -fx-border-width: 0 0 1px 3px;
 }
