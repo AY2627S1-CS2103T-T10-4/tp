@@ -223,6 +223,10 @@ public class MainWindow extends UiPart<Stage> {
         return personListPanel;
     }
 
+    StudentListPanel getStudentListPanel() {
+        return studentListPanel;
+    }
+
     /**
      * Executes the command and returns the result.
      *

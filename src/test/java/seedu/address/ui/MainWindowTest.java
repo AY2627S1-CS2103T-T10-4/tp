@@ -22,6 +22,10 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.AcademicLevel;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 
 public class MainWindowTest {
 
@@ -74,6 +78,29 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void submitCommand_selectedStudent_selectsMatchingStudentInList() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Student first = new Student(new StudentId("S-0210"), new StudentName("Amy Tan"),
+                    new AcademicLevel("Sec 2"));
+            Student selected = new Student(new StudentId("S-0211"), new StudentName("Mei Lin"),
+                    new AcademicLevel("Sec 3"));
+            logic.students.setAll(first, selected);
+            logic.commandResult = new CommandResult("Added student", false, false, "S-0211");
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
+            mainWindow.fillInnerParts();
+
+            TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
+            commandTextField.setText("add-student");
+            submit(commandTextField);
+
+            assertEquals(selected, mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            stage.close();
+        });
+    }
+
     private static Label getLabel(Stage stage, String selector) {
         return (Label) stage.getScene().lookup(selector);
     }
@@ -84,9 +111,11 @@ public class MainWindowTest {
 
     private static class TestLogic implements Logic {
         private final ObservableList<Person> people = FXCollections.observableArrayList(ALICE, BENSON);
+        private final ObservableList<Student> students = FXCollections.observableArrayList();
         private GuiSettings guiSettings;
         private String lastCommand;
         private ParseException commandFailure;
+        private CommandResult commandResult;
 
         TestLogic(GuiSettings guiSettings) {
             this.guiSettings = guiSettings;
@@ -98,12 +127,17 @@ public class MainWindowTest {
             if (commandFailure != null) {
                 throw commandFailure;
             }
-            return new CommandResult("Command completed");
+            return commandResult == null ? new CommandResult("Command completed") : commandResult;
         }
 
         @Override
         public ObservableList<Person> getFilteredPersonList() {
             return people;
+        }
+
+        @Override
+        public ObservableList<Student> getStudentList() {
+            return students;
         }
 
         @Override

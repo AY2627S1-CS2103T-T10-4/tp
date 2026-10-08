@@ -71,6 +71,14 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addStudent_savesAndExposesStudentList() throws Exception {
+        CommandResult result = logic.execute("add-student n/Mei Lin al/Sec 2");
+        assertEquals(1, logic.getStudentList().size());
+        assertEquals("Mei Lin", logic.getStudentList().get(0).getName().toString());
+        assertEquals(logic.getStudentList().get(0).getId().value, result.getSelectedStudentId());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
