@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.student.AcademicLevel;
@@ -26,12 +27,12 @@ class JsonAdaptedStudentTest {
 
     @Test
     void toModelType_missingFields_throwsIllegalValueException() {
-        assertThrows(IllegalValueException.class, "Student record is missing a required field.",
-                () -> new JsonAdaptedStudent(null, NAME, LEVEL).toModelType());
-        assertThrows(IllegalValueException.class, "Student record is missing a required field.",
-                () -> new JsonAdaptedStudent(ID, null, LEVEL).toModelType());
-        assertThrows(IllegalValueException.class, "Student record is missing a required field.",
-                () -> new JsonAdaptedStudent(ID, NAME, null).toModelType());
+        Executable missingId = () -> new JsonAdaptedStudent(null, NAME, LEVEL).toModelType();
+        Executable missingName = () -> new JsonAdaptedStudent(ID, null, LEVEL).toModelType();
+        Executable missingLevel = () -> new JsonAdaptedStudent(ID, NAME, null).toModelType();
+        assertThrows(IllegalValueException.class, "Student record is missing a required field.", missingId);
+        assertThrows(IllegalValueException.class, "Student record is missing a required field.", missingName);
+        assertThrows(IllegalValueException.class, "Student record is missing a required field.", missingLevel);
     }
 
     @Test

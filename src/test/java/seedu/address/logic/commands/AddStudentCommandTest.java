@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.ModelManager;
@@ -28,8 +29,8 @@ class AddStudentCommandTest {
         new AddStudentCommand(new StudentName("Mei Lin"), new AcademicLevel("Sec 2")).execute(model);
         AddStudentCommand duplicate = new AddStudentCommand(new StudentName("mei   lin"),
                 new AcademicLevel("sec 2"));
-        assertThrows(CommandException.class, "A student named mei lin at Sec 2 already exists.",
-                () -> duplicate.execute(model));
+        Executable execution = () -> duplicate.execute(model);
+        assertThrows(CommandException.class, "A student named mei lin at Sec 2 already exists.", execution);
         assertEquals(1, model.getStudentList().size());
     }
 }
