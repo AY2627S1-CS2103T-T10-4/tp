@@ -9,11 +9,14 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
+import seedu.address.model.AddressBook;
 import seedu.address.storage.Storage;
 
 /**
@@ -46,14 +49,17 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        AddressBook beforeCommand = new AddressBook(model.getAddressBook());
         commandResult = command.execute(model);
 
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+            model.setAddressBook(beforeCommand);
+            throw new CommandException(getSaveError(command, e), e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            model.setAddressBook(beforeCommand);
+            throw new CommandException(getSaveError(command, ioe), ioe);
         }
 
         return commandResult;
@@ -63,6 +69,18 @@ public class LogicManager implements Logic {
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
     }
+
+    private String getSaveError(Command command, IOException cause) {
+        if (command instanceof AddStudentCommand) {
+            return "Could not save changes. No student was added.";
+        }
+        if (cause instanceof AccessDeniedException) {
+            return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());
+        }
+        return String.format(FILE_OPS_ERROR_FORMAT, cause.getMessage());
+    }
+
+    @Override public ObservableList<Student> getStudentList() { return model.getStudentList(); }
 
     @Override
     public GuiSettings getGuiSettings() {
