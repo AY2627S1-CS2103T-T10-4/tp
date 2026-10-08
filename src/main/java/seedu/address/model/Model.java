@@ -1,8 +1,9 @@
 package seedu.address.model;
 
-import javafx.collections.ObservableList;
-import javafx.collections.FXCollections;
 import java.util.function.Predicate;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
@@ -20,11 +21,28 @@ public interface Model {
     }
 
     /** Retired Person commands are unsupported in the student-only application. */
-    @Deprecated default boolean hasPerson(Person person) { throw new UnsupportedOperationException(); }
-    @Deprecated default void addPerson(Person person) { throw new UnsupportedOperationException(); }
-    @Deprecated default void deletePerson(Person person) { throw new UnsupportedOperationException(); }
-    @Deprecated default void setPerson(Person target, Person edited) { throw new UnsupportedOperationException(); }
-    @Deprecated default void updateFilteredPersonList(Predicate<Person> predicate) {
+    @Deprecated
+    default boolean hasPerson(Person person) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void addPerson(Person person) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void deletePerson(Person person) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void setPerson(Person target, Person edited) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    default void updateFilteredPersonList(Predicate<Person> predicate) {
         throw new UnsupportedOperationException();
     }
 
@@ -36,7 +54,15 @@ public interface Model {
     default ObservableList<Student> getStudentList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
-    default boolean hasStudent(Student student) { return false; }
-    default void addStudent(Student student) { throw new UnsupportedOperationException(); }
-    default void deleteStudent(StudentId id) { throw new UnsupportedOperationException(); }
+    default boolean hasStudent(Student student) {
+        return false;
+    }
+
+    default void addStudent(Student student) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void deleteStudent(StudentId id) {
+        throw new UnsupportedOperationException();
+    }
 }

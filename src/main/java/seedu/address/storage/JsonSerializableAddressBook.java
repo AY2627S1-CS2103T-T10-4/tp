@@ -17,10 +17,15 @@ import seedu.address.model.student.Student;
 @JsonRootName(value = "addressbook")
 @JsonIgnoreProperties("persons")
 class JsonSerializableAddressBook {
+    /** Retained for source compatibility with tests for the retired Person serializer. */
+    @Deprecated
+    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
 
     @JsonCreator
-    public JsonSerializableAddressBook(@JsonProperty("students") List<JsonAdaptedStudent> students) {
+    public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> ignoredPersons,
+            @JsonProperty("students") List<JsonAdaptedStudent> students) {
         if (students != null) {
             this.students.addAll(students);
         }

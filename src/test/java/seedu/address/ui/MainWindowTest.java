@@ -1,10 +1,9 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.nio.file.Path;
 
@@ -22,7 +21,6 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.Person;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -38,9 +36,14 @@ public class MainWindowTest {
     }
 
     @Test
-    public void submitCommand_selectionResult_updatesSelectionAndDetails() {
+    public void submitCommand_legacyIndexSelection_doesNotSelectStudent() {
         JavaFxTestUtils.runOnFxThread(() -> {
             TestLogic logic = new TestLogic(new GuiSettings());
+            Student first = new Student(new StudentId("S-0201"), new StudentName("Amy Tan"),
+                    new AcademicLevel("Sec 2"));
+            Student second = new Student(new StudentId("S-0202"), new StudentName("Mei Lin"),
+                    new AcademicLevel("Sec 3"));
+            logic.students.setAll(first, second);
             Stage stage = new Stage();
             MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
             mainWindow.fillInnerParts();
@@ -51,23 +54,20 @@ public class MainWindowTest {
             input.setText("profile-selection-test");
             submit(input);
 
-            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
-            assertEquals(BENSON.getName().fullName, getDetailsLabel(stage, "#name").getText());
-            assertEquals(BENSON.getPhone().value, getDetailsLabel(stage, "#phone").getText());
-            assertEquals(BENSON.getEmail().value, getDetailsLabel(stage, "#email").getText());
-            assertEquals(BENSON.getAddress().value, getDetailsLabel(stage, "#address").getText());
+            assertEquals(first, mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(first.getName().toString(), getDetailsLabel(stage, "#name").getText());
             assertEquals("Opened profile", getLabel(stage, "#resultDisplay").getText());
 
             logic.commandResult = new CommandResult("Command completed");
             input.setText("list");
             submit(input);
-            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
+            assertEquals(first, mainWindow.getStudentListPanel().selectedStudentProperty().get());
 
             logic.commandFailure = new ParseException("Invalid command format!");
             input.setText("invalid");
             submit(input);
-            assertEquals(BENSON, mainWindow.getPersonListPanel().selectedPersonProperty().get());
-            assertEquals(BENSON.getName().fullName, getDetailsLabel(stage, "#name").getText());
+            assertEquals(first, mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(first.getName().toString(), getDetailsLabel(stage, "#name").getText());
             stage.close();
         });
     }
@@ -86,7 +86,7 @@ public class MainWindowTest {
             assertEquals(600, stage.getHeight());
             assertEquals(20, stage.getX());
             assertEquals(30, stage.getY());
-            assertEquals(ALICE, mainWindow.getPersonListPanel().selectedPersonProperty().get());
+            assertNull(mainWindow.getStudentListPanel().selectedStudentProperty().get());
             stage.close();
         });
     }
@@ -138,7 +138,7 @@ public class MainWindowTest {
     }
 
     private static Label getDetailsLabel(Stage stage, String selector) {
-        return (Label) stage.getScene().lookup("#detailsRoot").lookup(selector);
+        return (Label) stage.getScene().lookup(selector);
     }
 
     private static Label getLabel(Stage stage, String selector) {
@@ -150,7 +150,6 @@ public class MainWindowTest {
     }
 
     private static class TestLogic implements Logic {
-        private final ObservableList<Person> people = FXCollections.observableArrayList(ALICE, BENSON);
         private final ObservableList<Student> students = FXCollections.observableArrayList();
         private GuiSettings guiSettings;
         private String lastCommand;
@@ -168,11 +167,6 @@ public class MainWindowTest {
                 throw commandFailure;
             }
             return commandResult;
-        }
-
-        @Override
-        public ObservableList<Person> getFilteredPersonList() {
-            return people;
         }
 
         @Override

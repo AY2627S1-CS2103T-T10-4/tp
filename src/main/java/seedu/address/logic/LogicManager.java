@@ -29,6 +29,7 @@ public class LogicManager implements Logic {
     private final Storage storage;
     private final AddressBookParser parser;
 
+    /** Creates the logic manager with its model and storage dependencies. */
     public LogicManager(Model model, Storage storage) {
         this.model = model;
         this.storage = storage;
@@ -69,7 +70,18 @@ public class LogicManager implements Logic {
         return String.format(FILE_OPS_ERROR_FORMAT, cause.getMessage());
     }
 
-    @Override public ObservableList<Student> getStudentList() { return model.getStudentList(); }
-    @Override public GuiSettings getGuiSettings() { return model.getGuiSettings(); }
-    @Override public void setGuiSettings(GuiSettings settings) { model.setGuiSettings(settings); }
+    @Override
+    public ObservableList<Student> getStudentList() {
+        return model.getStudentList();
+    }
+
+    @Override
+    public GuiSettings getGuiSettings() {
+        return model.getGuiSettings();
+    }
+
+    @Override
+    public void setGuiSettings(GuiSettings settings) {
+        model.setGuiSettings(settings);
+    }
 }

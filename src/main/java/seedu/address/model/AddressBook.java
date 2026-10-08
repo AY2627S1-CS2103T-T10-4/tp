@@ -8,9 +8,9 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
-import seedu.address.model.person.Person;
 
 /** Stores all student records managed by Mentora. */
 public class AddressBook implements ReadOnlyAddressBook {
@@ -41,6 +41,12 @@ public class AddressBook implements ReadOnlyAddressBook {
                 || existing.sameIdentity(student));
     }
 
+    /** Returns whether the student ID is present. */
+    public boolean hasStudentId(StudentId id) {
+        requireNonNull(id);
+        return students.stream().anyMatch(student -> student.getId().equals(id));
+    }
+
     /** Adds a student while enforcing unique IDs and identities. */
     public void addStudent(Student student) {
         requireNonNull(student);
@@ -58,10 +64,30 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /** Retired Person API retained only to keep legacy callers source-compatible. */
-    @Deprecated public void setPersons(List<Person> persons) { throw new UnsupportedOperationException(); }
-    @Deprecated public boolean hasPerson(Person person) { return false; }
-    @Deprecated public void addPerson(Person person) { throw new UnsupportedOperationException(); }
-    @Deprecated public void removePerson(Person person) { throw new UnsupportedOperationException(); }
+    @Deprecated
+    public void setPersons(List<Person> persons) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    public boolean hasPerson(Person person) {
+        return false;
+    }
+
+    @Deprecated
+    public void addPerson(Person person) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    public void removePerson(Person person) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    public void setPerson(Person target, Person edited) {
+        throw new UnsupportedOperationException();
+    }
 
     private void sortStudents() {
         students.sort(Comparator.comparing((Student student) -> student.getName().normalized())

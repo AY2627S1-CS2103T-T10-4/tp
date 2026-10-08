@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 import java.util.Optional;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -36,14 +37,27 @@ public class CommandResult {
         this(feedbackToUser, false, false);
     }
 
-    public String getFeedbackToUser() { return feedbackToUser; }
-    public boolean isShowHelp() { return showHelp; }
-    public boolean isExit() { return exit; }
-    public String getSelectedStudentId() { return selectedStudentId; }
+    public String getFeedbackToUser() {
+        return feedbackToUser;
+    }
+
+    public boolean isShowHelp() {
+        return showHelp;
+    }
+
+    public boolean isExit() {
+        return exit;
+    }
+
+    public String getSelectedStudentId() {
+        return selectedStudentId;
+    }
 
     /** Retired Person-list selection API; student selection uses stable IDs. */
     @Deprecated
-    public Optional<Index> getSelectedIndex() { return Optional.empty(); }
+    public Optional<Index> getSelectedIndex() {
+        return Optional.empty();
+    }
 
     @Override
     public boolean equals(Object other) {

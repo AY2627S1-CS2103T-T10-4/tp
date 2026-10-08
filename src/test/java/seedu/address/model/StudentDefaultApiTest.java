@@ -24,7 +24,7 @@ class StudentDefaultApiTest {
 
     @Test
     void readOnlyAddressBookDefault_returnsEmptyReadOnlyList() {
-        ReadOnlyAddressBook addressBook = () -> javafx.collections.FXCollections.observableArrayList();
+        ReadOnlyAddressBook addressBook = new AddressBook();
         assertEquals(0, addressBook.getStudentList().size());
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getStudentList().add(null));
     }
