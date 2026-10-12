@@ -201,11 +201,11 @@ public class MainWindow extends UiPart<Stage> {
         setActiveWorkspace(false);
     }
 
-    private void setActiveWorkspace(boolean showStudents) {
-        studentsTab.setSelected(showStudents);
-        groupsTab.setSelected(!showStudents);
-        setWorkspaceVisible(studentWorkspace, showStudents);
-        setWorkspaceVisible(groupsWorkspacePlaceholder, !showStudents);
+    private void setActiveWorkspace(boolean isStudentWorkspaceActive) {
+        studentsTab.setSelected(isStudentWorkspaceActive);
+        groupsTab.setSelected(!isStudentWorkspaceActive);
+        setWorkspaceVisible(studentWorkspace, isStudentWorkspaceActive);
+        setWorkspaceVisible(groupsWorkspacePlaceholder, !isStudentWorkspaceActive);
     }
 
     private void setWorkspaceVisible(StackPane workspace, boolean isVisible) {

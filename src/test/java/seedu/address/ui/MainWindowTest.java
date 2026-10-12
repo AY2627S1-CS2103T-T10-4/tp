@@ -107,24 +107,19 @@ public class MainWindowTest {
             StackPane studentWorkspace = getStackPane(stage, "#studentWorkspace");
             StackPane groupsWorkspace = getStackPane(stage, "#groupsWorkspacePlaceholder");
 
-            assertTrue(studentsTab.isSelected());
-            assertFalse(groupsTab.isSelected());
-            assertTrue(studentWorkspace.isVisible());
-            assertFalse(groupsWorkspace.isVisible());
-
-            groupsTab.fire();
-            assertFalse(studentsTab.isSelected());
-            assertTrue(groupsTab.isSelected());
-            assertFalse(studentWorkspace.isVisible());
-            assertFalse(studentWorkspace.isManaged());
-            assertTrue(groupsWorkspace.isVisible());
-            assertTrue(groupsWorkspace.isManaged());
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
 
             studentsTab.fire();
-            assertTrue(studentsTab.isSelected());
-            assertFalse(groupsTab.isSelected());
-            assertTrue(studentWorkspace.isVisible());
-            assertFalse(groupsWorkspace.isVisible());
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            groupsTab.fire();
+            assertGroupsWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            groupsTab.fire();
+            assertGroupsWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            studentsTab.fire();
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
             stage.close();
         });
     }
@@ -189,6 +184,26 @@ public class MainWindowTest {
 
     private static StackPane getStackPane(Stage stage, String selector) {
         return (StackPane) stage.getScene().lookup(selector);
+    }
+
+    private static void assertStudentWorkspaceActive(ToggleButton studentsTab, ToggleButton groupsTab,
+            StackPane studentWorkspace, StackPane groupsWorkspace) {
+        assertTrue(studentsTab.isSelected());
+        assertFalse(groupsTab.isSelected());
+        assertTrue(studentWorkspace.isVisible());
+        assertTrue(studentWorkspace.isManaged());
+        assertFalse(groupsWorkspace.isVisible());
+        assertFalse(groupsWorkspace.isManaged());
+    }
+
+    private static void assertGroupsWorkspaceActive(ToggleButton studentsTab, ToggleButton groupsTab,
+            StackPane studentWorkspace, StackPane groupsWorkspace) {
+        assertFalse(studentsTab.isSelected());
+        assertTrue(groupsTab.isSelected());
+        assertFalse(studentWorkspace.isVisible());
+        assertFalse(studentWorkspace.isManaged());
+        assertTrue(groupsWorkspace.isVisible());
+        assertTrue(groupsWorkspace.isManaged());
     }
 
     private static void submit(TextField commandTextField) {
