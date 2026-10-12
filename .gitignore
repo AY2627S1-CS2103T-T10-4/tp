@@ -30,3 +30,5 @@ skills/
 
 # Temp files
 _temp/
+
+/bin/

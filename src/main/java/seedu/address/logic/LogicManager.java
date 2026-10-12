@@ -7,61 +7,72 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
-/**
- * The main LogicManager of the app.
- */
+/** Main logic manager for commands, model access, and persistence. */
 public class LogicManager implements Logic {
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
-
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
-
     private final Model model;
     private final Storage storage;
-    private final AddressBookParser addressBookParser;
+    private final AddressBookParser parser;
 
-    /**
-     * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
-     */
+    /** Creates the logic manager with its model and storage dependencies. */
     public LogicManager(Model model, Storage storage) {
         this.model = model;
         this.storage = storage;
-        addressBookParser = new AddressBookParser();
+        parser = new AddressBookParser();
     }
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
-
-        CommandResult commandResult;
-        Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
-
+        Command command = parser.parseCommand(commandText);
+        AddressBook beforeCommand = new AddressBook(model.getAddressBook());
+        CommandResult result = command.execute(model);
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
-        } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            rollbackStudentAdd(command, beforeCommand);
+            throw new CommandException(getSaveError(command, e), e);
+        } catch (IOException e) {
+            rollbackStudentAdd(command, beforeCommand);
+            throw new CommandException(getSaveError(command, e), e);
         }
+        return result;
+    }
 
-        return commandResult;
+    private void rollbackStudentAdd(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand) {
+            model.setAddressBook(beforeCommand);
+        }
+    }
+
+    private String getSaveError(Command command, IOException cause) {
+        if (command instanceof AddStudentCommand) {
+            return "Could not save changes. No student was added.";
+        }
+        if (cause instanceof AccessDeniedException) {
+            return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());
+        }
+        return String.format(FILE_OPS_ERROR_FORMAT, cause.getMessage());
     }
 
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return model.getFilteredPersonList();
+    public ObservableList<Student> getStudentList() {
+        return model.getStudentList();
     }
 
     @Override
@@ -70,7 +81,7 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public void setGuiSettings(GuiSettings guiSettings) {
-        model.setGuiSettings(guiSettings);
+    public void setGuiSettings(GuiSettings settings) {
+        model.setGuiSettings(settings);
     }
 }
