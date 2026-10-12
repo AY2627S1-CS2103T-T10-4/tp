@@ -32,6 +32,30 @@
     -fx-font-size: 11px;
 }
 
+.header-tabs {
+    -fx-padding: 0 8px 0 0;
+}
+
+.nav-tab {
+    -fx-padding: 7px 12px;
+    -fx-background-color: transparent;
+    -fx-background-radius: 5px;
+    -fx-border-width: 0;
+    -fx-text-fill: #536e66;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.nav-tab:hover {
+    -fx-background-color: #f1f7f4;
+}
+
+.nav-tab:selected {
+    -fx-background-color: #e5f2ed;
+    -fx-text-fill: #14634f;
+    -fx-font-weight: 700;
+}
+
 .header-menu,
 .header-menu > .container,
 .header-menu .menu-button {
@@ -148,8 +172,12 @@
     -fx-text-fill: #34534b;
 }
 
+.workspace-container,
 .workspace {
     -fx-background-color: #ffffff;
+}
+
+.workspace {
     -fx-background-insets: 0;
     -fx-padding: 0;
     -fx-border-width: 0;
@@ -236,6 +264,23 @@
 .contact-action {
     -fx-text-fill: #668078;
     -fx-font-size: 10px;
+}
+
+.student-id {
+    -fx-text-fill: #7c8f89;
+    -fx-font-family: "Consolas";
+    -fx-font-size: 11px;
+}
+
+.student-name {
+    -fx-text-fill: #213f38;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.student-level {
+    -fx-text-fill: #385950;
+    -fx-font-size: 12px;
 }
 
 #tags .label {

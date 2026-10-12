@@ -15,7 +15,7 @@ through automated tests.
 
 The student model, permanent IDs, academic levels, assignments, and guardian records
 are not implemented by this change. Keeping this increment independent of those
-models avoids duplicating teammates' work. See [UI README](UI.md) for the overall
+models avoids duplicating teammates' work. See [UI README](../UI.md) for the overall
 component map.
 
 ## High-level structure

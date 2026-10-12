@@ -1,8 +1,10 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.nio.file.Path;
@@ -15,6 +17,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Logic;
@@ -92,6 +96,35 @@ public class MainWindowTest {
     }
 
     @Test
+    public void navigationTabs_switchTabs_updatesVisibleWorkspace() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
+            mainWindow.fillInnerParts();
+            ToggleButton studentsTab = getToggleButton(stage, "#studentsTab");
+            ToggleButton groupsTab = getToggleButton(stage, "#groupsTab");
+            StackPane studentWorkspace = getStackPane(stage, "#studentWorkspace");
+            StackPane groupsWorkspace = getStackPane(stage, "#groupsWorkspacePlaceholder");
+
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            studentsTab.fire();
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            groupsTab.fire();
+            assertGroupsWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            groupsTab.fire();
+            assertGroupsWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+
+            studentsTab.fire();
+            assertStudentWorkspaceActive(studentsTab, groupsTab, studentWorkspace, groupsWorkspace);
+            stage.close();
+        });
+    }
+
+    @Test
     public void submitCommand_successAndFailure_updatesResultDisplay() {
         JavaFxTestUtils.runOnFxThread(() -> {
             TestLogic logic = new TestLogic(new GuiSettings());
@@ -143,6 +176,34 @@ public class MainWindowTest {
 
     private static Label getLabel(Stage stage, String selector) {
         return (Label) stage.getScene().lookup(selector);
+    }
+
+    private static ToggleButton getToggleButton(Stage stage, String selector) {
+        return (ToggleButton) stage.getScene().lookup(selector);
+    }
+
+    private static StackPane getStackPane(Stage stage, String selector) {
+        return (StackPane) stage.getScene().lookup(selector);
+    }
+
+    private static void assertStudentWorkspaceActive(ToggleButton studentsTab, ToggleButton groupsTab,
+            StackPane studentWorkspace, StackPane groupsWorkspace) {
+        assertTrue(studentsTab.isSelected());
+        assertFalse(groupsTab.isSelected());
+        assertTrue(studentWorkspace.isVisible());
+        assertTrue(studentWorkspace.isManaged());
+        assertFalse(groupsWorkspace.isVisible());
+        assertFalse(groupsWorkspace.isManaged());
+    }
+
+    private static void assertGroupsWorkspaceActive(ToggleButton studentsTab, ToggleButton groupsTab,
+            StackPane studentWorkspace, StackPane groupsWorkspace) {
+        assertFalse(studentsTab.isSelected());
+        assertTrue(groupsTab.isSelected());
+        assertFalse(studentWorkspace.isVisible());
+        assertFalse(studentWorkspace.isManaged());
+        assertTrue(groupsWorkspace.isVisible());
+        assertTrue(groupsWorkspace.isManaged());
     }
 
     private static void submit(TextField commandTextField) {

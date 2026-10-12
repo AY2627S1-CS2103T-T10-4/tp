@@ -7,6 +7,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
@@ -38,6 +39,12 @@
             <Label text="Student records, clearly organised" styleClass="brand-tagline" />
           </VBox>
           <Region HBox.hgrow="ALWAYS" />
+          <HBox alignment="CENTER" spacing="4" styleClass="header-tabs">
+            <ToggleButton fx:id="studentsTab" mnemonicParsing="false" onAction="#handleStudentsTab"
+                          selected="true" styleClass="nav-tab" text="Students" />
+            <ToggleButton fx:id="groupsTab" mnemonicParsing="false" onAction="#handleGroupsTab"
+                          styleClass="nav-tab" text="Groups" />
+          </HBox>
           <MenuBar fx:id="menuBar" styleClass="header-menu" HBox.hgrow="NEVER">
             <Menu mnemonicParsing="false" text="File">
               <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
@@ -63,21 +70,26 @@
           <StackPane fx:id="resultDisplayPlaceholder" HBox.hgrow="ALWAYS" />
         </HBox>
 
-        <SplitPane dividerPositions="0.43" styleClass="workspace" VBox.vgrow="ALWAYS">
-          <VBox minWidth="320" styleClass="list-panel">
-            <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
-              <Label text="Students" styleClass="section-title" />
-              <Region HBox.hgrow="ALWAYS" />
-              <Label fx:id="studentCountLabel" text="0 students" styleClass="record-count" />
-            </HBox>
-            <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
-              <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-              <Label text="LEVEL" minWidth="94" />
-            </HBox>
-            <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
-          </VBox>
-          <StackPane fx:id="studentDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
-        </SplitPane>
+        <StackPane styleClass="workspace-container" VBox.vgrow="ALWAYS">
+          <StackPane fx:id="studentWorkspace">
+            <SplitPane dividerPositions="0.43" styleClass="workspace">
+              <VBox minWidth="320" styleClass="list-panel">
+                <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
+                  <Label text="Students" styleClass="section-title" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label fx:id="studentCountLabel" text="0 students" styleClass="record-count" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
+                  <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                  <Label text="LEVEL" minWidth="94" />
+                </HBox>
+                <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+              </VBox>
+              <StackPane fx:id="studentDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
+            </SplitPane>
+          </StackPane>
+          <StackPane fx:id="groupsWorkspacePlaceholder" managed="false" visible="false" />
+        </StackPane>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>

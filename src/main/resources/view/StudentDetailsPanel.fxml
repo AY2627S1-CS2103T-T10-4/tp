@@ -3,17 +3,34 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
-<VBox spacing="12" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+
+<VBox fx:id="detailsRoot" spacing="0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1">
   <VBox fx:id="emptyState" alignment="CENTER" spacing="8" VBox.vgrow="ALWAYS">
     <Label text="No student selected" styleClass="empty-state-title" />
     <Label text="Choose a student to view their details." styleClass="empty-state-copy" />
   </VBox>
-  <VBox fx:id="detailsContent" managed="false" visible="false" spacing="12">
+
+  <VBox fx:id="detailsContent" managed="false" spacing="0" visible="false">
     <Label text="STUDENT PROFILE" styleClass="eyebrow-label" />
-    <Label fx:id="name" styleClass="profile-name" wrapText="true" />
-    <Separator />
-    <VBox spacing="6"><Label text="STUDENT ID" styleClass="detail-key" /><Label fx:id="id" styleClass="detail-value" /></VBox>
-    <VBox spacing="6"><Label text="ACADEMIC LEVEL" styleClass="detail-key" /><Label fx:id="academicLevel" styleClass="detail-value" /></VBox>
-    <VBox.margin><Insets top="12" /></VBox.margin>
+    <Label fx:id="name" styleClass="profile-name" wrapText="true">
+      <VBox.margin>
+        <Insets top="8" />
+      </VBox.margin>
+    </Label>
+    <Separator>
+      <VBox.margin>
+        <Insets top="22" />
+      </VBox.margin>
+    </Separator>
+
+    <VBox spacing="6" styleClass="detail-group">
+      <Label text="STUDENT ID" styleClass="detail-key" />
+      <Label fx:id="id" styleClass="detail-value" wrapText="true" />
+    </VBox>
+    <VBox spacing="6" styleClass="detail-group">
+      <Label text="ACADEMIC LEVEL" styleClass="detail-key" />
+      <Label fx:id="academicLevel" styleClass="detail-value" wrapText="true" />
+    </VBox>
   </VBox>
 </VBox>
