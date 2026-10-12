@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -63,6 +64,18 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private HBox resultSection;
+
+    @FXML
+    private ToggleButton studentsTab;
+
+    @FXML
+    private ToggleButton groupsTab;
+
+    @FXML
+    private StackPane studentWorkspace;
+
+    @FXML
+    private StackPane groupsWorkspacePlaceholder;
 
     @FXML
     private StackPane statusbarPlaceholder;
@@ -174,6 +187,30 @@ public class MainWindow extends UiPart<Stage> {
         resultSection.minHeightProperty().bind(resultSectionHeight);
         resultSection.prefHeightProperty().bind(resultSectionHeight);
         resultSection.maxHeightProperty().bind(resultSectionHeight);
+    }
+
+    /** Shows the populated student workspace. */
+    @FXML
+    private void handleStudentsTab() {
+        setActiveWorkspace(true);
+    }
+
+    /** Shows the intentionally empty placeholder reserved for the Groups increment. */
+    @FXML
+    private void handleGroupsTab() {
+        setActiveWorkspace(false);
+    }
+
+    private void setActiveWorkspace(boolean showStudents) {
+        studentsTab.setSelected(showStudents);
+        groupsTab.setSelected(!showStudents);
+        setWorkspaceVisible(studentWorkspace, showStudents);
+        setWorkspaceVisible(groupsWorkspacePlaceholder, !showStudents);
+    }
+
+    private void setWorkspaceVisible(StackPane workspace, boolean isVisible) {
+        workspace.setVisible(isVisible);
+        workspace.setManaged(isVisible);
     }
 
     /**

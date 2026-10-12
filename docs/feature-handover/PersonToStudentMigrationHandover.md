@@ -10,7 +10,7 @@ title: Person to Student Migration Handover
 - The active `AddressBook`, `Model`, `ModelManager`, `Logic`, and `LogicManager` data flow now stores and exposes students only.
 - The command parser accepts `add-student`, `help`, and `exit`. Person-only commands such as `add`, `edit`, `delete`, `clear`, `find`, and `list` now return the unknown-command error.
 - `JsonSerializableAddressBook` writes only the `students` property and ignores the old `persons` property while loading legacy files. Person records cannot enter the active model.
-- The main window renders the student list and student details panels. Add Student requests selection using its generated student ID. The old PR #45 row-index selection API is deprecated and ignored.
+- The main window renders the student list as padded summary cards and the student details panel as an inset, grouped profile. Existing student wording and fields are preserved. Add Student requests selection using its generated student ID. The old PR #45 row-index selection API is deprecated and ignored.
 - New local data starts with sample student records. The command prompt and current-build section of the user guide reflect the available commands.
 
 ## Compatibility behavior and data migration
@@ -25,4 +25,4 @@ Legacy JSON `persons` entries are ignored because they do not contain the academ
 2. Add the remaining specified student, guardian, relationship, group, search, and profile features as separate focused increments.
 3. Replace the generic `AddressBook` naming with student-register naming only if the team wants that broader rename; it is currently retained to avoid unrelated storage and bootstrap churn.
 
-No tests were run. Java production compilation completed successfully with `compileJava`.
+The JavaFX component tests and the complete Gradle check pass with the student workspace layout.

@@ -17,14 +17,7 @@ public class StudentListPanel extends UiPart<Region> {
     public StudentListPanel(ObservableList<Student> students) {
         super(FXML);
         studentListView.setItems(students);
-        studentListView.setCellFactory(view -> new ListCell<>() {
-            @Override
-            protected void updateItem(Student student, boolean empty) {
-                super.updateItem(student, empty);
-                setText(empty || student == null ? null : student.getId() + "   " + student.getName()
-                        + "   " + student.getAcademicLevel());
-            }
-        });
+        studentListView.setCellFactory(view -> new StudentListViewCell());
     }
     public ReadOnlyObjectProperty<Student> selectedStudentProperty() {
         return studentListView.getSelectionModel().selectedItemProperty();
@@ -41,6 +34,21 @@ public class StudentListPanel extends UiPart<Region> {
                 studentListView.scrollTo(i);
                 return;
             }
+        }
+    }
+
+    /** Custom {@code ListCell} that displays a student using the shared Mentora card layout. */
+    private static class StudentListViewCell extends ListCell<Student> {
+        @Override
+        protected void updateItem(Student student, boolean empty) {
+            super.updateItem(student, empty);
+            if (empty || student == null) {
+                setGraphic(null);
+                setText(null);
+                return;
+            }
+            setGraphic(new StudentCard(student).getRoot());
+            setText(null);
         }
     }
 }
