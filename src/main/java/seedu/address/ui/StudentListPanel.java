@@ -27,6 +27,12 @@ public class StudentListPanel extends UiPart<Region> {
         return studentListView.getSelectionModel().selectedItemProperty();
     }
 
+    /** Returns the ID of the currently selected student, if any. */
+    public String getSelectedStudentId() {
+        Student selected = studentListView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getId().value;
+    }
+
     /** Selects the first visible student, if one exists. */
     public void selectFirstStudent() {
         studentListView.getSelectionModel().selectFirst();
