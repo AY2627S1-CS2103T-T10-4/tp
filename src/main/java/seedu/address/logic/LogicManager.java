@@ -10,6 +10,7 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -45,17 +46,17 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackStudentAdd(command, beforeCommand);
+            rollbackStudentMutation(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackStudentAdd(command, beforeCommand);
+            rollbackStudentMutation(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         }
         return result;
     }
 
-    private void rollbackStudentAdd(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand) {
+    private void rollbackStudentMutation(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand || command instanceof EditStudentCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
@@ -63,6 +64,9 @@ public class LogicManager implements Logic {
     private String getSaveError(Command command, IOException cause) {
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof EditStudentCommand edit) {
+            return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";
         }
         if (cause instanceof AccessDeniedException) {
             return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());
