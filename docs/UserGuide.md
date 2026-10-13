@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** This increment manages students only. Supported commands are `add-student`, `help`, and `exit`. Guardian, group, search, edit, delete, and profile commands described later in this guide are specified future work and are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
+> **Current build:** This increment manages students only. Supported commands are `add-student`, `delete-student`, `help`, and `exit`. Guardian, group, search, edit, and profile commands described later in this guide are specified future work and are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
 
 * Table of Contents
 {:toc}
@@ -30,7 +30,7 @@ The **command box** accepts typed commands: enter one command and press **Enter*
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Student records are saved locally. Use `help` to open the user guide or `exit` to close Mentora. The remaining workflows in this guide describe the planned MVP contract and are not available in this increment.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use `delete-student sid/S-0007` to permanently remove a student by ID. Student records are saved locally. Use `help` to open the user guide or `exit` to close Mentora. The remaining workflows in this guide describe the planned MVP contract and are not available in this increment.
 
 ## Understanding commands and values
 
@@ -125,11 +125,11 @@ Format: `delete-student sid/STUDENT_ID`
 
 Example: `delete-student sid/S-0007`
 
-**Deletion permanently removes the student record.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
+**Deletion permanently removes the student record.** Check the ID before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
 
-The student's guardian link is removed, but the guardian record and links to other students are retained. The list refreshes and an open profile closes.
+The list refreshes and the selected student details clear. Guardian links and student profiles are not part of the current build.
 
-Example result: `Deleted student S-0007: Mei Lin. Guardian link removed; guardian G-0003 was retained.` If the student had no guardian, the guardian sentence is omitted.
+Example result: `Deleted student S-0007: Mei Lin.` An unknown ID reports `Student S-0007 was not found.` If saving fails, the deletion is rolled back and the result says `Could not save changes. Student S-0007 was not deleted.`
 
 ## Managing guardians and relationships
 
