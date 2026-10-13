@@ -24,7 +24,7 @@ class JsonAdaptedGuardian {
     }
 
     JsonAdaptedGuardian(Guardian guardian) {
-        id = guardian.getId().value;
+        id = guardian.getId().toString();
         name = guardian.getName().toString();
         phone = guardian.getPhone().toString();
     }

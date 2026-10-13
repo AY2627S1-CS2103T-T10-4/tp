@@ -69,18 +69,22 @@ public interface Model {
         throw new UnsupportedOperationException();
     }
 
+    /** Returns an unmodifiable view of all guardians. */
     default ObservableList<Guardian> getGuardianList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
 
+    /** Returns whether a guardian with the same ID or phone exists. */
     default boolean hasGuardian(Guardian guardian) {
         return false;
     }
 
+    /** Finds a guardian by canonical phone number. */
     default Optional<Guardian> findGuardianByPhone(GuardianPhone phone) {
         return Optional.empty();
     }
 
+    /** Adds a guardian to the model. */
     default void addGuardian(Guardian guardian) {
         throw new UnsupportedOperationException();
     }

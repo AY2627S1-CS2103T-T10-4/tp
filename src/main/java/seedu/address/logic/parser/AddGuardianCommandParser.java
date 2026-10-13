@@ -14,23 +14,43 @@ public class AddGuardianCommandParser implements Parser<AddGuardianCommand> {
 
     @Override
     public AddGuardianCommand parse(String args) throws ParseException {
-        String canonical = args.replaceAll("(?i)n/", "n/").replaceAll("(?i)p/", "p/");
-        Matcher matcher = UNKNOWN_PREFIX.matcher(canonical);
+        String canonicalArguments = canonicalizePrefixes(args);
+        verifyNoUnknownPrefixes(canonicalArguments);
+        ArgumentMultimap arguments = tokenizeArguments(canonicalArguments);
+        verifyEmptyPreamble(arguments);
+        return parseCommand(arguments);
+    }
+
+    private static String canonicalizePrefixes(String arguments) {
+        return arguments.replaceAll("(?i)n/", "n/").replaceAll("(?i)p/", "p/");
+    }
+
+    private static void verifyNoUnknownPrefixes(String arguments) throws ParseException {
+        Matcher matcher = UNKNOWN_PREFIX.matcher(arguments);
         while (matcher.find()) {
             if (!matcher.group(1).equalsIgnoreCase("n/") && !matcher.group(1).equalsIgnoreCase("p/")) {
                 throw new ParseException(AddGuardianCommand.MESSAGE_USAGE);
             }
         }
-        ArgumentMultimap arg = ArgumentTokenizer.tokenize(" " + canonical,
+    }
+
+    private static ArgumentMultimap tokenizeArguments(String arguments) {
+        return ArgumentTokenizer.tokenize(" " + arguments,
                 CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_PHONE);
-        if (!arg.getPreamble().isEmpty()) {
+    }
+
+    private static void verifyEmptyPreamble(ArgumentMultimap arguments) throws ParseException {
+        if (!arguments.getPreamble().isEmpty()) {
             throw new ParseException(AddGuardianCommand.MESSAGE_USAGE);
         }
+    }
+
+    private static AddGuardianCommand parseCommand(ArgumentMultimap arguments) throws ParseException {
         try {
-            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_PHONE);
-            String rawName = arg.getValue(CliSyntax.PREFIX_NAME)
+            arguments.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_PHONE);
+            String rawName = arguments.getValue(CliSyntax.PREFIX_NAME)
                     .orElseThrow(() -> new IllegalArgumentException(AddGuardianCommand.MESSAGE_USAGE));
-            String rawPhone = arg.getValue(CliSyntax.PREFIX_PHONE)
+            String rawPhone = arguments.getValue(CliSyntax.PREFIX_PHONE)
                     .orElseThrow(() -> new IllegalArgumentException(AddGuardianCommand.MESSAGE_USAGE));
             if (rawName.isEmpty() || rawPhone.isEmpty()) {
                 throw new IllegalArgumentException(AddGuardianCommand.MESSAGE_USAGE);

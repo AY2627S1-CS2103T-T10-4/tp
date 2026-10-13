@@ -26,7 +26,7 @@ public final class GuardianName implements Comparable<GuardianName> {
                 && value.matches("(?U)\\p{L}+(?:(?:[ '-]|\\.\\s?)\\p{L}+)*");
     }
 
-    public String normalized() {
+    public String getNormalized() {
         return normalized;
     }
 

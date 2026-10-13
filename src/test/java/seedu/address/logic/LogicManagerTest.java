@@ -53,7 +53,7 @@ class LogicManagerTest {
         logic = createLogic(addressBookStorage);
 
         CommandResult result = logic.execute("add-guardian p/+65 61234567 n/Raj   Kumar");
-        String guardianId = model.getGuardianList().getFirst().getId().value;
+        String guardianId = model.getGuardianList().getFirst().getId().toString();
 
         assertEquals("Added guardian " + guardianId + ": Raj Kumar (+65 61234567).",
                 result.getFeedbackToUser());

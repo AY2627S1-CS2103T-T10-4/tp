@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /** Stable identifier for a guardian. */
 public final class GuardianId implements Comparable<GuardianId> {
     private static final AtomicLong NEXT = new AtomicLong(1);
-    public final String value;
+    private final String value;
 
     /** Creates and validates a guardian ID, advancing the generator past its numeric value. */
     public GuardianId(String value) {

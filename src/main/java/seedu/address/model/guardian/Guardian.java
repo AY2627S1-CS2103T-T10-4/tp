@@ -33,7 +33,7 @@ public final class Guardian {
     }
 
     /** Returns whether this guardian has the same unique canonical phone number as {@code other}. */
-    public boolean sameIdentity(Guardian other) {
+    public boolean hasSameIdentityAs(Guardian other) {
         return phone.equals(other.phone);
     }
 

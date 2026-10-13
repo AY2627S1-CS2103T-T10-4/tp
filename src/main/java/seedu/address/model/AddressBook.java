@@ -73,7 +73,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     public boolean hasGuardian(Guardian guardian) {
         requireNonNull(guardian);
         return guardians.stream().anyMatch(existing -> existing.getId().equals(guardian.getId())
-                || existing.sameIdentity(guardian));
+                || existing.hasSameIdentityAs(guardian));
     }
 
     /** Returns whether the guardian ID is present. */
@@ -136,7 +136,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     private void sortGuardians() {
-        guardians.sort(Comparator.comparing((Guardian guardian) -> guardian.getName().normalized())
+        guardians.sort(Comparator.comparing((Guardian guardian) -> guardian.getName().getNormalized())
                 .thenComparing(Guardian::getId));
     }
 
