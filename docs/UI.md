@@ -48,6 +48,9 @@ For the command-driven selection API and Feature 13 integration notes, see
 For the student-only model migration and PR #45 selection compatibility, see
 [Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
 
+For student academic-level updates and stable-ID profile refresh, see
+[Edit Student Handover](feature-handover/EditStudentHandover.md).
+
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
 
 ## Student workspace layout
