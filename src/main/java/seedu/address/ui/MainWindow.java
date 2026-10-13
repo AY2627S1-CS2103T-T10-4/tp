@@ -42,6 +42,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private StudentListPanel studentListPanel;
+    private StudentDetailsPanel studentDetailsPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -150,10 +151,10 @@ public class MainWindow extends UiPart<Stage> {
     private void fillStudentPanels() {
         studentListPanel = new StudentListPanel(logic.getStudentList());
         studentListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
-        StudentDetailsPanel detailsPanel = new StudentDetailsPanel();
-        studentDetailsPanelPlaceholder.getChildren().add(detailsPanel.getRoot());
+        studentDetailsPanel = new StudentDetailsPanel();
+        studentDetailsPanelPlaceholder.getChildren().add(studentDetailsPanel.getRoot());
         studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
-                detailsPanel.setStudent(newStudent));
+                studentDetailsPanel.setStudent(newStudent));
         studentCountLabel.textProperty().bind(
                 Bindings.size(logic.getStudentList()).asString("%d students"));
         studentListPanel.selectFirstStudent();
@@ -257,6 +258,10 @@ public class MainWindow extends UiPart<Stage> {
         return studentListPanel;
     }
 
+    StudentDetailsPanel getStudentDetailsPanel() {
+        return studentDetailsPanel;
+    }
+
     /** Empty compatibility panel for legacy UI tests; it is never attached to the window. */
     @Deprecated
     public PersonListPanel getPersonListPanel() {
@@ -275,6 +280,9 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             if (commandResult.getSelectedStudentId() != null) {
                 studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
+            }
+            if (commandResult.shouldClearStudentSelection()) {
+                studentListPanel.clearSelection();
             }
 
             if (commandResult.isShowHelp()) {

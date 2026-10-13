@@ -62,6 +62,37 @@ class LogicManagerTest {
         assertEquals(0, model.getStudentList().size());
     }
 
+    @Test
+    void execute_deleteStudent_savesAndRemovesStudent() throws Exception {
+        logic.execute("add-student n/Mei Lin al/Sec 2");
+        String id = logic.getStudentList().get(0).getId().value;
+
+        CommandResult result = logic.execute("delete-student sid/" + id);
+
+        assertEquals("Deleted student " + id + ": Mei Lin.", result.getFeedbackToUser());
+        assertEquals(0, logic.getStudentList().size());
+    }
+
+    @Test
+    void execute_deleteSaveFailure_rollsBackStudent() throws Exception {
+        logic.execute("add-student n/Mei Lin al/Sec 2");
+        String id = logic.getStudentList().get(0).getId().value;
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("disk unavailable");
+            }
+        };
+        logic = createLogic(failingStorage);
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("delete-student sid/" + id));
+
+        assertEquals("Could not save changes. Student " + id + " was not deleted.", error.getMessage());
+        assertEquals(1, model.getStudentList().size());
+        assertEquals(id, model.getStudentList().get(0).getId().value);
+    }
+
     private Logic createLogic(JsonAddressBookStorage addressBookStorage) {
         JsonUserPrefsStorage prefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"));
         return new LogicManager(model, new StorageManager(addressBookStorage, prefsStorage));

@@ -19,6 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Logic;
@@ -170,6 +171,31 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void submitCommand_deleteSelectedStudent_clearsDetailsSelection() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Student student = new Student(new StudentId("S-0212"), new StudentName("Mei Lin"),
+                    new AcademicLevel("Sec 3"));
+            logic.students.add(student);
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
+            mainWindow.fillInnerParts();
+            TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
+            logic.removeStudentOnDelete = true;
+            logic.commandResult = new CommandResult("Deleted student", false, false, null, true);
+
+            commandTextField.setText("delete-student sid/S-0212");
+            submit(commandTextField);
+
+            assertNull(mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            VBox detailsRoot = (VBox) mainWindow.getStudentDetailsPanel().getRoot();
+            VBox emptyState = (VBox) detailsRoot.getChildren().get(0);
+            assertEquals("No student selected", ((Label) emptyState.getChildren().get(0)).getText());
+            stage.close();
+        });
+    }
+
     private static Label getDetailsLabel(Stage stage, String selector) {
         return (Label) stage.getScene().lookup(selector);
     }
@@ -215,6 +241,7 @@ public class MainWindowTest {
         private GuiSettings guiSettings;
         private String lastCommand;
         private ParseException commandFailure;
+        private boolean removeStudentOnDelete;
         private CommandResult commandResult = new CommandResult("Command completed");
 
         TestLogic(GuiSettings guiSettings) {
@@ -226,6 +253,10 @@ public class MainWindowTest {
             lastCommand = commandText;
             if (commandFailure != null) {
                 throw commandFailure;
+            }
+            if (removeStudentOnDelete && commandText.toLowerCase(java.util.Locale.ROOT)
+                    .startsWith("delete-student ")) {
+                students.removeIf(student -> commandText.endsWith(student.getId().value));
             }
             return commandResult;
         }
