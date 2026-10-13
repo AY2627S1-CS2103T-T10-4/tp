@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
@@ -45,17 +46,17 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackStudentAdd(command, beforeCommand);
+            rollbackAdd(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackStudentAdd(command, beforeCommand);
+            rollbackAdd(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         }
         return result;
     }
 
-    private void rollbackStudentAdd(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand) {
+    private void rollbackAdd(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
@@ -63,6 +64,9 @@ public class LogicManager implements Logic {
     private String getSaveError(Command command, IOException cause) {
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof AddGuardianCommand) {
+            return "Could not save changes. No guardian was added.";
         }
         if (cause instanceof AccessDeniedException) {
             return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());

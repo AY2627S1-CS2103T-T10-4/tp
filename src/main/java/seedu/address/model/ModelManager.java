@@ -3,11 +3,14 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
@@ -73,6 +76,26 @@ public class ModelManager implements Model {
     @Override
     public void deleteStudent(StudentId id) {
         addressBook.deleteStudent(id);
+    }
+
+    @Override
+    public ObservableList<Guardian> getGuardianList() {
+        return addressBook.getGuardianList();
+    }
+
+    @Override
+    public boolean hasGuardian(Guardian guardian) {
+        return addressBook.hasGuardian(guardian);
+    }
+
+    @Override
+    public Optional<Guardian> findGuardianByPhone(GuardianPhone phone) {
+        return addressBook.findGuardianByPhone(phone);
+    }
+
+    @Override
+    public void addGuardian(Guardian guardian) {
+        addressBook.addGuardian(guardian);
     }
 
     @Override

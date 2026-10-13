@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -46,6 +47,27 @@ class LogicManagerTest {
     }
 
     @Test
+    void execute_addGuardianCanonicalizesRejectsDuplicateAndPersists() throws Exception {
+        Path file = temporaryFolder.resolve("guardians.json");
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(file);
+        logic = createLogic(addressBookStorage);
+
+        CommandResult result = logic.execute("add-guardian p/+65 61234567 n/Raj   Kumar");
+        String guardianId = model.getGuardianList().getFirst().getId().value;
+
+        assertEquals("Added guardian " + guardianId + ": Raj Kumar (+65 61234567).",
+                result.getFeedbackToUser());
+        assertNull(result.getSelectedStudentId());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+
+        String duplicateCommand = "add-guardian n/Another Name p/61234567";
+        CommandException duplicate = assertThrows(CommandException.class, () -> logic.execute(duplicateCommand));
+        assertEquals("A guardian with phone +65 61234567 already exists (" + guardianId
+                + "). Link that guardian instead.", duplicate.getMessage());
+        assertEquals(1, model.getGuardianList().size());
+    }
+
+    @Test
     void execute_saveFailure_rollsBackStudent() {
         JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
             @Override
@@ -60,6 +82,23 @@ class LogicManagerTest {
 
         assertEquals("Could not save changes. No student was added.", error.getMessage());
         assertEquals(0, model.getStudentList().size());
+    }
+
+    @Test
+    void execute_saveFailure_rollsBackGuardian() {
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("disk unavailable");
+            }
+        };
+        logic = createLogic(failingStorage);
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("add-guardian n/Anita Lim p/91234567"));
+
+        assertEquals("Could not save changes. No guardian was added.", error.getMessage());
+        assertEquals(0, model.getGuardianList().size());
     }
 
     private Logic createLogic(JsonAddressBookStorage addressBookStorage) {
