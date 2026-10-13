@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -63,6 +64,16 @@ public class ModelManager implements Model {
     @Override
     public boolean hasStudent(Student student) {
         return addressBook.hasStudent(student);
+    }
+
+    @Override
+    public Optional<Student> findStudent(StudentId id) {
+        return addressBook.findStudent(id);
+    }
+
+    @Override
+    public void updateStudent(Student student) {
+        addressBook.updateStudent(student);
     }
 
     @Override

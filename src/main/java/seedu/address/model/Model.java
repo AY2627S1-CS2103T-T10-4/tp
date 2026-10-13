@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
@@ -56,6 +57,14 @@ public interface Model {
     }
     default boolean hasStudent(Student student) {
         return false;
+    }
+
+    default Optional<Student> findStudent(StudentId id) {
+        return getStudentList().stream().filter(student -> student.getId().equals(id)).findFirst();
+    }
+
+    default void updateStudent(Student student) {
+        throw new UnsupportedOperationException();
     }
 
     default void addStudent(Student student) {
