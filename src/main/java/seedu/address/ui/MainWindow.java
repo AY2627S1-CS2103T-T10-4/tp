@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
@@ -18,10 +19,12 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.Student;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -42,6 +45,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private StudentListPanel studentListPanel;
+    private StudentDetailsPanel studentDetailsPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -142,6 +146,7 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         fillStudentPanels();
+        fillGroupPanel();
         fillResultDisplay();
         fillStatusBar();
         fillCommandBox();
@@ -150,23 +155,46 @@ public class MainWindow extends UiPart<Stage> {
     private void fillStudentPanels() {
         studentListPanel = new StudentListPanel(logic.getStudentList());
         studentListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
-        StudentDetailsPanel detailsPanel = new StudentDetailsPanel();
-        studentDetailsPanelPlaceholder.getChildren().add(detailsPanel.getRoot());
+        studentDetailsPanel = new StudentDetailsPanel();
+        studentDetailsPanelPlaceholder.getChildren().add(studentDetailsPanel.getRoot());
         studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
-                detailsPanel.setStudent(newStudent));
+                refreshStudentDetails());
         studentCountLabel.textProperty().bind(
                 Bindings.size(logic.getStudentList()).asString("%d students"));
         studentListPanel.selectFirstStudent();
     }
 
+    private void refreshStudentDetails() {
+        Student selected = studentListPanel.selectedStudentProperty().get();
+        studentDetailsPanel.setStudent(selected,
+                selected == null ? List.of() : logic.getAssignedGroups(selected.getId().value));
+    }
+
+    private void restoreStudentSelection(String studentId) {
+        if (studentId == null) {
+            studentListPanel.clearSelection();
+        } else {
+            studentListPanel.selectStudentId(studentId);
+        }
+        refreshStudentDetails();
+    }
+
+    private void fillGroupPanel() {
+        GroupListPanel groupListPanel = new GroupListPanel(logic.getGroupCatalogue());
+        groupsWorkspacePlaceholder.getChildren().add(groupListPanel.getRoot());
+    }
+
     private void fillResultDisplay() {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        if (logic.getDataRecoveryReason().isPresent()) {
+            resultDisplay.setFeedbackToUser(DataLoadingException.MESSAGE_RECOVERY);
+        }
         bindResultSectionHeight();
     }
 
     private void fillStatusBar() {
-        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
+        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath, logic.getDataRecoveryReason());
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
     }
 
@@ -195,7 +223,7 @@ public class MainWindow extends UiPart<Stage> {
         setActiveWorkspace(true);
     }
 
-    /** Shows the intentionally empty placeholder reserved for the Groups increment. */
+    /** Shows the configured groups workspace. */
     @FXML
     private void handleGroupsTab() {
         setActiveWorkspace(false);
@@ -269,13 +297,22 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Student previousSelection = studentListPanel.selectedStudentProperty().get();
+        String previousStudentId = previousSelection == null ? null : previousSelection.getId().value;
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
+                handleGroupsTab();
+            } else if (commandResult.getWorkspace() == CommandResult.Workspace.STUDENTS) {
+                handleStudentsTab();
+            }
             if (commandResult.getSelectedStudentId() != null) {
                 studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
             }
+            // Assignment-only changes keep the same Student object, so selection listeners may not fire.
+            refreshStudentDetails();
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
@@ -289,6 +326,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
+            restoreStudentSelection(previousStudentId);
             throw e;
         }
     }

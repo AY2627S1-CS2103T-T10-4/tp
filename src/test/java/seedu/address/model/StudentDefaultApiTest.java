@@ -4,13 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 
 class StudentDefaultApiTest {
     @Test
@@ -32,6 +38,26 @@ class StudentDefaultApiTest {
     private static class MinimalModel implements Model {
         private final AddressBook addressBook = new AddressBook();
         private final UserPrefs userPrefs = new UserPrefs();
+
+        @Override
+        public Optional<Student> findStudent(String studentId) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addGroupAssignment(GroupAssignment assignment) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public List<Group> getAssignedGroups(String studentId) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public GroupCatalogue getGroupCatalogue() {
+            throw new AssertionError("This student-only test does not use the catalogue.");
+        }
 
         @Override
         public ReadOnlyUserPrefs getUserPrefs() {

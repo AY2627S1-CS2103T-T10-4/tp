@@ -63,9 +63,13 @@ public class MainApp extends Application {
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * or an empty recovery model is used after a load failure has disabled data writes in {@code storage}.
+     *
+     * @param storage Session storage that latches load failures and rejects later register writes.
+     * @param userPrefs Preferences already initialized independently of the register.
+     * @return The fully loaded model, sample model, or empty write-disabled recovery model.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -79,7 +83,7 @@ public class MainApp extends Application {
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty student register.");
+                    + " Starting an empty recovery model with saving disabled. Reason: " + e.getMessage());
             initialData = new AddressBook();
         }
 

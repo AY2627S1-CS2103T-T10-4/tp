@@ -8,6 +8,18 @@ import org.junit.jupiter.api.Test;
 
 class CommandResultTest {
     @Test
+    void workspaceRequest_preservesExistingDefaultsAndParticipatesInEquality() {
+        CommandResult groups = new CommandResult("Listed groups", CommandResult.Workspace.GROUPS);
+        CommandResult copy = new CommandResult("Listed groups", CommandResult.Workspace.GROUPS);
+
+        assertEquals(CommandResult.Workspace.UNCHANGED, new CommandResult("Listed groups").getWorkspace());
+        assertEquals(groups, copy);
+        assertEquals(groups.hashCode(), copy.hashCode());
+        assertNotEquals(groups, new CommandResult("Listed groups"));
+        assertNull(groups.getSelectedStudentId());
+    }
+
+    @Test
     void studentSelection_usesStableStudentId() {
         CommandResult result = new CommandResult("Added student", false, false, "S-0001");
         assertEquals("Added student", result.getFeedbackToUser());

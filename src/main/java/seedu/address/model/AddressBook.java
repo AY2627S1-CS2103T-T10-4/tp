@@ -2,37 +2,80 @@ package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** Stores all student records managed by Mentora. */
+/**
+ * Stores student records and their validated group relationships.
+ * Each assignment references an existing student and a configured group, and each pair is unique.
+ */
 public class AddressBook implements ReadOnlyAddressBook {
+    public static final String MESSAGE_UNKNOWN_STUDENT = "Student %s does not exist.";
+    public static final String MESSAGE_UNKNOWN_GROUP =
+            "Group %s is not configured. Run list-groups to see available groups.";
+    public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
+
     private final ObservableList<Student> students = FXCollections.observableArrayList();
+    private final Set<GroupAssignment> groupAssignments = new LinkedHashSet<>();
 
     public AddressBook() { }
 
-    /** Creates a copy of the supplied student register. */
+    /**
+     * Copies the complete register, sharing immutable values but not mutable collections.
+     *
+     * @param toBeCopied The register to validate and copy.
+     * @throws IllegalArgumentException If the register violates student or assignment invariants.
+     * @throws NullPointerException If the register, a collection or an entry is null.
+     */
     public AddressBook(ReadOnlyAddressBook toBeCopied) {
         resetData(toBeCopied);
     }
 
-    /** Replaces the current student records. */
+    /**
+     * Replaces the complete register after validating all students and assignments.
+     * Validation failure preserves the current state. Passing this register itself is supported.
+     *
+     * @param newData The replacement state, whose mutable collections are copied.
+     * @throws IllegalArgumentException If the replacement violates student or assignment invariants.
+     * @throws NullPointerException If the register, a collection or an entry is null.
+     */
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
-        setStudents(newData.getStudentList());
+        AddressBook replacement = new AddressBook();
+        List.copyOf(newData.getStudentList()).forEach(replacement::addStudent);
+        newData.getGroupAssignments().forEach(replacement::addGroupAssignment);
+        groupAssignments.clear();
+        groupAssignments.addAll(replacement.groupAssignments);
+        students.setAll(replacement.students);
     }
 
-    /** Replaces student records while enforcing unique IDs and identities. */
+    /**
+     * Replaces students after validation, retaining assignments only for IDs still present.
+     * Replacing a Student object with the same ID preserves its assignments.
+     *
+     * @param newStudents The students to copy into the register.
+     * @throws IllegalArgumentException If student IDs or normalized name/level identities repeat.
+     * @throws NullPointerException If the list or a student is null.
+     */
     public void setStudents(List<Student> newStudents) {
-        students.clear();
-        newStudents.forEach(this::addStudent);
+        AddressBook replacement = new AddressBook();
+        List.copyOf(newStudents).forEach(replacement::addStudent);
+        groupAssignments.removeIf(assignment -> !replacement.hasStudentId(assignment.getStudentId()));
+        students.setAll(replacement.students);
     }
 
     /** Returns whether a student with the same ID or normalized name and level exists. */
@@ -47,6 +90,41 @@ public class AddressBook implements ReadOnlyAddressBook {
         return students.stream().anyMatch(student -> student.getId().equals(id));
     }
 
+    /**
+     * Looks up exact stable ID text without constructing an ID or advancing its generator.
+     *
+     * @param studentId The ID text to look up.
+     * @return The matching student, or an empty optional if no registered student has that ID.
+     * @throws NullPointerException If {@code studentId} is null.
+     */
+    public Optional<Student> findStudent(String studentId) {
+        requireNonNull(studentId);
+        return students.stream().filter(student -> student.getId().value.equals(studentId)).findFirst();
+    }
+
+    /**
+     * Adds an assignment after checking both references and pair uniqueness.
+     * Validation failure leaves the register unchanged.
+     *
+     * @param assignment The immutable student/group pair to add.
+     * @throws IllegalArgumentException If either reference is unknown or the pair already exists.
+     * @throws NullPointerException If the assignment is null.
+     */
+    public void addGroupAssignment(GroupAssignment assignment) {
+        requireNonNull(assignment);
+        if (!hasStudentId(assignment.getStudentId())) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, assignment.getStudentId()));
+        }
+        if (ConfiguredGroups.getCatalogue().findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
+        }
+        if (groupAssignments.contains(assignment)) {
+            throw new IllegalArgumentException(String.format(MESSAGE_DUPLICATE_ASSIGNMENT,
+                    assignment.getStudentId(), assignment.getGroupCode()));
+        }
+        groupAssignments.add(assignment);
+    }
+
     /** Adds a student while enforcing unique IDs and identities. */
     public void addStudent(Student student) {
         requireNonNull(student);
@@ -57,9 +135,16 @@ public class AddressBook implements ReadOnlyAddressBook {
         sortStudents();
     }
 
-    /** Removes the student with the given stable ID. */
+    /**
+     * Removes a student and only that student's assignments, preserving the configured catalogue.
+     * Does nothing if the ID is not registered.
+     *
+     * @param id The stable ID of the student to remove.
+     * @throws NullPointerException If {@code id} is null.
+     */
     public void deleteStudent(StudentId id) {
         requireNonNull(id);
+        groupAssignments.removeIf(assignment -> assignment.getStudentId().equals(id));
         students.removeIf(student -> student.getId().equals(id));
     }
 
@@ -100,17 +185,23 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     @Override
+    public Set<GroupAssignment> getGroupAssignments() {
+        return Collections.unmodifiableSet(groupAssignments);
+    }
+
+    @Override
     public String toString() {
-        return new ToStringBuilder(this).add("students", students).toString();
+        return new ToStringBuilder(this).add("students", students).add("groupAssignments", groupAssignments).toString();
     }
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof AddressBook addressBook && students.equals(addressBook.students);
+        return other == this || other instanceof AddressBook addressBook && students.equals(addressBook.students)
+                && groupAssignments.equals(addressBook.groupAssignments);
     }
 
     @Override
     public int hashCode() {
-        return students.hashCode();
+        return Objects.hash(students, groupAssignments);
     }
 }

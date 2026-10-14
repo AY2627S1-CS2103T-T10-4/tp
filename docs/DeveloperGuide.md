@@ -9,7 +9,8 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* Mentora builds on [SE-EDU AddressBook-Level3](https://github.com/se-edu/addressbook-level3), including its JavaFX architecture, storage utilities, tests and documentation template.
+* For issue #58's Packages A, R and B, Gabriel Chan (HIIMHEY) used [ChatGPT](https://chatgpt.com/) for planning and supervision, and [OpenAI Codex](https://openai.com/codex/) for substantial implementation, test creation/execution, documentation, code review and scoped corrections. Gabriel's final personal source/test review and acceptance are pending. This acknowledgement covers these packages; other contributors should record their own assistance where applicable.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -27,6 +28,27 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 </div>
 
 ### Architecture
+
+#### Current Mentora implementation: Packages A, R and B
+
+The inherited AB3 diagrams and Person-command examples below are historical reference material. The current
+runtime stores Students and their group assignments; retired Person APIs remain only for source compatibility.
+
+- `ConfiguredGroups` supplies one immutable five-entry catalogue through Model and Logic.
+- `AddressBook` owns immutable `GroupAssignment` pairs, validates both references and uniqueness, and includes
+  assignments in copy/reset/equality/hash. Student replacement keeps memberships by stable ID.
+- `assign-group` parses ID text without allocating IDs, validates before mutation and requests the Students
+  workspace only after Logic has saved successfully. `list-groups` is a read-only query and requests Groups.
+- JSON has `students` and optional `groupAssignments` arrays. Stored text must be JSON strings; malformed
+  relationships or records fail the complete load instead of publishing partial data.
+- `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
+  writes independently. Read-only commands remain available. Save failure restores the in-memory aggregate;
+  direct normal writes are not atomic and can still partially damage a file.
+- MainWindow coordinates selection/navigation and explicitly refreshes assignment-only changes. The profile
+  scrolls as a whole to keep long names and assignments reachable at compact sizes without changing its styling.
+
+See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for the combined catalogue, assignment and
+recovery APIs, validation, tests and integration limits.
 
 <img src="images/ArchitectureDiagram.png" width="280" />
 
