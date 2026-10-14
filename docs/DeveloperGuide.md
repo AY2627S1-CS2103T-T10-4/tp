@@ -9,8 +9,7 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* Mentora builds on [SE-EDU AddressBook-Level3](https://github.com/se-edu/addressbook-level3), including its JavaFX architecture, storage utilities, tests and documentation template.
-* For issue #58's Packages A, R and B, Gabriel Chan (HIIMHEY) used [ChatGPT](https://chatgpt.com/) for planning and supervision, and [OpenAI Codex](https://openai.com/codex/) for substantial implementation, test creation/execution, documentation, code review and scoped corrections. Gabriel's final personal source/test review and acceptance are pending. This acknowledgement covers these packages; other contributors should record their own assistance where applicable.
+* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 
 --------------------------------------------------------------------------------------------------------------------
 
