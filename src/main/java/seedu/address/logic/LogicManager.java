@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -11,11 +12,13 @@ import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.LinkGuardianCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
@@ -49,22 +52,26 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackAdd(command, beforeCommand);
+            rollbackMutation(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackAdd(command, beforeCommand);
+            rollbackMutation(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         }
         return result;
     }
 
-    private void rollbackAdd(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand) {
+    private void rollbackMutation(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand
+                || command instanceof LinkGuardianCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
 
     private String getSaveError(Command command, IOException cause) {
+        if (command instanceof LinkGuardianCommand) {
+            return LinkGuardianCommand.MESSAGE_SAVE_FAILURE;
+        }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
         }
@@ -80,6 +87,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Student> getStudentList() {
         return model.getStudentList();
+    }
+
+    @Override
+    public Optional<Guardian> getLinkedGuardian(String studentId) {
+        return model.getLinkedGuardian(studentId);
     }
 
     @Override

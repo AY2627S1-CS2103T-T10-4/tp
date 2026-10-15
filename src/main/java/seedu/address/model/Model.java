@@ -88,4 +88,24 @@ public interface Model {
     default void addGuardian(Guardian guardian) {
         throw new UnsupportedOperationException();
     }
+
+    /** Looks up a student in the full register without allocating an ID. */
+    default Optional<Student> findStudent(String studentId) {
+        return getAddressBook().findStudent(studentId);
+    }
+
+    /** Looks up a guardian in the full register without allocating an ID. */
+    default Optional<Guardian> findGuardian(String guardianId) {
+        return getAddressBook().findGuardian(guardianId);
+    }
+
+    /** Returns the student's current guardian record, or empty if the student has no link. */
+    default Optional<Guardian> getLinkedGuardian(String studentId) {
+        return getAddressBook().getLinkedGuardian(studentId);
+    }
+
+    /** Links existing records, rejecting missing IDs and students who already have a guardian. */
+    default void linkGuardian(String studentId, String guardianId) {
+        throw new UnsupportedOperationException();
+    }
 }

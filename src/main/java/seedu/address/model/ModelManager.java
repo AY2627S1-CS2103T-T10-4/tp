@@ -99,6 +99,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void linkGuardian(String studentId, String guardianId) {
+        addressBook.linkGuardian(studentId, guardianId);
+    }
+
+    @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ModelManager manager
                 && addressBook.equals(manager.addressBook) && userPrefs.equals(manager.userPrefs);
