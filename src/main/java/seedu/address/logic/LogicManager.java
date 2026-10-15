@@ -11,6 +11,7 @@ import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -49,17 +50,18 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackAdd(command, beforeCommand);
+            rollbackChange(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackAdd(command, beforeCommand);
+            rollbackChange(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         }
         return result;
     }
 
-    private void rollbackAdd(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand) {
+    private void rollbackChange(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand
+                || command instanceof EditStudentCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
@@ -67,6 +69,9 @@ public class LogicManager implements Logic {
     private String getSaveError(Command command, IOException cause) {
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof EditStudentCommand edit) {
+            return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";
         }
         if (command instanceof AddGuardianCommand) {
             return "Could not save changes. No guardian was added.";

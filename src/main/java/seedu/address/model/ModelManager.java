@@ -78,6 +78,16 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Optional<Student> findStudent(StudentId id) {
+        return addressBook.findStudent(id);
+    }
+
+    @Override
+    public void updateStudent(Student student) {
+        addressBook.updateStudent(student);
+    }
+
+    @Override
     public void addStudent(Student student) {
         addressBook.addStudent(student);
     }

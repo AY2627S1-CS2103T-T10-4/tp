@@ -170,6 +170,35 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void submitCommand_removingDifferentStudent_preservesSelection() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Student amy = new Student(new StudentId("S-0220"), new StudentName("Amy Tan"),
+                    new AcademicLevel("Sec 2"));
+            Student mei = new Student(new StudentId("S-0221"), new StudentName("Mei Lin"),
+                    new AcademicLevel("Sec 3"));
+            logic.students.setAll(amy, mei);
+            logic.studentIdToRemoveOnExecute = mei.getId().value;
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
+            mainWindow.fillInnerParts();
+            mainWindow.getStudentListPanel().selectStudentId(amy.getId().value);
+
+            TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
+            commandTextField.setText("delete-student sid/S-0221");
+            submit(commandTextField);
+
+            assertEquals(amy, mainWindow.getStudentListPanel().selectedStudentProperty().get());
+
+            logic.studentIdToRemoveOnExecute = amy.getId().value;
+            commandTextField.setText("delete-student sid/S-0220");
+            submit(commandTextField);
+            assertNull(mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            stage.close();
+        });
+    }
+
     private static Label getDetailsLabel(Stage stage, String selector) {
         return (Label) stage.getScene().lookup(selector);
     }
@@ -215,6 +244,7 @@ public class MainWindowTest {
         private GuiSettings guiSettings;
         private String lastCommand;
         private ParseException commandFailure;
+        private String studentIdToRemoveOnExecute;
         private CommandResult commandResult = new CommandResult("Command completed");
 
         TestLogic(GuiSettings guiSettings) {
@@ -226,6 +256,9 @@ public class MainWindowTest {
             lastCommand = commandText;
             if (commandFailure != null) {
                 throw commandFailure;
+            }
+            if (studentIdToRemoveOnExecute != null) {
+                students.removeIf(student -> student.getId().value.equals(studentIdToRemoveOnExecute));
             }
             return commandResult;
         }

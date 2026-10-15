@@ -59,6 +59,31 @@ public class AddressBook implements ReadOnlyAddressBook {
         return students.stream().anyMatch(student -> student.getId().equals(id));
     }
 
+    /** Returns the student with the given ID, if present. */
+    public Optional<Student> findStudent(StudentId id) {
+        requireNonNull(id);
+        return students.stream().filter(student -> student.getId().equals(id)).findFirst();
+    }
+
+    /** Replaces a student while preventing duplicate names and academic levels. */
+    public void updateStudent(Student student) {
+        requireNonNull(student);
+        int index = -1;
+        for (int i = 0; i < students.size(); i++) {
+            Student existing = students.get(i);
+            if (existing.getId().equals(student.getId())) {
+                index = i;
+            } else if (existing.sameIdentity(student)) {
+                throw new IllegalArgumentException("Duplicate student identity.");
+            }
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Student ID does not exist.");
+        }
+        students.set(index, student);
+        sortStudents();
+    }
+
     /** Adds a student while enforcing unique IDs and identities. */
     public void addStudent(Student student) {
         requireNonNull(student);
