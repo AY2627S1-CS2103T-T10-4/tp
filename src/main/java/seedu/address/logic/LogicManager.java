@@ -11,6 +11,7 @@ import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeleteStudentCommand;
 import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -61,7 +62,7 @@ public class LogicManager implements Logic {
 
     private void rollbackChange(Command command, AddressBook beforeCommand) {
         if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand
-                || command instanceof EditStudentCommand) {
+                || command instanceof DeleteStudentCommand || command instanceof EditStudentCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
@@ -69,6 +70,9 @@ public class LogicManager implements Logic {
     private String getSaveError(Command command, IOException cause) {
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof DeleteStudentCommand deleteCommand) {
+            return String.format(DeleteStudentCommand.MESSAGE_SAVE_FAILURE, deleteCommand.getStudentId());
         }
         if (command instanceof EditStudentCommand edit) {
             return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";

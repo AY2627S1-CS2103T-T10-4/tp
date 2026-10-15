@@ -48,6 +48,9 @@ For the command-driven selection API and Feature 13 integration notes, see
 For the student-only model migration and PR #45 selection compatibility, see
 [Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
 
+For stable-ID student deletion and clearing the selected details, see
+[Delete Student Handover](feature-handover/DeleteStudentHandover.md).
+
 For student academic-level updates and stable-ID profile refresh, see
 [Edit Student Handover](feature-handover/EditStudentHandover.md).
 
