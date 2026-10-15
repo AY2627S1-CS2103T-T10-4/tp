@@ -35,18 +35,21 @@ The existing storage layer writes directly to disk. In-memory rollback does not
 guarantee recovery of a file partially written before an I/O failure; atomic file
 replacement and failed-load recovery protection remain separate storage work.
 
-## UI and documentation handoff
+## Profile display integration
 
-UI, FXML, and User Guide files are intentionally unchanged, as agreed with their
-owners. The command result requests selection using the student's existing ID.
-The existing interface still displays only the fields it already supports.
+`MainWindow` retrieves `logic.getLinkedGuardian(studentId)` when displaying a
+profile. The details panel shows the current name and canonical phone, or
+`Guardian: none`. Successful profile requests explicitly refresh the details,
+even when the student was already selected, and open the Students workspace.
 
-The UI owner should retrieve `logic.getLinkedGuardian(studentId)` when displaying
-or refreshing a profile. Show the current name and canonical phone, or
-`Guardian: none`. Refresh after successful linking even when the student was
-already selected; selecting the same row may not trigger a selection listener.
-The specification's immediate guardian display requires this UI integration.
-The User Guide owner should mark linking available once the feature is integrated.
+`Logic#findStudent(String)` resolves profiles from the complete register. If a
+search hides the requested student, the profile still opens while the filter
+remains unchanged and the list selection is cleared. Failed commands preserve
+the previous profile. Saved guardian details also appear on startup and selection.
+
+JavaFX integration tests exercise real commands and storage for same-row refresh,
+different students, hidden students, reopening saved data, and save failures.
+The User Guide remains with its owner and should mark linking available.
 
 ## Integration with parallel work
 

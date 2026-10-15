@@ -15,28 +15,34 @@ existing student's ID as a `String`.
 ```text
 CommandResult.getSelectedStudentId()
     -> MainWindow forwards the ID to StudentListPanel.selectStudentId(id)
-    -> Selection listener updates StudentDetailsPanel
+    -> MainWindow refreshes StudentDetailsPanel with current guardian details
 ```
 
-The command must validate the ID and ensure the student is in the displayed list;
-the panel does nothing if no displayed student matches. The old `Index` constructor
+The command must validate the ID. MainWindow resolves the profile from the complete
+register, even when a search hides the student. In that case the filter is retained
+and list selection is cleared. The old `Index` constructor
 and `getSelectedIndex()` are deprecated and no longer request selection.
 
 `view-student sid/STUDENT_ID` now uses this contract through `ViewStudentCommandParser`
 and `ViewStudentCommand`. The parser rejects missing, malformed, repeated, and extra
 arguments. The command verifies that the ID exists before requesting selection;
 lookup does not construct a `StudentId`, because its constructor advances the ID generator.
+Its current existence check uses the displayed list, so `view-student` still
+rejects students hidden by a search. The full-register UI lookup supports
+`link-guardian` requests for hidden students without changing that command's scope.
 
-The existing UI displays ID, name, and academic level for the selected student.
-Users must open the Students tab themselves; the command does not switch tabs.
+The UI displays ID, name, academic level, and the current guardian name and phone
+(or `Guardian: none`). Successful profile requests open the Students tab and
+explicitly refresh details even if the student is already selected.
 `LogicManager` skips saving when student data is unchanged, so viewing a profile
 does not require writable storage.
 
 Parser and command tests cover validation and read-only lookup. `LogicManagerTest`
-checks command execution and persistence behavior. UI and User Guide updates are
-left to their respective owners.
+checks command execution and persistence behavior. `LinkGuardianProfileTest`
+covers guardian display and refresh through real commands. User Guide updates
+remain with their owner.
 
-Guardian and assignment details remain pending. See the
+Assignment details remain pending. See the
 [migration handover](PersonToStudentMigrationHandover.md) for the shared model changes.
 
 Everything below records the original PR #45 implementation and its validation

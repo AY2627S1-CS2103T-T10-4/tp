@@ -22,6 +22,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.Student;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -42,6 +43,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private StudentListPanel studentListPanel;
+    private StudentDetailsPanel studentDetailsPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -150,13 +152,30 @@ public class MainWindow extends UiPart<Stage> {
     private void fillStudentPanels() {
         studentListPanel = new StudentListPanel(logic.getStudentList());
         studentListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
-        StudentDetailsPanel detailsPanel = new StudentDetailsPanel();
-        studentDetailsPanelPlaceholder.getChildren().add(detailsPanel.getRoot());
+        studentDetailsPanel = new StudentDetailsPanel();
+        studentDetailsPanelPlaceholder.getChildren().add(studentDetailsPanel.getRoot());
         studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
-                detailsPanel.setStudent(newStudent));
+                showStudentDetails(newStudent));
         studentCountLabel.textProperty().bind(
                 Bindings.size(logic.getStudentList()).asString("%d students"));
         studentListPanel.selectFirstStudent();
+    }
+
+    private void showStudentDetails(Student student) {
+        studentDetailsPanel.setStudent(student,
+                student == null ? null : logic.getLinkedGuardian(student.getId().value).orElse(null));
+    }
+
+    private void showStudentProfile(String studentId) {
+        logic.findStudent(studentId).ifPresent(student -> {
+            studentListPanel.selectStudentId(studentId);
+            if (!student.equals(studentListPanel.selectedStudentProperty().get())) {
+                studentListPanel.clearSelection();
+            }
+            // Selecting an already selected row does not fire a selection change.
+            showStudentDetails(student);
+            setActiveWorkspace(true);
+        });
     }
 
     private void fillResultDisplay() {
@@ -274,7 +293,7 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             if (commandResult.getSelectedStudentId() != null) {
-                studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
+                showStudentProfile(commandResult.getSelectedStudentId());
             }
 
             if (commandResult.isShowHelp()) {

@@ -90,6 +90,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public Optional<Student> findStudent(String studentId) {
+        return model.findStudent(studentId);
+    }
+
+    @Override
     public Optional<Guardian> getLinkedGuardian(String studentId) {
         return model.getLinkedGuardian(studentId);
     }

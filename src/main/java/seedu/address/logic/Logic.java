@@ -19,6 +19,11 @@ public interface Logic {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
 
+    /** Finds a student for profile display, including students hidden by the current search. */
+    default Optional<Student> findStudent(String studentId) {
+        return getStudentList().stream().filter(student -> student.getId().value.equals(studentId)).findFirst();
+    }
+
     /** Returns current guardian details for a student profile, or empty if there is no linked guardian. */
     default Optional<Guardian> getLinkedGuardian(String studentId) {
         return Optional.empty();

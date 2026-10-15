@@ -32,6 +32,11 @@ public class StudentListPanel extends UiPart<Region> {
         studentListView.getSelectionModel().selectFirst();
     }
 
+    /** Clears the list selection when displaying a profile outside the current search results. */
+    public void clearSelection() {
+        studentListView.getSelectionModel().clearSelection();
+    }
+
     /** Selects and scrolls to the student with the supplied generated ID, if it is visible. */
     public void selectStudentId(String id) {
         for (int i = 0; i < studentListView.getItems().size(); i++) {
