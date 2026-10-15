@@ -5,7 +5,45 @@ title: Open Student Profile Handover
 
 # Open Student Profile Handover
 
-## Scope of the v1.2 increment
+## Current integration contract
+
+The active model and UI now use students with permanent IDs, names, and academic
+levels. To request selection, return
+`new CommandResult(feedback, false, false, studentId)`, where `studentId` is the
+existing student's ID as a `String`.
+
+```text
+CommandResult.getSelectedStudentId()
+    -> MainWindow forwards the ID to StudentListPanel.selectStudentId(id)
+    -> Selection listener updates StudentDetailsPanel
+```
+
+The command must validate the ID and ensure the student is in the displayed list;
+the panel does nothing if no displayed student matches. The old `Index` constructor
+and `getSelectedIndex()` are deprecated and no longer request selection.
+
+`view-student sid/STUDENT_ID` now uses this contract through `ViewStudentCommandParser`
+and `ViewStudentCommand`. The parser rejects missing, malformed, repeated, and extra
+arguments. The command verifies that the ID exists before requesting selection;
+lookup does not construct a `StudentId`, because its constructor advances the ID generator.
+
+The existing UI displays ID, name, and academic level for the selected student.
+Users must open the Students tab themselves; the command does not switch tabs.
+`LogicManager` skips saving when student data is unchanged, so viewing a profile
+does not require writable storage.
+
+Parser and command tests cover validation and read-only lookup. `LogicManagerTest`
+checks command execution and persistence behavior. UI and User Guide updates are
+left to their respective owners.
+
+Guardian and assignment details remain pending. See the
+[migration handover](PersonToStudentMigrationHandover.md) for the shared model changes.
+
+Everything below records the original PR #45 implementation and its validation
+at that time. Its Person/index APIs and model prerequisites are historical, not
+instructions for new integration.
+
+## Historical scope of the v1.2 increment (PR #45)
 
 Feature 13 will open a read-only student profile using `view-student sid/STUDENT_ID`.
 This increment implements the command-to-UI selection connection using the existing
