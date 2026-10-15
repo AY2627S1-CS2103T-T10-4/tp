@@ -21,6 +21,8 @@ class StudentDefaultApiTest {
         assertEquals(0, model.getStudentList().size());
         assertFalse(model.hasStudent(null));
         assertThrows(UnsupportedOperationException.class, () -> model.addStudent(null));
+        assertThrows(UnsupportedOperationException.class, () ->
+                model.updateFilteredStudentList(Model.PREDICATE_SHOW_ALL_STUDENTS));
         assertThrows(UnsupportedOperationException.class, () -> model.getStudentList().add(null));
     }
 

@@ -63,6 +63,22 @@ class LinkGuardianIntegrationTest {
     }
 
     @Test
+    void execute_linkHiddenStudent_preservesSearchAndPersistsRelationship() throws Exception {
+        logic.execute("find-student n/No Match");
+        assertTrue(model.getStudentList().isEmpty());
+        assertEquals(0, storage.saveAttempts);
+
+        logic.execute("link-guardian sid/S-0007 gid/G-0003");
+        assertTrue(model.getStudentList().isEmpty());
+        assertTrue(logic.getLinkedGuardian("S-0007").isPresent());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+
+        logic.execute("list-students");
+        assertEquals(2, model.getStudentList().size());
+        assertEquals(1, storage.saveAttempts);
+    }
+
+    @Test
     void execute_invalidOrDuplicateLink_doesNotAttemptSave() throws Exception {
         logic.execute("link-guardian sid/S-0007 gid/G-0003");
         AddressBook before = new AddressBook(model.getAddressBook());
