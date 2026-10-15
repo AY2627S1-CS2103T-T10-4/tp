@@ -63,6 +63,12 @@ Student replacement retains the ID and assignments; MainWindow explicitly render
 including successive edits to the same ID. `restoreStudentSelection()` is the single selection/refresh helper
 for successful results and failed commands. It clears an absent selection instead of selecting a different student.
 
+Delete Student adds conditional clearing metadata to CommandResult alongside the existing workspace and selected-ID
+fields. MainWindow compares the deleted ID with the selection saved before execution, then uses the same
+`restoreStudentSelection()` helper. Deleting the selected student clears the profile; deleting another student,
+including one hidden by Search, retains the visible selection, filter and workspace. Save failures restore the
+complete register and previous selection without applying the deletion result.
+
 Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
@@ -70,6 +76,9 @@ For the command-driven selection API and Feature 13 integration notes, see
 
 For the student-only model migration and PR #45 selection compatibility, see
 [Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
+
+For stable-ID student deletion, assignment cleanup and conditional selection clearing, see
+[Delete Student Handover](feature-handover/DeleteStudentHandover.md).
 
 For student academic-level updates and stable-ID profile refresh, see
 [Edit Student Handover](feature-handover/EditStudentHandover.md).

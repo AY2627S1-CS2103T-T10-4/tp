@@ -227,6 +227,96 @@ class AssignGroupUiTest {
     }
 
     @Test
+    void deleteStudents_preservesOtherProfilesAndClearsOnlyTheDeletedSelection() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            Student mei = model.findStudent("S-9401").orElseThrow();
+            Student amy = model.findStudent("S-9402").orElseThrow();
+            Student zara = new Student(new StudentId("S-9403"), new StudentName("Zara Lim"),
+                    new AcademicLevel("Sec 4"));
+            model.addStudent(zara);
+            model.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("S2-MAT-A")));
+            model.addGroupAssignment(new GroupAssignment(amy.getId(), new GroupCode("ENG")));
+            List<Guardian> guardians = List.copyOf(model.getGuardianList());
+            JsonAddressBookStorage data = new JsonAddressBookStorage(testFolder.resolve("deleted.json"));
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, data, stage);
+            submit(stage, "find-student n/Amy");
+            window.getStudentListPanel().selectStudentId("S-9402");
+            submit(stage, "list-groups");
+
+            submit(stage, "delete-student sid/S-9401");
+
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(List.of(amy), model.getStudentList());
+            assertEquals(List.of(amy, zara), model.getAddressBook().getStudentList());
+            assertTrue(model.getAssignedGroups("S-9401").isEmpty());
+            assertEquals(List.of("ENG — English"), assignments(stage));
+            assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+            assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+
+            submit(stage, "list-students");
+            submit(stage, "delete-student sid/S-9403");
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(List.of("ENG — English"), assignments(stage));
+            submit(stage, "delete-student sid/S-9402");
+            assertNull(window.getStudentListPanel().selectedStudentProperty().get());
+            assertTrue(assignments(stage).isEmpty());
+            Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
+            assertTrue(profile.lookup("#emptyState").isVisible());
+            assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+            assertTrue(model.getAddressBook().getStudentList().isEmpty());
+            assertTrue(model.getAddressBook().getGroupAssignments().isEmpty());
+            assertEquals(guardians, model.getGuardianList());
+            assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+            stage.close();
+        });
+    }
+
+    @Test
+    void failedDelete_restoresAssignmentsFilterSelectionAndWorkspace() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            Student mei = model.findStudent("S-9401").orElseThrow();
+            model.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("S2-MAT-A")));
+            AddressBook before = new AddressBook(model.getAddressBook());
+            Path path = testFolder.resolve("failed-delete.json");
+            new JsonAddressBookStorage(path).saveAddressBook(before);
+            byte[] original = Files.readAllBytes(path);
+            JsonAddressBookStorage failed = new JsonAddressBookStorage(path) {
+                @Override
+                public void saveAddressBook(ReadOnlyAddressBook records) throws IOException {
+                    throw new IOException("synthetic failure before writing");
+                }
+            };
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, failed, stage);
+            submit(stage, "find-student n/Mei");
+            window.getStudentListPanel().selectStudentId("S-9401");
+            submit(stage, "list-groups");
+
+            for (String target : List.of("S-9401", "S-9402")) {
+                submit(stage, "delete-student sid/" + target);
+                assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+                assertEquals(List.of(mei), model.getStudentList());
+                assertSame(mei, window.getStudentListPanel().selectedStudentProperty().get());
+                assertEquals(List.of("MAT — Mathematics", "S2-MAT-A — Secondary 2 Mathematics A"), assignments(stage));
+                assertEquals(before, model.getAddressBook());
+                assertArrayEquals(original, Files.readAllBytes(path));
+                Label feedback = (Label) stage.getScene().lookup("#resultDisplay");
+                assertEquals("Could not save changes. Student " + target + " was not deleted.", feedback.getText());
+            }
+            window.getStudentListPanel().clearSelection();
+            submit(stage, "delete-student sid/S-9401");
+            assertNull(window.getStudentListPanel().selectedStudentProperty().get());
+            assertTrue(assignments(stage).isEmpty());
+            assertEquals(before, model.getAddressBook());
+            assertArrayEquals(original, Files.readAllBytes(path));
+            stage.close();
+        });
+    }
+
+    @Test
     void failedAssignmentToHiddenStudent_preservesFilterSelectionWorkspaceAndMixedState() {
         JavaFxTestUtils.runOnFxThread(() -> {
             ModelManager model = mixedModel();

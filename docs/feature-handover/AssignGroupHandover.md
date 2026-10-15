@@ -7,9 +7,9 @@ title: Assign Group Handover
 
 Owner: **Gabriel Chan (HIIMHEY)** · [Issue #58](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/58) · v1.3.
 Packages **A** (catalogue/display), **R** (load-failure recovery) and **B** (assignment/persistence/profile) are implemented.
-The current 15 October integration reconciles checkpoint `fff49a93d34f1779c3f31e8a0ce066572dc19b21` with team master
-`dc80c701ee2fca9bdbb5bdb8ed9b58d761ec8af9` on `58-assign-configured-groups`. It adds Edit Student (#55) to the
-existing Guardian (#51), View Student (#57), Search/List (#62) and Packages A/R/B implementation.
+The current 15 October integration reconciles checkpoint `6327f8eaf6bdc5649a587d5c8821ec7c160af50b` with team master
+`afc7ff0be83896dd6e21a754360365c733bac3a2` on `58-assign-configured-groups`. It adds Delete Student (#54) to the
+existing Edit Student (#55), Guardian (#51), View Student (#57), Search/List (#62) and Packages A/R/B implementation.
 Gabriel's personal review and acceptance of this integration remain pending.
 
 ## Scope and catalogue
@@ -27,8 +27,8 @@ Gabriel's personal review and acceptance of this integration remain pending.
 This is Gabriel's explicitly chosen reduced MVP catalogue. The original specification describes a broader catalogue;
 separate teammate approval of this reduction is not claimed. Definitions are application configuration, independent
 of student JSON and resets. Existing `GroupCode` normalization and catalogue validation are reused.
-Guardian contacts from #51 are retained independently of students. Guardian linking, unassign-group, group CRUD
-and the unmerged Delete Student command remain outside this integration.
+Guardian contacts from #51 are retained independently of students. Guardian linking, unassign-group and group CRUD
+remain outside this integration.
 
 ## Command contract
 
@@ -64,7 +64,7 @@ Java paths below are relative to `src/main/java/seedu/address/`.
 | `Model.findStudent(String)` / `addGroupAssignment` / `getAssignedGroups(String)` | Pure full-register lookup; validated mutation; immutable catalogue-ordered group projection. Labels come from configuration. Unknown-ID projections are empty. `getStudentList()` is the filtered view; `getAddressBook().getStudentList()` remains complete. |
 | `logic/parser/AddressBookParser` → Assign/List parser → command | Validates syntax and domain preconditions; argument splitting retains multiline input. Parsers do not access persistence. |
 | `logic/LogicManager.execute` | Applies the read-only/recovery policy, snapshots the complete aggregate, executes and saves changed persisted state. IOException restores the snapshot and raises the command-specific error. After success and any required save, `revealRequestedStudent()` clears a filter hiding the selected target; then the result reaches the UI. |
-| `logic/commands/CommandResult` | Carries stable-ID selection and typed `Workspace.GROUPS` / `STUDENTS`; existing constructors default to `UNCHANGED`. |
+| `logic/commands/CommandResult` | Carries stable-ID selection, typed workspace requests and conditional selection clearing. All metadata participates in equality/hash. Existing constructors default to `UNCHANGED` and no clearing; Delete Student carries the deleted ID for comparison with the pre-command selection. |
 
 Keep invariants in the aggregate, persistence in Logic/Storage and rendering in UI components. Command-level
 validation provides feedback; aggregate validation also protects loading/reset callers. Linear lookup and complete
@@ -139,44 +139,47 @@ unlock or repair editor. Window preferences retain their independent lifecycle.
   Academic-level edits replace immutable Students without changing assignments; the same explicit refresh handles replacement.
 - On failure, restore the previous stable-ID selection (including no selection), render the rolled-back model
   and retain the workspace. No ghost assignments should remain.
+- Delete Student uses authoritative lookup and the existing aggregate cleanup. MainWindow applies its conditional
+  clearing request through the same selection/refresh helper. Deleting another student, including a hidden one,
+  preserves the visible selection, search filter and workspace. Deleting the selected student clears the profile.
 - The profile shows canonical codes/labels or `No groups assigned.`. One `profileScrollPane` keeps all fields
   reachable with an 80-character name at the actual 820×560 minimum. Startup dimensions are at least 900×600.
   Preserve Raynor's profile styling and this narrow refresh/navigation integration surface.
 
 ## Teammate integration
 
-The current merge target includes #51, #55, #57 and #62. Other teammate work is excluded from this pinned integration;
+The current merge target includes #51, #54, #55, #57 and #62. Other teammate work is excluded from this pinned integration;
 recheck its current state before any later merge.
 
 | PR | Integration contract |
 |---|---|
 | #51 Add Guardian — included | Complete snapshots/JSON retain all three collections. Strict JSON setters coexist with Java compatibility constructors and guardian-specific save errors. |
 | #57 View Student and #62 Search/List — included | Explicit read-only classification, authoritative ID lookup and post-success filter clearing; manual View Student tab navigation remains. |
-| #54 Delete Student — pending | Require non-allocating ID lookup, assignment cleanup and preservation of another student's selection. Check updated fixes and CI before integration. |
+| #54 Delete Student — included | Non-allocating full-register lookup, removal of only the target's assignments, guardian preservation, full rollback and conditional profile clearing. See [Delete Student Handover](DeleteStudentHandover.md). |
 | #55 Edit Student — included | Full-register textual lookup, aggregate duplicate validation, stable-ID assignment preservation, complete rollback and post-save filter reveal. See [Edit Student Handover](EditStudentHandover.md). |
 | #63 Link Guardian — pending | Requires its own relationship/schema reconciliation. Do not silently accept or discard unsupported link fields. |
 
 Keep complete-register rollback and each command's save-error wording in subsequent integrations. Existing tests
-prove Edit Student integration and aggregate deletion compatibility, not the unmerged Delete Student command. Retired Person adapters remain
+prove Edit and Delete Student integration with persisted assignments and guardian records. Retired Person adapters remain
 baseline compatibility and must not be reconnected.
 
 ## Verification and maintainer checks
 
 Recorded on **15 October 2026** for the combined working tree, Windows, Java **25.0.1**, Gradle **9.6.1**.
-The pinned Edit Student merge remains uncommitted. The previous `fff49a93` checkpoint passed 405 tests;
+The pinned Delete Student merge remains uncommitted. The previous `6327f8ea` checkpoint passed 423 tests;
 earlier audit results and complete logs remain in prior commits/local records.
 
 | Check | Recorded result |
 |---|---|
-| Focused integration suite | **43 tests passed.** New regressions first exposed hidden-target/duplicate handling and parser failures; their full failing-run evidence is retained locally. |
-| Complete combined suite | **423 tests, 91 suites; zero failures, errors or skips.** Original tests from both parents remain. Main/test Checkstyle, coverage and shadowJar passed with tasks rerun. Overload placement findings from the first full run were corrected. |
-| Scoped Javadoc | Nine integration production files passed with `-Xdoclint:all,-missing`; API completeness was reviewed separately. |
+| Focused integration suite | **60 tests passed.** New regressions exposed hidden-target deletion and whitespace handling; the initial run and a corrected UI test setup error are retained in local records. |
+| Complete combined suite | **440 tests, 93 suites; zero failures, errors or skips.** Original tests from both parents remain. Main/test Checkstyle, coverage and shadowJar passed with tasks rerun. The incoming test's duplicate import and line-wrap violation were corrected without changing its assertions. |
+| Scoped Javadoc | Seven integration production files passed with `-Xdoclint:all,-missing`; API completeness was reviewed separately. The final metadata Javadoc clarification was rechecked with Checkstyle and JAR packaging. |
 | Repository-wide Javadoc | NOT RUN for this merge. The 14 October audit found the unchanged unresolved `Command` link at `logic/commands/exceptions/CommandException.java:4` and capped missing-comment/tag warnings. |
-| Built-JAR/GUI smoke | Create/edit, reload, recovery and long-name JVMs passed through the JAR's Main entry point. The edited academic level, three students, two guardians and six assignment pairs survived restart. Queries/unchanged edits preserved bytes; invalid guardian data blocked editing. Profile/selection, tabs and compact scrolling checked; screenshots inspected. |
+| Built-JAR/GUI smoke | Six JVM scenarios passed through the JAR's Main entry point: create/edit, reload, delete, deleted-state reload, recovery and long-name layout. Deleting a hidden student preserved another profile/assignment; deleting the selected student cleared the profile. Restart retained the one surviving student, two guardians and one assignment. Queries preserved bytes; recovery blocked deletion. Automated JavaFX command-box events and screenshot inspection were used. |
 | Human keyboard/mouse acceptance; other operating systems | **NOT RUN.** |
 | Scope/whitespace | `git diff --check` passed; real data/preferences and existing ignored fixtures were preserved. |
 
-Verified JAR SHA-256: `5429D5F38826A2DD3BCFD8E91592C1AD6C67D341AC5823E5FF8CBE3EA6959B55`.
+Verified JAR SHA-256: `4894378D9EACC6F35B808A9968E8FFAE6EB82623D6F2C8E728178164F02551AA`.
 Earlier failures and exact local commands are preserved separately. Regression tests retain the fixes for JSON
 scalar coercion, ModelManager equality/hash, long-name overflow, ambiguous UI lookup and same-student refresh.
 
@@ -192,7 +195,8 @@ Key test entry points under `src/test/java/seedu/address/`:
 - Combined integration: `CombinedRegisterTest`, `CombinedRegisterStorageTest`, `MergedCommandsIntegrationTest`,
   plus the extended startup/UI tests. These cover all three collections, filtered commands, complete rollback,
   strict guardian JSON and independent query execution during recovery. Edit regressions add hidden lookup/duplicates,
-  stable-ID reuse, preserved assignments/guardians, restart and failed-save UI restoration.
+  stable-ID reuse, preserved assignments/guardians, restart and failed-save UI restoration. Delete regressions add
+  hidden-target removal, assignment cleanup, conditional selection clearing and recovery/rollback preservation.
 
 For the next checkout, use the existing repository tasks:
 
@@ -205,12 +209,13 @@ git diff --check
 The recorded full run additionally used `--offline --no-daemon`, `integrationJavadoc` and a local init script for an
 isolated test working directory and scoped Javadoc task; that helper is not shared build tooling. Logs, scripts and
 screenshots for this merge are retained under ignored
-`build/reports/feature9-edit-integration-ff934617b8ea43bf86149aa1bbfd5077/`. Previous integration records remain under
+`build/reports/feature9-delete-integration-b6d8268e52b649bda0d9dab8133f3871/`. Previous integration records remain under
+`build/reports/feature9-edit-integration-ff934617b8ea43bf86149aa1bbfd5077/` and
 `build/reports/feature9-integration-5e27982d3a414af4b77fdb3ab1ea9974/`.
 Preserve existing fixtures: use a
 disposable checkout or isolate the test working directory, copying test data while excluding its existing sandbox.
 For manual acceptance, launch the built JAR by absolute path from fresh synthetic-data/preferences directories.
-Check multiple assignments, editing a hidden student, duplicate/invalid input, same/different Student selection,
+Check multiple assignments, editing/deleting hidden students, duplicate/invalid input, same/different Student selection,
 tabs, minimum-size scrolling,
 save/restart, then malformed-data recovery with byte/hash comparisons after rejected mutations, queries and exit.
 The read-denied automated case injects AccessDeniedException; a directory at the file path covers a real read failure.

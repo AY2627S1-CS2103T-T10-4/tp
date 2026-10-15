@@ -92,6 +92,10 @@ public class MainWindowTest {
             submit(input);
             assertEquals(recoveryMessage, getLabel(stage, "#resultDisplay").getText());
             assertEquals("Saving disabled", saveStatus.getText());
+            input.setText("delete-student sid/S-0007");
+            submit(input);
+            assertEquals(recoveryMessage, getLabel(stage, "#resultDisplay").getText());
+            assertEquals("Saving disabled", saveStatus.getText());
             assertTrue(model.getStudentList().isEmpty());
             assertArrayEquals(original, Files.readAllBytes(data));
             stage.close();
@@ -304,6 +308,37 @@ public class MainWindowTest {
             commandTextField.setText("delete-student sid/S-0220");
             submit(commandTextField);
             assertNull(mainWindow.getStudentListPanel().selectedStudentProperty().get());
+            stage.close();
+        });
+    }
+
+    @Test
+    public void submitCommand_conditionalClear_usesThePreviousSelection() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            TestLogic logic = new TestLogic(new GuiSettings());
+            Student amy = new Student(new StudentId("S-0220"), new StudentName("Amy Tan"),
+                    new AcademicLevel("Sec 2"));
+            Student mei = new Student(new StudentId("S-0221"), new StudentName("Mei Lin"),
+                    new AcademicLevel("Sec 3"));
+            logic.students.setAll(amy, mei);
+            Stage stage = new Stage();
+            MainWindow window = new MainWindow(stage, logic, DATA_FILE_PATH);
+            window.fillInnerParts();
+            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+            input.setText("selection-metadata-test");
+            logic.commandResult = new CommandResult("Clear another student", false, false, null, true, "S-0221");
+
+            submit(input);
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            logic.commandResult = new CommandResult("Clear Amy", false, false, null, true, "S-0220");
+            input.setText("selection-metadata-test");
+            submit(input);
+            assertNull(window.getStudentListPanel().selectedStudentProperty().get());
+            window.getStudentListPanel().selectStudentId("S-0221");
+            logic.commandResult = new CommandResult("Clear selection", false, false, null, true);
+            input.setText("selection-metadata-test");
+            submit(input);
+            assertNull(window.getStudentListPanel().selectedStudentProperty().get());
             stage.close();
         });
     }

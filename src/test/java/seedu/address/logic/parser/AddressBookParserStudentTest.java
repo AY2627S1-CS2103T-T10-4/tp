@@ -16,4 +16,17 @@ class AddressBookParserStudentTest {
         assertEquals("Added student " + model.getStudentList().get(0).getId() + ": Anita Lim (IP 2).",
                 result.getFeedbackToUser());
     }
+
+    @Test
+    void parseCommand_deleteStudentCaseInsensitive_executesStudentCommand() throws Exception {
+        ModelManager model = new ModelManager();
+        var added = new AddressBookParser().parseCommand("add-student n/Anita Lim al/IP 2").execute(model);
+
+        var result = new AddressBookParser().parseCommand("DELETE-STUDENT sid/" + added.getSelectedStudentId())
+                .execute(model);
+
+        assertEquals(0, model.getStudentList().size());
+        assertEquals("Deleted student " + added.getSelectedStudentId() + ": Anita Lim.",
+                result.getFeedbackToUser());
+    }
 }

@@ -286,6 +286,11 @@ public class MainWindow extends UiPart<Stage> {
         return studentListPanel;
     }
 
+    /** Returns the student details panel mounted in this window. */
+    StudentDetailsPanel getStudentDetailsPanel() {
+        return studentDetailsPanel;
+    }
+
     /** Empty compatibility panel for legacy UI tests; it is never attached to the window. */
     @Deprecated
     public PersonListPanel getPersonListPanel() {
@@ -309,7 +314,13 @@ public class MainWindow extends UiPart<Stage> {
                 handleStudentsTab();
             }
             String requestedStudentId = commandResult.getSelectedStudentId();
-            restoreStudentSelection(requestedStudentId == null ? previousStudentId : requestedStudentId);
+            String nextStudentId = requestedStudentId == null ? previousStudentId : requestedStudentId;
+            String idToClear = commandResult.getStudentIdToClearSelection();
+            if (commandResult.shouldClearStudentSelection()
+                    && (idToClear == null || idToClear.equals(previousStudentId))) {
+                nextStudentId = null;
+            }
+            restoreStudentSelection(nextStudentId);
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

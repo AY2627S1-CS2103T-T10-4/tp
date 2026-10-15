@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** Supported commands are `add-student`, `edit-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal, Student deletion and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
+> **Current build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
 
 * Table of Contents
 {:toc}
@@ -30,7 +30,7 @@ The **command box** accepts typed commands: enter one command and press **Enter*
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact, `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact, `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
 
 ## Understanding commands and values
 
@@ -129,11 +129,15 @@ Format: `delete-student sid/STUDENT_ID`
 
 Example: `delete-student sid/S-0007`
 
-**Deletion permanently removes the student record.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
+**Deletion permanently removes the student record and that student's group assignments.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
 
-The student's guardian link is removed, but the guardian record and links to other students are retained. The list refreshes and an open profile closes.
+The command finds the ID in the complete register, even when Search hides the student. Other students, their assignments and all guardian records are retained. Guardian linking is not yet implemented.
 
-Example result: `Deleted student S-0007: Mei Lin. Guardian link removed; guardian G-0003 was retained.` If the student had no guardian, the guardian sentence is omitted.
+Deleting the selected student clears the selection and profile. Deleting another student preserves the current selection. The search filter and active tab remain unchanged.
+
+Example result: `Deleted student S-0007: Mei Lin.` An unknown ID reports `Student S-0007 was not found.` If saving fails, the complete register, filter, selection and workspace are restored, and the result says `Could not save changes. Student S-0007 was not deleted.`
+
+Command and prefix names ignore case. Supply exactly one nonempty `sid/` value in uppercase `S-` form followed by at least four digits. Missing, repeated or unknown prefixes, malformed IDs and extra text report `Invalid command format. Use: delete-student sid/STUDENT_ID`.
 
 ## Managing guardians and relationships
 
@@ -261,11 +265,11 @@ Command-specific `help COMMAND`, its validation messages and the illustrated hel
 
 ### Saving and reopening
 
-The current build saves the complete Student, Guardian and assignment register after successful changes from `add-student`, `edit-student`, `add-guardian` and `assign-group`. Editing to the existing academic level does not rewrite the file. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
+The current build saves the complete Student, Guardian and assignment register after successful changes from `add-student`, `edit-student`, `delete-student`, `add-guardian` and `assign-group`. Editing to the existing academic level does not rewrite the file. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
 
 When Mentora reopens, it loads the complete register. Older files without guardians or assignments load with those collections empty. Explicit null collections or malformed records trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
 
-**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.`, using the supplied ID. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
+**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.` and Delete Student reports `Could not save changes. Student S-0007 was not deleted.`, using the supplied ID. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
 
 **If loading fails**, Mentora preserves the original file, opens an empty recovery model, and disables student-data changes and saving for the session. It reports:
 

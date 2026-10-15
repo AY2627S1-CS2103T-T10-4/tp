@@ -52,4 +52,5 @@ Exact commands and initial failing results remain in the ignored verification re
 - `Student` is immutable. Use `Model.updateStudent` to replace its observable-list entry rather than mutating a field.
 - Future mutations inherit complete-register snapshot rollback; add their feature-specific save feedback where needed.
 - JSON remains unchanged. Normal direct file writes are still non-atomic; in-memory rollback cannot repair a partial disk write.
-- PR #54 Delete Student and #63 Link Guardian are excluded from this pinned integration.
+- The later PR #54 integration adds deletion with assignment cleanup and complete rollback; see
+  [Delete Student Handover](DeleteStudentHandover.md). PR #63 Link Guardian remains excluded.

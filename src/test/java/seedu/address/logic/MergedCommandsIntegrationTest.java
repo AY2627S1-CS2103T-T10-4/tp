@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -202,6 +204,56 @@ class MergedCommandsIntegrationTest {
     }
 
     @Test
+    void deleteHiddenStudent_removesOnlyItsAssignmentsAndPreservesGuardiansAndFilter() throws Exception {
+        model.addGroupAssignment(new GroupAssignment(amy.getId(), new GroupCode("ENG")));
+        model.addGroupAssignment(new GroupAssignment(amy.getId(), new GroupCode("SCI")));
+        model.addGuardian(new Guardian(new GuardianId("G-9302"), new GuardianName("Raj Kumar"),
+                new GuardianPhone("61234567")));
+        Student zara = new Student(new StudentId("S-9303"), new StudentName("Zara Lim"), new AcademicLevel("Sec 4"));
+        model.addStudent(zara);
+        List<Guardian> guardians = List.copyOf(model.getGuardianList());
+        logic.execute("find-student n/Mei");
+
+        CommandResult result = logic.execute("DELETE-STUDENT SID/S-9302");
+
+        assertEquals("Deleted student S-9302: Amy Tan.", result.getFeedbackToUser());
+        assertTrue(result.shouldClearStudentSelection());
+        assertEquals("S-9302", result.getStudentIdToClearSelection());
+        assertEquals(CommandResult.Workspace.UNCHANGED, result.getWorkspace());
+        assertEquals(List.of(mei), model.getStudentList());
+        assertEquals(List.of(mei, zara), model.getAddressBook().getStudentList());
+        assertEquals(Set.of(new GroupAssignment(mei.getId(), new GroupCode("MAT"))),
+                model.getAddressBook().getGroupAssignments());
+        assertEquals(guardians, model.getGuardianList());
+        assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void unknownDeleteId_doesNotReserveIdsChangeStateOrSave() throws Exception {
+        AddressBook before = new AddressBook(model.getAddressBook());
+        byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
+        logic.execute("find-student n/Mei");
+        JsonAddressBookStorage mustNotSave = new JsonAddressBookStorage(data.getAddressBookFilePath()) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook records) {
+                throw new AssertionError("An unknown deletion target must not trigger a save.");
+            }
+        };
+        LogicManager rejecting = createLogic(model, mustNotSave);
+        long previousId = Long.parseLong(StudentId.generate().value.substring(2));
+        String unknown = "S-999999999999999999999999";
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                rejecting.execute("delete-student sid/" + unknown));
+
+        assertEquals("Student " + unknown + " was not found.", error.getMessage());
+        assertEquals(previousId + 1, Long.parseLong(StudentId.generate().value.substring(2)));
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(mei), model.getStudentList());
+        assertArrayEquals(original, Files.readAllBytes(data.getAddressBookFilePath()));
+    }
+
+    @Test
     void queriesDuringRecovery_executeWithoutWritingOrClearingReason() throws Exception {
         byte[] original = "invalid synthetic data".getBytes(StandardCharsets.UTF_8);
         Files.write(data.getAddressBookFilePath(), original);
@@ -219,7 +271,7 @@ class MergedCommandsIntegrationTest {
         recovery.execute("help");
         recovery.execute("exit");
         for (String mutation : List.of("add-student n/Zara Lim al/Sec 4", "add-guardian n/Raj Kumar p/61234567",
-                "assign-group sid/S-9301 g/SCI", "edit-student sid/S-9301 al/Sec 4")) {
+                "assign-group sid/S-9301 g/SCI", "edit-student sid/S-9301 al/Sec 4", "delete-student sid/S-9301")) {
             CommandException error = assertThrows(CommandException.class, () -> recovery.execute(mutation));
             assertEquals(DataLoadingException.MESSAGE_RECOVERY, error.getMessage());
         }
@@ -233,10 +285,13 @@ class MergedCommandsIntegrationTest {
         AddressBook before = new AddressBook(model.getAddressBook());
         byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
         String[] commands = {"add-student n/Zara Lim al/Sec 4", "add-guardian n/Raj Kumar p/61234567",
-            "assign-group sid/S-9302 g/SCI", "edit-student sid/S-9302 al/Sec 4"};
+            "assign-group sid/S-9302 g/SCI", "edit-student sid/S-9302 al/Sec 4",
+            "delete-student sid/S-9301", "delete-student sid/S-9302"};
         String[] messages = {"Could not save changes. No student was added.",
             "Could not save changes. No guardian was added.", "Could not save changes. The group was not assigned.",
-            "Could not save changes. Student S-9302 was not updated."};
+            "Could not save changes. Student S-9302 was not updated.",
+            "Could not save changes. Student S-9301 was not deleted.",
+            "Could not save changes. Student S-9302 was not deleted."};
         for (IOException failure : List.of(new IOException("synthetic pre-write failure"),
                 new AccessDeniedException("synthetic denied path"))) {
             JsonAddressBookStorage failed = new JsonAddressBookStorage(data.getAddressBookFilePath()) {
