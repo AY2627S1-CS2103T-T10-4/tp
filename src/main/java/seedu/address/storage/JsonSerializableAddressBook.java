@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.AddressBook;
@@ -25,6 +26,7 @@ class JsonSerializableAddressBook {
 
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
     private final List<JsonAdaptedGuardian> guardians = new ArrayList<>();
+    private final List<JsonAdaptedGuardianLink> guardianLinks = new ArrayList<>();
 
     @JsonCreator
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> ignoredPersons,
@@ -46,6 +48,18 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
         students.addAll(source.getStudentList().stream().map(JsonAdaptedStudent::new).toList());
         guardians.addAll(source.getGuardianList().stream().map(JsonAdaptedGuardian::new).toList());
+        source.getGuardianLinks().forEach((studentId, guardianId) -> guardianLinks.add(
+                new JsonAdaptedGuardianLink(studentId.toString(), guardianId.toString())));
+    }
+
+    /** Older files may omit links, but an explicitly null collection is malformed. */
+    @JsonSetter("guardianLinks")
+    private void setGuardianLinks(List<JsonAdaptedGuardianLink> links) {
+        if (links == null) {
+            throw new IllegalArgumentException("Guardian links must be a JSON array, not null.");
+        }
+        guardianLinks.clear();
+        guardianLinks.addAll(links);
     }
 
     public AddressBook toModelType() throws IllegalValueException {
@@ -66,6 +80,12 @@ class JsonSerializableAddressBook {
                 throw new IllegalValueException("Guardians list contains duplicate guardian ID or phone number.");
             }
             register.addGuardian(guardian);
+        }
+        for (JsonAdaptedGuardianLink link : guardianLinks) {
+            if (link == null) {
+                throw new IllegalValueException("Guardian links contain a null record.");
+            }
+            link.addTo(register);
         }
         return register;
     }
