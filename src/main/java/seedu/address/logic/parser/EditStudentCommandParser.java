@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.student.AcademicLevel;
-import seedu.address.model.student.StudentId;
 
 /** Parses edit-student arguments. */
 public class EditStudentCommandParser implements Parser<EditStudentCommand> {
@@ -32,7 +31,10 @@ public class EditStudentCommandParser implements Parser<EditStudentCommand> {
             if (!arg.getPreamble().isEmpty()) {
                 throw new IllegalArgumentException(EditStudentCommand.MESSAGE_USAGE);
             }
-            return new EditStudentCommand(new StudentId(rawId), new AcademicLevel(rawLevel));
+            if (!rawId.matches("S-[0-9]{4,}")) {
+                throw new IllegalArgumentException(EditStudentCommand.MESSAGE_USAGE);
+            }
+            return new EditStudentCommand(rawId, new AcademicLevel(rawLevel));
         } catch (ParseException e) {
             throw new ParseException(EditStudentCommand.MESSAGE_USAGE);
         } catch (IllegalArgumentException e) {

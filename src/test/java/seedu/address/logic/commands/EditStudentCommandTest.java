@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,17 @@ class EditStudentCommandTest {
                         new EditStudentCommand(target.getId(), new AcademicLevel("Sec 3")).execute(model))
                         .getMessage());
         assertEquals("Sec 2", model.findStudent(target.getId()).orElseThrow().getAcademicLevel().toString());
+    }
+
+    @Test
+    void execute_unknownLargeId_doesNotAdvanceIdGenerator() {
+        ModelManager model = new ModelManager();
+
+        assertThrows(CommandException.class, () ->
+                new EditStudentCommand("S-999999999999", new AcademicLevel("Sec 2")).execute(model));
+
+        long nextId = Long.parseLong(StudentId.generate().value.substring(2));
+        assertTrue(nextId < 999999999999L);
     }
 
     private static Student student(String id, String name, String level) {

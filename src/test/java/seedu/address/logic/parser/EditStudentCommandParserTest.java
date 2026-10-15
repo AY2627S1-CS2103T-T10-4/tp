@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 
 import org.junit.jupiter.api.Test;
@@ -30,5 +31,13 @@ class EditStudentCommandParserTest {
         assertParseFailure(parser, "sid/S-0007 al/Sec 2 al/Sec 3", EditStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "sid/S-0007 al/Sec 2 x/value", EditStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "unexpected sid/S-0007 al/Sec 2", EditStudentCommand.MESSAGE_USAGE);
+    }
+
+    @Test
+    void parse_largeLookupId_doesNotAdvanceIdGenerator() throws Exception {
+        parser.parse("sid/S-999999999999 al/Sec 2");
+
+        long nextId = Long.parseLong(StudentId.generate().value.substring(2));
+        assertTrue(nextId < 999999999999L);
     }
 }

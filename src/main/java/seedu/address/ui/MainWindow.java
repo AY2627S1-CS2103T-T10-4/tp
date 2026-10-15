@@ -276,6 +276,12 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             if (commandResult.getSelectedStudentId() != null) {
                 studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
+            } else if (selectedStudentId != null) {
+                if (studentListPanel.containsStudentId(selectedStudentId)) {
+                    studentListPanel.selectStudentId(selectedStudentId);
+                } else {
+                    studentListPanel.clearSelection();
+                }
             }
 
             if (commandResult.isShowHelp()) {

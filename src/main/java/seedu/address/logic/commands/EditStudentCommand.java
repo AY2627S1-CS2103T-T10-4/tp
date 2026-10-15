@@ -16,30 +16,38 @@ public class EditStudentCommand extends Command {
             + "already exists.";
     public static final String MESSAGE_SUCCESS_FORMAT = "Updated student %s: academic level is now %s.";
 
-    private final StudentId id;
+    private final String id;
     private final AcademicLevel level;
 
     /** Creates an edit command for the supplied student ID and new academic level. */
-    public EditStudentCommand(StudentId id, AcademicLevel level) {
+    public EditStudentCommand(String id, AcademicLevel level) {
         this.id = id;
         this.level = level;
     }
 
+    /** Creates an edit command from a previously validated student ID. */
+    public EditStudentCommand(StudentId id, AcademicLevel level) {
+        this(id.value, level);
+    }
+
     /** Returns the ID used in a persistence failure message. */
-    public StudentId getStudentId() {
+    public String getStudentId() {
         return id;
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
-        Student current = model.findStudent(id)
+        Student current = model.getStudentList().stream()
+                .filter(student -> student.getId().value.equals(id))
+                .findFirst()
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_NOT_FOUND_FORMAT, id)));
-        Student updated = new Student(id, current.getName(), level);
-        if (model.getStudentList().stream().anyMatch(student -> !student.getId().equals(id)
+        StudentId matchedId = current.getId();
+        Student updated = new Student(matchedId, current.getName(), level);
+        if (model.getStudentList().stream().anyMatch(student -> !student.getId().value.equals(id)
                 && student.sameIdentity(updated))) {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_FORMAT, id, updated.getName(), level));
         }
         model.updateStudent(updated);
-        return new CommandResult(String.format(MESSAGE_SUCCESS_FORMAT, id, level), false, false, id.value);
+        return new CommandResult(String.format(MESSAGE_SUCCESS_FORMAT, id, level), false, false, id);
     }
 }

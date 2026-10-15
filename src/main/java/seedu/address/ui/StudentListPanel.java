@@ -33,6 +33,16 @@ public class StudentListPanel extends UiPart<Region> {
         return selected == null ? null : selected.getId().value;
     }
 
+    /** Returns whether the ID is currently visible in the list. */
+    public boolean containsStudentId(String id) {
+        return studentListView.getItems().stream().anyMatch(student -> student.getId().value.equals(id));
+    }
+
+    /** Clears the current student selection. */
+    public void clearSelection() {
+        studentListView.getSelectionModel().clearSelection();
+    }
+
     /** Selects the first visible student, if one exists. */
     public void selectFirstStudent() {
         studentListView.getSelectionModel().selectFirst();
