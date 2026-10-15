@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** This increment manages students only. Supported commands are `add-student`, `help`, and `exit`. Guardian, group, search, edit, delete, and profile commands described later in this guide are specified future work and are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
+> **Current build:** This increment supports `add-student`, `add-guardian`, `help`, and `exit`. Guardian linking, group, search, edit, delete, and profile commands described later in this guide are specified future work and are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
 
 * Table of Contents
 {:toc}
@@ -30,7 +30,7 @@ The **command box** accepts typed commands: enter one command and press **Enter*
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Student records are saved locally. Use `help` to open the user guide or `exit` to close Mentora. The remaining workflows in this guide describe the planned MVP contract and are not available in this increment.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student, or `add-guardian n/Anita Lim p/91234567` to create an unlinked guardian contact. Student and guardian records are saved locally. Use `help` to open the user guide or `exit` to close Mentora. The remaining workflows in this guide describe the planned MVP contract and are not available in this increment.
 
 ## Understanding commands and values
 

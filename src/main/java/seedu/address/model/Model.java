@@ -1,10 +1,13 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -63,6 +66,26 @@ public interface Model {
     }
 
     default void deleteStudent(StudentId id) {
+        throw new UnsupportedOperationException();
+    }
+
+    /** Returns an unmodifiable view of all guardians. */
+    default ObservableList<Guardian> getGuardianList() {
+        return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+    }
+
+    /** Returns whether a guardian with the same ID or phone exists. */
+    default boolean hasGuardian(Guardian guardian) {
+        return false;
+    }
+
+    /** Finds a guardian by canonical phone number. */
+    default Optional<Guardian> findGuardianByPhone(GuardianPhone phone) {
+        return Optional.empty();
+    }
+
+    /** Adds a guardian to the model. */
+    default void addGuardian(Guardian guardian) {
         throw new UnsupportedOperationException();
     }
 }
