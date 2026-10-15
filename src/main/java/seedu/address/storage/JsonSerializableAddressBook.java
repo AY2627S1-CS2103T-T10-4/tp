@@ -21,6 +21,7 @@ class JsonSerializableAddressBook {
     /** Retained for source compatibility with tests for the retired Person serializer. */
     @Deprecated
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    static final String MESSAGE_NULL_GUARDIAN = "Guardians list contains null guardian(s).";
 
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
     private final List<JsonAdaptedGuardian> guardians = new ArrayList<>();
@@ -57,6 +58,9 @@ class JsonSerializableAddressBook {
             register.addStudent(student);
         }
         for (JsonAdaptedGuardian adaptedGuardian : guardians) {
+            if (adaptedGuardian == null) {
+                throw new IllegalValueException(MESSAGE_NULL_GUARDIAN);
+            }
             Guardian guardian = adaptedGuardian.toModelType();
             if (register.hasGuardian(guardian)) {
                 throw new IllegalValueException("Guardians list contains duplicate guardian ID or phone number.");

@@ -33,6 +33,14 @@ class JsonAddressBookStorageTest {
     }
 
     @Test
+    void nullGuardianEntry_throwsDataLoadingException() {
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("students.json"));
+        Path nullGuardianFile = TEST_DATA_FOLDER.resolve("nullGuardianAddressBook.json");
+
+        assertThrows(DataLoadingException.class, () -> storage.readAddressBook(nullGuardianFile));
+    }
+
+    @Test
     void legacyPersonFiles_doNotLoadHiddenRecords() throws Exception {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("students.json"));
         ReadOnlyAddressBook loaded = storage.readAddressBook(TEST_DATA_FOLDER.resolve("invalidPersonAddressBook.json"))

@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,14 @@ class JsonSerializableAddressBookGuardianTest {
     @Test
     void constructor_nullGuardianList_returnsEmptyAddressBook() throws Exception {
         assertEquals(new AddressBook(), new JsonSerializableAddressBook(null, null, null).toModelType());
+    }
+
+    @Test
+    void toModelType_nullGuardianEntry_throwsIllegalValueException() {
+        List<JsonAdaptedGuardian> guardians = Collections.singletonList(null);
+        Executable conversion = () -> new JsonSerializableAddressBook(List.of(), List.of(), guardians).toModelType();
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_NULL_GUARDIAN, conversion);
     }
 
     private static Guardian guardian(String id, String name, String phone) {
