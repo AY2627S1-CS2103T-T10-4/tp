@@ -28,18 +28,22 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
-#### Current Mentora implementation: Packages A, R and B
+#### Current Mentora MVP implementation
 
 The inherited AB3 diagrams and Person-command examples below are historical reference material. The current
-runtime stores Students, Guardians and group assignments; retired Person APIs remain only for source compatibility.
+runtime stores Students, Guardians, student-guardian links, and group assignments; retired Person APIs remain only
+for source compatibility.
 
 - `ConfiguredGroups` supplies one immutable five-entry catalogue through Model and Logic.
-- `AddressBook` owns immutable `GroupAssignment` pairs, validates both references and uniqueness, and includes
-  all three collections in copy/reset/equality/hash. Student replacement keeps memberships by stable ID.
+- `AddressBook` owns immutable `GroupAssignment` pairs and student-to-guardian links. It validates references and
+  uniqueness and includes the complete aggregate in copy/reset/equality/hash. Student replacement keeps relationships
+  by stable ID; deleting a student removes only that student's relationships.
+- `link-guardian` validates both stable IDs, enforces one guardian per student, permits a guardian to be shared by
+  siblings, and refreshes the selected student's profile after saving.
 - `assign-group` parses ID text without allocating IDs, validates before mutation and requests the Students
   workspace only after Logic has saved successfully. `list-groups` is a read-only query and requests Groups.
-- JSON has `students`, optional `guardians` and optional `groupAssignments` arrays. Stored text must be JSON strings; malformed
-  relationships or records fail the complete load instead of publishing partial data.
+- JSON has `students` plus optional `guardians`, `guardianLinks`, and `groupAssignments` arrays. Stored text must be
+  JSON strings; malformed or dangling relationships and records fail the complete load instead of publishing partial data.
 - `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
   writes independently. Read-only commands remain available. Save failure restores the in-memory aggregate;
   direct normal writes are not atomic and can still partially damage a file.
@@ -50,7 +54,8 @@ runtime stores Students, Guardians and group assignments; retired Person APIs re
   the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
 
 See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for the combined catalogue, assignment and
-recovery APIs, validation, tests and integration limits.
+recovery APIs, validation, tests and integration limits. See [Link Guardian Handover](feature-handover/LinkGuardianHandover.md)
+for the guardian-relationship and profile-display contract.
 
 <img src="images/ArchitectureDiagram.png" width="280" />
 
