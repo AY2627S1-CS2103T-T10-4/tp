@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
@@ -43,20 +44,24 @@ public class LogicManager implements Logic {
         Command command = parser.parseCommand(commandText);
         AddressBook beforeCommand = new AddressBook(model.getAddressBook());
         CommandResult result = command.execute(model);
+        if (beforeCommand.equals(model.getAddressBook())) {
+            return result;
+        }
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackStudentMutation(command, beforeCommand);
+            rollbackChange(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackStudentMutation(command, beforeCommand);
+            rollbackChange(command, beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
         }
         return result;
     }
 
-    private void rollbackStudentMutation(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand || command instanceof EditStudentCommand) {
+    private void rollbackChange(Command command, AddressBook beforeCommand) {
+        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand
+                || command instanceof EditStudentCommand) {
             model.setAddressBook(beforeCommand);
         }
     }
@@ -67,6 +72,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof EditStudentCommand edit) {
             return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";
+        }
+        if (command instanceof AddGuardianCommand) {
+            return "Could not save changes. No guardian was added.";
         }
         if (cause instanceof AccessDeniedException) {
             return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());

@@ -8,9 +8,11 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 
 class StudentDefaultApiTest {
     @Test
@@ -19,7 +21,28 @@ class StudentDefaultApiTest {
         assertEquals(0, model.getStudentList().size());
         assertFalse(model.hasStudent(null));
         assertThrows(UnsupportedOperationException.class, () -> model.addStudent(null));
+        assertThrows(UnsupportedOperationException.class, () ->
+                model.updateFilteredStudentList(Model.PREDICATE_SHOW_ALL_STUDENTS));
         assertThrows(UnsupportedOperationException.class, () -> model.getStudentList().add(null));
+    }
+
+    @Test
+    void modelGuardianDefaults_returnEmptyReadOnlyListAndUnsupportedAdd() {
+        Model model = new MinimalModel();
+
+        assertEquals(0, model.getGuardianList().size());
+        assertFalse(model.hasGuardian(null));
+        assertFalse(model.findGuardianByPhone(null).isPresent());
+        assertThrows(UnsupportedOperationException.class, () -> model.addGuardian(null));
+        assertThrows(UnsupportedOperationException.class, () -> model.getGuardianList().add(null));
+    }
+
+    @Test
+    void readOnlyAddressBookGuardianDefault_returnsEmptyReadOnlyList() {
+        ReadOnlyAddressBook addressBook = new MinimalReadOnlyAddressBook();
+
+        assertEquals(0, addressBook.getGuardianList().size());
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getGuardianList().add(null));
     }
 
     @Test
@@ -86,6 +109,13 @@ class StudentDefaultApiTest {
         @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
             // This minimal test model has no filtered view to update.
+        }
+    }
+
+    private static class MinimalReadOnlyAddressBook implements ReadOnlyAddressBook {
+        @Override
+        public ObservableList<Student> getStudentList() {
+            return FXCollections.observableArrayList();
         }
     }
 }
