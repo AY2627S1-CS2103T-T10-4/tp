@@ -77,6 +77,13 @@ class MainAppRecoveryTest {
         assertRecovery("{\"students\":[{\"id\":\"S-0502\",\"name\":\"Mei Lin\",\"academicLevel\":\"Sec 9\"}]}");
     }
 
+    @Test
+    void initModelManager_invalidGuardianWithAssignments_publishesNoPartialRecords() throws Exception {
+        assertRecovery("{\"students\":[{\"id\":\"S-0502\",\"name\":\"Mei Lin\",\"academicLevel\":\"Sec 2\"}],"
+                + "\"guardians\":[{\"id\":\"G-0502\",\"name\":true,\"phone\":\"91234567\"}],"
+                + "\"groupAssignments\":[{\"studentId\":\"S-0502\",\"groupCode\":\"MAT\"}]}");
+    }
+
     private void assertRecovery(String json) throws Exception {
         StorageManager storage = createStorage();
         byte[] original = json.getBytes(StandardCharsets.UTF_8);
@@ -86,6 +93,8 @@ class MainAppRecoveryTest {
 
         assertTrue(model.getStudentList().isEmpty());
         assertTrue(storage.getDataRecoveryReason().isPresent());
+        assertTrue(model.getGuardianList().isEmpty());
+        assertTrue(model.getAddressBook().getGroupAssignments().isEmpty());
         assertThrows(CommandException.class, () -> new LogicManager(model, storage)
                 .execute("add-student n/Amy Tan al/Sec 3"));
         assertTrue(model.getStudentList().isEmpty());

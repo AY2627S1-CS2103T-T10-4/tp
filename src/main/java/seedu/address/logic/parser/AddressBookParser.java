@@ -8,12 +8,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.FindStudentCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListGroupsCommand;
+import seedu.address.logic.commands.ListStudentsCommand;
+import seedu.address.logic.commands.ViewStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -50,9 +54,13 @@ public class AddressBookParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord.toLowerCase(java.util.Locale.ROOT)) {
+            case AddGuardianCommand.COMMAND_WORD -> new AddGuardianCommandParser().parse(arguments);
             case AddStudentCommand.COMMAND_WORD -> new AddStudentCommandParser().parse(arguments);
             case AssignGroupCommand.COMMAND_WORD -> new AssignGroupCommandParser().parse(arguments);
             case ListGroupsCommand.COMMAND_WORD -> new ListGroupsCommandParser().parse(arguments);
+            case FindStudentCommand.COMMAND_WORD -> new FindStudentCommandParser().parse(arguments);
+            case ListStudentsCommand.COMMAND_WORD -> new ListStudentsCommandParser().parse(arguments);
+            case ViewStudentCommand.COMMAND_WORD -> new ViewStudentCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {

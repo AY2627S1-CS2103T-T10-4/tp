@@ -22,6 +22,8 @@ public interface Logic {
      * Parses and executes a command, saving successful mutations before returning their result.
      * Read-only commands do not save. Recovery rejects mutations before execution, and a failed save
      * restores the previous in-memory register before reporting the error.
+     * A successful result selecting a hidden student clears the display filter after any required save.
+     * Failed commands preserve the previous filter.
      *
      * @param commandText The complete command input.
      * @return Feedback and UI requests for the successfully completed command.

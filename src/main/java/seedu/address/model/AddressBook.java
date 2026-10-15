@@ -15,12 +15,15 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
 /**
- * Stores student records and their validated group relationships.
+ * Stores student and guardian records and validated student/group relationships.
  * Each assignment references an existing student and a configured group, and each pair is unique.
  */
 public class AddressBook implements ReadOnlyAddressBook {
@@ -30,6 +33,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
 
     private final ObservableList<Student> students = FXCollections.observableArrayList();
+    private final ObservableList<Guardian> guardians = FXCollections.observableArrayList();
     private final Set<GroupAssignment> groupAssignments = new LinkedHashSet<>();
 
     public AddressBook() { }
@@ -38,7 +42,7 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Copies the complete register, sharing immutable values but not mutable collections.
      *
      * @param toBeCopied The register to validate and copy.
-     * @throws IllegalArgumentException If the register violates student or assignment invariants.
+     * @throws IllegalArgumentException If the register violates student, guardian or assignment invariants.
      * @throws NullPointerException If the register, a collection or an entry is null.
      */
     public AddressBook(ReadOnlyAddressBook toBeCopied) {
@@ -46,20 +50,22 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Replaces the complete register after validating all students and assignments.
+     * Replaces the complete register after validating all students, guardians and assignments.
      * Validation failure preserves the current state. Passing this register itself is supported.
      *
      * @param newData The replacement state, whose mutable collections are copied.
-     * @throws IllegalArgumentException If the replacement violates student or assignment invariants.
+     * @throws IllegalArgumentException If the replacement violates student, guardian or assignment invariants.
      * @throws NullPointerException If the register, a collection or an entry is null.
      */
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
         AddressBook replacement = new AddressBook();
         List.copyOf(newData.getStudentList()).forEach(replacement::addStudent);
+        List.copyOf(newData.getGuardianList()).forEach(replacement::addGuardian);
         newData.getGroupAssignments().forEach(replacement::addGroupAssignment);
         groupAssignments.clear();
         groupAssignments.addAll(replacement.groupAssignments);
+        guardians.setAll(replacement.guardians);
         students.setAll(replacement.students);
     }
 
@@ -76,6 +82,19 @@ public class AddressBook implements ReadOnlyAddressBook {
         List.copyOf(newStudents).forEach(replacement::addStudent);
         groupAssignments.removeIf(assignment -> !replacement.hasStudentId(assignment.getStudentId()));
         students.setAll(replacement.students);
+    }
+
+    /**
+     * Replaces guardians after validation, preserving students and their assignments.
+     *
+     * @param newGuardians Guardian records to copy; a live view of this register is supported.
+     * @throws IllegalArgumentException If guardian IDs or canonical phone numbers repeat.
+     * @throws NullPointerException If the list or an entry is null.
+     */
+    public void setGuardians(List<Guardian> newGuardians) {
+        AddressBook replacement = new AddressBook();
+        List.copyOf(newGuardians).forEach(replacement::addGuardian);
+        guardians.setAll(replacement.guardians);
     }
 
     /** Returns whether a student with the same ID or normalized name and level exists. */
@@ -135,6 +154,35 @@ public class AddressBook implements ReadOnlyAddressBook {
         sortStudents();
     }
 
+    /** Returns whether a guardian with the same ID or canonical phone number exists. */
+    public boolean hasGuardian(Guardian guardian) {
+        requireNonNull(guardian);
+        return guardians.stream().anyMatch(existing -> existing.getId().equals(guardian.getId())
+                || existing.hasSameIdentityAs(guardian));
+    }
+
+    /** Returns whether the guardian ID is present. */
+    public boolean hasGuardianId(GuardianId id) {
+        requireNonNull(id);
+        return guardians.stream().anyMatch(guardian -> guardian.getId().equals(id));
+    }
+
+    /** Finds the guardian using a canonical phone number. */
+    public Optional<Guardian> findGuardianByPhone(GuardianPhone phone) {
+        requireNonNull(phone);
+        return guardians.stream().filter(guardian -> guardian.getPhone().equals(phone)).findFirst();
+    }
+
+    /** Adds a guardian while enforcing unique IDs and phone numbers. */
+    public void addGuardian(Guardian guardian) {
+        requireNonNull(guardian);
+        if (hasGuardian(guardian)) {
+            throw new IllegalArgumentException("Duplicate guardian ID or phone number.");
+        }
+        guardians.add(guardian);
+        sortGuardians();
+    }
+
     /**
      * Removes a student and only that student's assignments, preserving the configured catalogue.
      * Does nothing if the ID is not registered.
@@ -179,6 +227,11 @@ public class AddressBook implements ReadOnlyAddressBook {
                 .thenComparing(Student::getId));
     }
 
+    private void sortGuardians() {
+        guardians.sort(Comparator.comparing((Guardian guardian) -> guardian.getName().getNormalized())
+                .thenComparing(Guardian::getId));
+    }
+
     @Override
     public ObservableList<Student> getStudentList() {
         return FXCollections.unmodifiableObservableList(students);
@@ -190,18 +243,24 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     @Override
+    public ObservableList<Guardian> getGuardianList() {
+        return FXCollections.unmodifiableObservableList(guardians);
+    }
+
+    @Override
     public String toString() {
-        return new ToStringBuilder(this).add("students", students).add("groupAssignments", groupAssignments).toString();
+        return new ToStringBuilder(this).add("students", students).add("guardians", guardians)
+                .add("groupAssignments", groupAssignments).toString();
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof AddressBook addressBook && students.equals(addressBook.students)
-                && groupAssignments.equals(addressBook.groupAssignments);
+                && guardians.equals(addressBook.guardians) && groupAssignments.equals(addressBook.groupAssignments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(students, groupAssignments);
+        return Objects.hash(students, guardians, groupAssignments);
     }
 }

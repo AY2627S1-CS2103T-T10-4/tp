@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.group.ConfiguredGroups;
@@ -18,13 +20,16 @@ import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.group.GroupCode;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** In-memory model of Mentora's student register and user preferences. */
+/** In-memory model of the complete register, filtered Student view and user preferences. */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
     private final AddressBook addressBook;
+    private final FilteredList<Student> filteredStudents;
     private final UserPrefs userPrefs;
     private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
 
@@ -33,6 +38,7 @@ public class ModelManager implements Model {
         requireAllNonNull(addressBook, userPrefs);
         logger.fine("Initializing with student register: " + addressBook + " and user prefs " + userPrefs);
         this.addressBook = new AddressBook(addressBook);
+        filteredStudents = new FilteredList<>(this.addressBook.getStudentList());
         this.userPrefs = new UserPrefs(userPrefs);
     }
 
@@ -68,7 +74,12 @@ public class ModelManager implements Model {
 
     @Override
     public ObservableList<Student> getStudentList() {
-        return addressBook.getStudentList();
+        return filteredStudents;
+    }
+
+    @Override
+    public void updateFilteredStudentList(Predicate<Student> predicate) {
+        filteredStudents.setPredicate(requireNonNull(predicate));
     }
 
     @Override
@@ -109,6 +120,26 @@ public class ModelManager implements Model {
     @Override
     public void deleteStudent(StudentId id) {
         addressBook.deleteStudent(id);
+    }
+
+    @Override
+    public ObservableList<Guardian> getGuardianList() {
+        return addressBook.getGuardianList();
+    }
+
+    @Override
+    public boolean hasGuardian(Guardian guardian) {
+        return addressBook.hasGuardian(guardian);
+    }
+
+    @Override
+    public Optional<Guardian> findGuardianByPhone(GuardianPhone phone) {
+        return addressBook.findGuardianByPhone(phone);
+    }
+
+    @Override
+    public void addGuardian(Guardian guardian) {
+        addressBook.addGuardian(guardian);
     }
 
     @Override

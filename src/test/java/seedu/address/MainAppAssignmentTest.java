@@ -36,10 +36,13 @@ class MainAppAssignmentTest {
         LogicManager logic = new LogicManager(first, storage);
         logic.execute("assign-group sid/S-0007 g/MAT");
         logic.execute("assign-group sid/S-0007 g/S2-MAT-A");
+        logic.execute("add-guardian n/Anita Lim p/91234567");
 
         Model restarted = new MainApp().initModelManager(storage(), new UserPrefs());
 
         assertEquals(first.getAddressBook(), restarted.getAddressBook());
+        assertEquals(1, restarted.getGuardianList().size());
+        assertEquals("+65 91234567", restarted.getGuardianList().getFirst().getPhone().toString());
         assertEquals(List.of("MAT", "S2-MAT-A"), restarted.getAssignedGroups("S-0007").stream()
                 .map(group -> group.getCode().getValue()).toList());
     }

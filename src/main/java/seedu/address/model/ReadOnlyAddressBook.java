@@ -5,11 +5,12 @@ import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 
 /**
- * Read-only view of Mentora's student records and validated group relationships.
+ * Read-only view of all students, guardians and validated group relationships.
  */
 public interface ReadOnlyAddressBook {
     /**
@@ -25,6 +26,11 @@ public interface ReadOnlyAddressBook {
      * @return The current assignments; subsequent aggregate changes are reflected in this view.
      */
     Set<GroupAssignment> getGroupAssignments();
+
+    /** Returns an unmodifiable view of all guardians. */
+    default ObservableList<Guardian> getGuardianList() {
+        return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+    }
 
     /** Empty compatibility view retained for legacy callers; persons are no longer stored. */
     @Deprecated

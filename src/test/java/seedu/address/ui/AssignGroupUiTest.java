@@ -31,6 +31,10 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCode;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
+import seedu.address.model.guardian.GuardianName;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -80,6 +84,95 @@ class AssignGroupUiTest {
             assertEquals(List.of("ENG — English"), assignments(stage));
             window.getStudentListPanel().selectStudentId("S-0702");
             assertEquals(List.of("MAT — Mathematics", "S2-MAT-A — Secondary 2 Mathematics A"), assignments(stage));
+            stage.close();
+        });
+    }
+
+    @Test
+    void filteredCommands_revealTargetsAndRetainNavigationContracts() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            JsonAddressBookStorage data = new JsonAddressBookStorage(testFolder.resolve("filtered.json"));
+            data.saveAddressBook(model.getAddressBook());
+            byte[] beforeQueries = Files.readAllBytes(data.getAddressBookFilePath());
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, data, stage);
+            submit(stage, "list-groups");
+            submit(stage, "find-student n/Mei");
+            submit(stage, "view-student sid/S-9402");
+
+            assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+            Student amy = model.findStudent("S-9402").orElseThrow();
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
+            assertEquals("Amy Tan", ((Label) profile.lookup("#name")).getText());
+            assertEquals(List.of("No groups assigned."), assignments(stage));
+            assertArrayEquals(beforeQueries, Files.readAllBytes(data.getAddressBookFilePath()));
+
+            submit(stage, "find-student n/Mei");
+            submit(stage, "assign-group sid/S-9402 g/SCI");
+            assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(List.of("SCI — Science"), assignments(stage));
+            submit(stage, "assign-group sid/S-9402 g/CHI");
+            assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(List.of("SCI — Science", "CHI — Chinese"), assignments(stage));
+            window.getStudentListPanel().selectStudentId("S-9401");
+            assertEquals(List.of("MAT — Mathematics"), assignments(stage));
+            assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+            stage.close();
+        });
+    }
+
+    @Test
+    void addStudentOutsideFilter_selectsNewProfileAfterSaving() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            JsonAddressBookStorage data = new JsonAddressBookStorage(testFolder.resolve("filtered-add.json"));
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, data, stage);
+            submit(stage, "find-student n/Mei");
+            submit(stage, "add-student n/Zara Lim al/Sec 4");
+
+            Student selected = window.getStudentListPanel().selectedStudentProperty().get();
+            assertEquals("Zara Lim", selected.getName().toString());
+            assertEquals(3, model.getStudentList().size());
+            assertEquals(List.of("No groups assigned."), assignments(stage));
+            assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+            stage.close();
+        });
+    }
+
+    @Test
+    void failedAssignmentToHiddenStudent_preservesFilterSelectionWorkspaceAndMixedState() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            AddressBook before = new AddressBook(model.getAddressBook());
+            Path path = testFolder.resolve("filtered-failure.json");
+            new JsonAddressBookStorage(path).saveAddressBook(before);
+            byte[] original = Files.readAllBytes(path);
+            JsonAddressBookStorage failed = new JsonAddressBookStorage(path) {
+                @Override
+                public void saveAddressBook(ReadOnlyAddressBook records) throws IOException {
+                    throw new IOException("synthetic failure before writing");
+                }
+            };
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, failed, stage);
+            submit(stage, "find-student n/Mei");
+            window.getStudentListPanel().selectStudentId("S-9401");
+            Student mei = window.getStudentListPanel().selectedStudentProperty().get();
+            submit(stage, "list-groups");
+            submit(stage, "assign-group sid/S-9402 g/SCI");
+
+            assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+            assertEquals(List.of(mei), model.getStudentList());
+            assertSame(mei, window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals(List.of("MAT — Mathematics"), assignments(stage));
+            assertEquals(before, model.getAddressBook());
+            assertArrayEquals(original, Files.readAllBytes(path));
+            Label feedback = (Label) stage.getScene().lookup("#resultDisplay");
+            assertEquals("Could not save changes. The group was not assigned.", feedback.getText());
             stage.close();
         });
     }
@@ -171,6 +264,18 @@ class AssignGroupUiTest {
             assertEquals(5, assignments(stage).size());
             stage.close();
         });
+    }
+
+    private static ModelManager mixedModel() {
+        ModelManager model = new ModelManager();
+        Student mei = new Student(new StudentId("S-9401"), new StudentName("Mei Lin"), new AcademicLevel("Sec 2"));
+        model.addStudent(mei);
+        model.addStudent(new Student(new StudentId("S-9402"), new StudentName("Amy Tan"),
+                new AcademicLevel("Sec 3")));
+        model.addGuardian(new Guardian(new GuardianId("G-9401"), new GuardianName("Anita Lim"),
+                new GuardianPhone("91234567")));
+        model.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("MAT")));
+        return model;
     }
 
     private MainWindow createWindow(ModelManager model, JsonAddressBookStorage data, Stage stage) {

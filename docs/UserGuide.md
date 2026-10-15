@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** Supported commands are `add-student`, `list-groups`, `assign-group`, `help`, and `exit`. Students can be assigned the five configured groups listed below, and their selected profiles show those assignments. Removing assignments, guardian, search, edit, delete, and the typed `view-student` command are future work. Legacy Address Book commands are no longer accepted. Interface images are mockups; the current catalogue is the five-entry list below.
+> **Current build:** Supported commands are `add-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal, Student edit/delete and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups.
 
 * Table of Contents
 {:toc}
@@ -26,11 +26,11 @@ For the current source build, follow [Setting up and getting started](SettingUp.
 
 ![Mentora mockup showing a student list, command box, result panel, and student profile](mockup/open-student-profile.png)
 
-The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results, or configured groups. The **student profile** shows a student's academic level, assignments, and linked guardian. The **status bar** reports local saving and loading.
+The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results or configured groups. The **student profile** shows academic level and assignments; guardian linking and profile details remain future work. The **status bar** reports local saving and loading.
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Enter `list-groups` to browse the catalogue, then use that student's ID in `assign-group sid/STUDENT_ID g/MAT`. A successful assignment opens the student's profile and saves the change locally. Use `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Enter `list-groups` to browse the catalogue, then use that student's ID in `assign-group sid/STUDENT_ID g/MAT`. A successful assignment opens the student's profile and saves the change locally. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact. Use `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
 
 ## Understanding commands and values
 
@@ -61,7 +61,7 @@ Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei 
 
 Format: `add-student n/NAME al/ACADEMIC_LEVEL`
 
-Creates a student with a generated ID, no guardian, and no subject or class assignments. The list refreshes and selects the new student.
+Creates a student with a generated ID, no guardian, and no subject or class assignments. The list refreshes and selects the new student. If a search filter hides the new record, it is cleared after saving succeeds.
 
 Examples:
 
@@ -90,7 +90,7 @@ If the change would duplicate another student's name and level, it is rejected: 
 
 Format: `list-students`
 
-Shows every registered student's ID, name, academic level, and guardian status, sorted by normalized name and then ID. Use it to return to the full list after a search.
+Shows every registered student's ID, name and academic level, sorted by normalized name and then ID. Use it to return to the full list after a search. Guardian status is not displayed in this increment.
 
 The result reports the number of students, for example `Listed 8 student(s).` If there are none, it says `No students registered.`
 
@@ -107,6 +107,8 @@ Matching ignores case and uses a substring of the normalized name, so partial na
 
 The main list shows all matches and reports, for example, `Found 2 student(s) matching "mei".` A valid query with no matches reports `No students match "mei".`
 
+Search and list commands change only the displayed Student list and do not save data. They keep the current tab; select Students to see results if Groups is open.
+
 ![Mockup of student search results for mei](mockup/search-students-by-name.png)
 
 ### Opening a student profile: `view-student`
@@ -115,7 +117,7 @@ Format: `view-student sid/STUDENT_ID`
 
 Example: `view-student sid/S-0007`
 
-Opens the student's read-only profile and reports `Opened profile for S-0007.` The profile shows their academic level, all assignments with codes and labels, and the linked guardian's name and current phone number. If there is no link, it shows `Guardian: none`.
+Selects the student's read-only profile and reports `Opened profile for S-0007.` The profile shows academic level and assignments with codes and labels. Guardian profile details remain future work. If a search hides the student, the filter is cleared after successful lookup. The command keeps the current tab: select Students if Groups is open. It never saves data.
 
 Use the ID shown in the student list or search results. To change information, use the relevant editing, linking, or assignment command.
 
@@ -142,7 +144,7 @@ Examples:
 * `add-guardian n/Anita Lim p/91234567`
 * `add-guardian p/+65 61234567 n/Raj Kumar`
 
-Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Creating a guardian does not automatically link it to the selected student. Use `link-guardian` afterwards.
+Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently; the current build has no guardian list/profile display or linking command.
 
 Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number in the MVP.
 
@@ -221,7 +223,7 @@ Examples:
 
 Adds one of the five configured groups to an existing student's profile. A student may have multiple distinct assignments. `MAT` and `S2-MAT-A` are separate assignments; add both if needed. The command does not restrict class assignments based on academic level.
 
-Example result: `Assigned group S2-MAT-A (Secondary 2 Mathematics A) to student S-0007.` The application opens Students, selects the target student and refreshes Assignments, including when that student was already selected. Selecting another student shows their assignments. Scroll the profile when a long name or several assignments exceed the available space; an unassigned student shows `No groups assigned.`
+Example result: `Assigned group S2-MAT-A (Secondary 2 Mathematics A) to student S-0007.` The application opens Students, selects the target and refreshes Assignments, including when that student was already selected. A search filter hiding the target is cleared only after saving succeeds. Selecting another student shows their assignments. Scroll the profile when a long name or several assignments exceed the available space; an unassigned student shows `No groups assigned.`
 
 Command and prefix names are case-insensitive, and either prefix order is accepted. Student IDs must retain their uppercase `S-` form with at least four digits. Each prefix is required exactly once, with one nonempty ID/code value. Missing, repeated or unknown prefixes and extra text report `Invalid command format. Use: assign-group sid/STUDENT_ID g/GROUP_CODE`.
 
@@ -257,19 +259,19 @@ Command-specific `help COMMAND`, its validation messages and the illustrated hel
 
 ### Saving and reopening
 
-The current build saves student records and assignments after successful `add-student` and `assign-group` commands. `list-groups`, `help`, and `exit` do not rewrite student data. There is no manual save command, account, or network connection required. The data file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
+The current build saves the complete Student, Guardian and assignment register after successful `add-student`, `add-guardian` and `assign-group` commands. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
 
-When Mentora reopens, it loads the saved students and assignments. Older Student-based files without assignments remain loadable with no assignments. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
+When Mentora reopens, it loads the complete register. Older files without guardians or assignments load with those collections empty. Explicit null collections or malformed records trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
 
-**If saving fails**, Add Student and Assign Group restore the previous in-memory records and assignments. Their errors are `Could not save changes. No student was added.` and `Could not save changes. The group was not assigned.` A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
+**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
 
 **If loading fails**, Mentora preserves the original file, opens an empty recovery model, and disables student-data changes and saving for the session. It reports:
 
 > Could not load local data. Your original data file was not changed; restore or replace it before saving.
 
-An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over that status to see the failure reason. You can still browse configured groups, open help, and exit. Attempted additions or assignments are rejected before they change the model or write the file. Successful read-only feedback does not remove the recovery status.
+An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over it for the failure reason. Listing/searching remains available, although the recovery Student list is empty and `view-student` reports an unknown student. You can browse configured groups, open help and exit. Student/Guardian additions and assignments are rejected before changing the model or file. Read-only feedback does not remove the recovery status.
 
-Close Mentora, preserve a copy of the original file, and restore a valid backup or obtain help repairing it. Restart after restoring or replacing the file; saving stays disabled for the old session even if the file is changed externally. Unreadable or malformed files, null records, invalid student fields, duplicate student IDs/identities or assignment pairs, unknown student/group references, repeated JSON fields, and unsupported stored fields can trigger recovery. The existing legacy Person-file compatibility remains; no new Person-to-Student migration is provided.
+Close Mentora, preserve a copy of the original file, and restore a valid backup or obtain help repairing it. Restart after restoring or replacing the file; saving stays disabled for the old session even if the file changes externally. Unreadable or malformed files, null records, invalid Student/Guardian fields, duplicate IDs/identities/guardian phones or assignment pairs, unknown student/group references, repeated JSON fields and unsupported stored fields can trigger recovery. Stored text fields must be JSON strings. Existing legacy Person-file compatibility remains; no new Person-to-Student migration is provided.
 
 ### Closing Mentora: `exit`
 
@@ -293,7 +295,7 @@ Closes the application and reports `Closing Mentora.` Successful data-changing c
 | A group code is not configured | Run `list-groups` and use an exact listed code. |
 | `Could not save changes.` | The change did not take effect. Check that the storage location is writable and has space, then retry. |
 | A load error appears with an empty list | Follow the recovery guidance under [Saving and reopening](#saving-and-reopening); preserve the original file. |
-| A documented command is reported as unknown | Check the current-build note: only `add-student`, `list-groups`, `assign-group`, `help`, and `exit` are currently available. |
+| A documented command is reported as unknown | Check the nine supported commands in the current-build note. Linking, edit/delete and assignment removal remain future work. |
 
 ## Scope and limitations
 

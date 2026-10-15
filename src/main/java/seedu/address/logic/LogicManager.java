@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
@@ -47,18 +48,31 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
         Command command = parser.parseCommand(commandText);
         if (command.isReadOnly()) {
-            return command.execute(model);
+            return revealRequestedStudent(command.execute(model));
         }
         if (storage.getDataRecoveryReason().isPresent()) {
             throw new CommandException(DataLoadingException.MESSAGE_RECOVERY);
         }
         AddressBook beforeCommand = new AddressBook(model.getAddressBook());
         CommandResult result = command.execute(model);
+        if (beforeCommand.equals(model.getAddressBook())) {
+            return revealRequestedStudent(result);
+        }
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (IOException e) {
             model.setAddressBook(beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
+        }
+        return revealRequestedStudent(result);
+    }
+
+    /** Reveals a hidden selection target only after execution and any required save have succeeded. */
+    private CommandResult revealRequestedStudent(CommandResult result) {
+        String studentId = result.getSelectedStudentId();
+        if (studentId != null && model.findStudent(studentId).isPresent()
+                && model.getStudentList().stream().noneMatch(student -> student.getId().value.equals(studentId))) {
+            model.updateFilteredStudentList(Model.PREDICATE_SHOW_ALL_STUDENTS);
         }
         return result;
     }
@@ -69,6 +83,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof AddGuardianCommand) {
+            return "Could not save changes. No guardian was added.";
         }
         if (cause instanceof AccessDeniedException) {
             return String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, cause.getMessage());

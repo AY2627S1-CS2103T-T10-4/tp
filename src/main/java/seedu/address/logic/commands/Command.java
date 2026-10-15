@@ -9,7 +9,7 @@ import seedu.address.model.Model;
 public abstract class Command {
 
     /**
-     * Returns whether execution leaves persisted student data unchanged.
+     * Returns whether execution leaves persisted register data unchanged.
      * Commands are treated as mutating by default, so new commands are blocked during recovery unless
      * they explicitly declare themselves read-only. Read-only commands do not trigger a data save.
      *

@@ -7,8 +7,9 @@ title: Assign Group Handover
 
 Owner: **Gabriel Chan (HIIMHEY)** · [Issue #58](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/58) · v1.3.
 Packages **A** (catalogue/display), **R** (load-failure recovery) and **B** (assignment/persistence/profile) are implemented.
-This handover reflects the 14 October 2026 audit on `58-assign-configured-groups`, based on
-`d24144961fe21adb3f58d18f70d7654fc0f20bde`. Gabriel's personal review and acceptance remain pending.
+The 15 October integration reconciles feature head `33f2b95a5bc79ab2266da469626a767dd2204016` with team master
+`95326aa802c2eba3c2bb8bea39e46f2d7f89a2de` on `58-assign-configured-groups`. Master includes Guardian (#51),
+View Student (#57) and Student Search/List (#62). Gabriel's personal review and acceptance remain pending.
 
 ## Scope and catalogue
 
@@ -25,7 +26,8 @@ This handover reflects the 14 October 2026 audit on `58-assign-configured-groups
 This is Gabriel's explicitly chosen reduced MVP catalogue. The original specification describes a broader catalogue;
 separate teammate approval of this reduction is not claimed. Definitions are application configuration, independent
 of student JSON and resets. Existing `GroupCode` normalization and catalogue validation are reused.
-No unassign-group, group CRUD, guardian functionality or teammate edit/delete commands are implemented here.
+Guardian contacts from #51 are retained independently of students. Guardian linking, unassign-group, group CRUD
+and the unmerged Student edit/delete commands remain outside this integration.
 
 ## Command contract
 
@@ -56,11 +58,11 @@ Java paths below are relative to `src/main/java/seedu/address/`.
 |---|---|
 | `model/group/GroupAssignment` | Immutable StudentId/GroupCode pair with value equality/hash. |
 | `model/AddressBook.addGroupAssignment` | Owns a LinkedHashSet; validates existing student, configured group and pair uniqueness. `ReadOnlyAddressBook.getGroupAssignments()` exposes an unmodifiable live view. |
-| `AddressBook.resetData` / copy / equals / hashCode | Include assignments. Validate the entire replacement before publishing; self-reset works. Mutable collections are copied, immutable values may be shared. Membership equality ignores insertion order; JSON retains insertion order. |
+| `AddressBook.resetData` / copy / equals / hashCode | Include students, guardians and assignments. Validate the entire replacement before publishing; self-reset works. Mutable collections are copied, immutable values may be shared. Membership equality ignores insertion order; JSON retains insertion order. |
 | `AddressBook.setStudents` / `deleteStudent` | Replacement preserves assignments for retained IDs. Removing a student removes only their assignments, preserving other students and the catalogue. |
-| `Model.findStudent(String)` / `addGroupAssignment` / `getAssignedGroups(String)` | Pure full-register lookup; validated mutation; immutable catalogue-ordered group projection. Labels come from configuration. Unknown-ID projections are empty. |
+| `Model.findStudent(String)` / `addGroupAssignment` / `getAssignedGroups(String)` | Pure full-register lookup; validated mutation; immutable catalogue-ordered group projection. Labels come from configuration. Unknown-ID projections are empty. `getStudentList()` is the filtered view; `getAddressBook().getStudentList()` remains complete. |
 | `logic/parser/AddressBookParser` → Assign/List parser → command | Validates syntax and domain preconditions; argument splitting retains multiline input. Parsers do not access persistence. |
-| `logic/LogicManager.execute` | Applies the read-only/recovery policy, snapshots the complete aggregate, executes and saves mutations. IOException restores the snapshot and raises the command-specific error. UI results are returned only after saving succeeds. |
+| `logic/LogicManager.execute` | Applies the read-only/recovery policy, snapshots the complete aggregate, executes and saves changed persisted state. IOException restores the snapshot and raises the command-specific error. After success and any required save, `revealRequestedStudent()` clears a filter hiding the selected target; then the result reaches the UI. |
 | `logic/commands/CommandResult` | Carries stable-ID selection and typed `Workspace.GROUPS` / `STUDENTS`; existing constructors default to `UNCHANGED`. |
 
 Keep invariants in the aggregate, persistence in Logic/Storage and rendering in UI components. Command-level
@@ -69,21 +71,24 @@ snapshots suit the specified 30–200 records. ModelManager equality/hash includ
 
 ## Persistence and recovery
 
-`JsonSerializableAddressBook` stores students plus an optional top-level assignment array:
+`JsonSerializableAddressBook` stores students with optional top-level guardian and assignment arrays:
 
 ```json
 {
   "students": [{"id": "S-0007", "name": "Mei Lin", "academicLevel": "Sec 2"}],
+  "guardians": [{"id": "G-0003", "name": "Anita Lim", "phone": "+65 91234567"}],
   "groupAssignments": [{"studentId": "S-0007", "groupCode": "MAT"}]
 }
 ```
 
-- Older Student files without `groupAssignments` load with no assignments. Only IDs/canonical codes are persisted.
-- `JsonAdaptedGroupAssignment` resolves IDs from students already loaded. Students and all assignments are validated
+- Missing `guardians` or `groupAssignments` means an empty collection; explicit JSON null is a load failure.
+  Existing two-/three-list Java compatibility constructors still treat null arguments as absent collections.
+  Assignments persist only IDs/canonical codes; guardian records retain their ID, name and canonical phone.
+- `JsonAdaptedGroupAssignment` resolves IDs from students already loaded. Students, guardians and assignments are validated
   in a temporary aggregate before publication; assignment-only changes participate in snapshots/equality and saving.
-- Explicit null/malformed collections or entries, missing fields, duplicate IDs/identities or canonical pairs,
+- Explicit null/malformed collections or entries, missing fields, duplicate IDs/identities/guardian phones or canonical pairs,
   dangling student references, unknown group codes and unsupported fields fail loading.
-- `StoredStringDeserializer` rejects booleans/numbers/containers for Student and assignment text fields rather than
+- `StoredStringDeserializer` rejects booleans/numbers/containers for Student, Guardian and assignment text fields rather than
   coercing them into valid text. `JsonUtil` rejects empty input, null roots, duplicate JSON fields and trailing content.
 - Missing student arrays retain existing compatibility. Legacy `persons` and root `_comment` are intentionally ignored;
   legacy Person records are not migrated or retained on the next save. Recognize future schema fields before loading them.
@@ -103,7 +108,8 @@ latched storage-session failure state:
 through Storage and Logic; successful rereading does **not** unlock the session.
 
 1. `Command.isReadOnly()` defaults to false. Logic rejects mutations before execution during recovery.
-   Help, exit and list-groups explicitly opt into read-only execution and skip saving in either session state.
+   Help, exit, list-groups, view-student, find-student and list-students explicitly opt into read-only execution
+   and skip saving in either session state. View Student on the empty recovery model reports the normal unknown ID.
 2. `StorageManager.saveAddressBook()` independently rejects recovery writes before reaching the file writer.
 
 Future commands must retain the safe default unless they leave persisted state unchanged; new Storage
@@ -127,6 +133,8 @@ unlock or repair editor. Window preferences retain their independent lifecycle.
   `StudentDetailsPanel.setStudent(Student, List<Group>)`. The single-argument overload renders no assignments.
 - Successful assignment requests Students plus the target ID. Explicit refresh after success handles unchanged
   Student identity; selection listeners handle different students. Do not rely on same-object reselection.
+- View/Assign/Add Student can target records hidden by search: Logic clears the filter only after success,
+  then MainWindow selects the requested ID. Visible targets retain their filter. View/Search/List keep the current tab.
 - On failure, restore the previous stable-ID selection (including no selection), render the rolled-back model
   and retain the workspace. No ghost assignments should remain.
 - The profile shows canonical codes/labels or `No groups assigned.`. One `profileScrollPane` keeps all fields
@@ -135,37 +143,37 @@ unlock or repair editor. Window preferences retain their independent lifecycle.
 
 ## Teammate integration
 
-At the **14 October audit**, the following PRs were open/unmerged. Their patches were inspected; combined execution
-was not verified. Recheck their current state before integration.
+The current merge target includes #51, #57 and #62. Other teammate work is excluded from this pinned integration;
+recheck its current state before any later merge.
 
-| PR / inspected head | Required reconciliation |
+| PR | Integration contract |
 |---|---|
-| [#51 Add Guardian](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/51) / `d43b719a` | Preserve the union of students, guardians and assignments in copy/reset/equality/JSON. Reconcile its JSON creator with strict setters/validation; do not silently drop new fields. |
-| [#54 Delete Student](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/54) / `909c3884` | Preserve assignment cleanup and combine clear-selection metadata with workspace/selection requests; refresh the shared profile renderer. |
-| [#55 Edit Student](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/55) / `0be68fa4` | Retain memberships when reconstructing Students with the same ID. Reconcile `findStudent(StudentId)` / `updateStudent(Student)` with non-allocating String lookup. |
-| [#57 View Student](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/57) / `fd533ddf` | Declare ViewStudentCommand read-only or recovery will reject it. Retain assignment-aware equality if skipping unchanged saves; reconcile navigation through CommandResult. |
+| #51 Add Guardian — included | Complete snapshots/JSON retain all three collections. Strict JSON setters coexist with Java compatibility constructors and guardian-specific save errors. |
+| #57 View Student and #62 Search/List — included | Explicit read-only classification, authoritative ID lookup and post-success filter clearing; manual View Student tab navigation remains. |
+| #54 Delete Student — pending | Require non-allocating ID lookup, assignment cleanup and preservation of another student's selection. Check updated fixes and CI before integration. |
+| #55 Edit Student — pending | Require non-allocating lookup and preserve memberships across Student replacement. Check updated fixes and CI before integration. |
+| #63 Link Guardian — pending | Requires its own relationship/schema reconciliation. Do not silently accept or discard unsupported link fields. |
 
-Keep complete-register rollback when merging the command-specific helpers from #51/#54/#55, and preserve each
-command's save-error wording. Shared parser, Model, serializer, LogicManager, CommandResult and MainWindow changes
-need a combined regression pass. Existing tests prove aggregate replacement/deletion compatibility, not those
-unmerged commands. Retired Person adapters remain baseline compatibility and must not be reconnected.
+Keep complete-register rollback and each command's save-error wording in subsequent integrations. Existing tests
+prove aggregate replacement/deletion compatibility, not unmerged commands. Retired Person adapters remain
+baseline compatibility and must not be reconnected.
 
 ## Verification and maintainer checks
 
-Recorded on **14 October 2026**, Windows, Java **25.0.1**, Gradle **9.6.1**; these are the final implementation-audit
-results, not new execution during documentation consolidation.
+Recorded on **15 October 2026** for the combined working tree, Windows, Java **25.0.1**, Gradle **9.6.1**.
+The merge remains uncommitted. Earlier audit results are preserved in the prior feature commits/local records.
 
 | Check | Recorded result |
 |---|---|
-| Focused storage/model/UI suite | 62 tests passed. |
-| Complete suite, including A/R/B and Add Student | **330 tests, 74 suites; zero failures, errors or skips.** Main/test Checkstyle, coverage and shadowJar passed with tasks rerun. |
-| Scoped Javadoc | Passed for changed/new production files with `-Xdoclint:all,-missing`; API completeness was reviewed separately. |
-| Repository-wide Javadoc | Failed on the pre-existing unresolved `Command` link at `logic/commands/exceptions/CommandException.java:4`; output also reached the 100 missing-comment/tag warning cap. |
-| Built-JAR/GUI smoke | Separate create, reload, recovery and long-name JVMs passed using the JAR's actual Main entry point; six assignment pairs survived restart and invalid bytes stayed unchanged. Rendered images inspected at normal/compact sizes. |
+| Focused integration suite | 41 tests passed. The initial 14-test run reproduced four failures in query recovery, hidden lookup/selection and guardian JSON coercion before their fixes. |
+| Complete combined suite | **405 tests, 89 suites; zero failures, errors or skips.** All original test methods from both parents remain. Main/test Checkstyle, coverage and shadowJar passed with tasks rerun. One test-formatting violation from the first full run was corrected. |
+| Scoped Javadoc | Integration production files passed with `-Xdoclint:all,-missing`; API completeness was reviewed separately. |
+| Repository-wide Javadoc | NOT RUN for this merge. The 14 October audit found the unchanged unresolved `Command` link at `logic/commands/exceptions/CommandException.java:4` and capped missing-comment/tag warnings. |
+| Built-JAR/GUI smoke | Create, reload, recovery and long-name JVMs passed through the JAR's actual Main entry point. Three students, two guardians and six assignment pairs survived restart. Queries preserved bytes; invalid guardian data entered recovery. Images inspected at normal/compact sizes. |
 | Human keyboard/mouse acceptance; other operating systems | **NOT RUN.** |
 | Scope/whitespace | `git diff --check` passed; real data/preferences and existing ignored fixtures were preserved. |
 
-Verified JAR SHA-256: `4866CB02643250DBD7BE99AFCD9642120E2700D0ABC178AC2DC7F1727E2A3293`.
+Verified JAR SHA-256: `C94F63B1B4F4CBFA37E557B7BFECA35A7A366560F91268CED40E0E712889CAE5`.
 Earlier failures and exact local commands are preserved separately. Regression tests retain the fixes for JSON
 scalar coercion, ModelManager equality/hash, long-name overflow, ambiguous UI lookup and same-student refresh.
 
@@ -178,6 +186,9 @@ Key test entry points under `src/test/java/seedu/address/`:
 - Storage/recovery: `GroupAssignmentStorageTest`, `StoredStringDeserializerTest`,
   `StorageManagerRecoveryTest`, `LogicManagerRecoveryTest`, `MainAppRecoveryTest`, `MainAppAssignmentTest`.
 - UI: `AssignGroupUiTest`, `MainWindowTest`, `StudentDetailsPanelTest`.
+- Combined integration: `CombinedRegisterTest`, `CombinedRegisterStorageTest`, `MergedCommandsIntegrationTest`,
+  plus the extended startup/UI tests. These cover all three collections, filtered commands, complete rollback,
+  strict guardian JSON and independent query execution during recovery.
 
 For the next checkout, use the existing repository tasks:
 
@@ -187,8 +198,10 @@ For the next checkout, use the existing repository tasks:
 git diff --check
 ```
 
-The recorded full run additionally used `--offline --no-daemon` and a local init script for an isolated test working
-directory and scoped Javadoc task; that helper is not shared build tooling. Preserve existing fixtures: use a
+The recorded full run additionally used `--offline --no-daemon`, `integrationJavadoc` and a local init script for an
+isolated test working directory and scoped Javadoc task; that helper is not shared build tooling. Logs, scripts and
+screenshots are retained under ignored `build/reports/feature9-integration-5e27982d3a414af4b77fdb3ab1ea9974/`.
+Preserve existing fixtures: use a
 disposable checkout or isolate the test working directory, copying test data while excluding its existing sandbox.
 For manual acceptance, launch the built JAR by absolute path from fresh synthetic-data/preferences directories.
 Check multiple assignments, duplicate/invalid input, same/different Student selection, tabs, minimum-size scrolling,
@@ -206,6 +219,5 @@ The read-denied automated case injects AccessDeniedException; a directory at the
 - Existing StudentId numeric-overflow limits, the old Help-window guide URL, help/exit argument handling and
   repository-wide Javadoc cleanup remain separate follow-ups.
 - Review the source and tests personally, reconcile teammate changes, and rerun verification before acceptance.
-  The [Developer Guide acknowledgement](../DeveloperGuide.md#acknowledgements) records Gabriel's ChatGPT
-  planning/supervision and substantial Codex implementation/testing/review assistance. Structured learning remains
-  deferred; key paths are catalogue → parser/command → aggregate → save/rollback → profile refresh.
+  Structured learning remains deferred; key paths are catalogue → parser/command → aggregate → save/rollback →
+  profile refresh.

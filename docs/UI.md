@@ -52,7 +52,13 @@ Before execution, MainWindow remembers the current selected ID. A failed command
 an empty selection) and rerenders the final model after rollback. The workspace does not change on failure.
 Panels/listeners are constructed once. StudentListPanel's `clearSelection()` supports this restoration.
 
-The student list uses `Logic#getStudentList()`. The active model and persistence layer store students and group assignments. Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
+The Student list uses the filtered view from `Logic#getStudentList()`. Stable-ID lookup and persistence use the
+complete AddressBook, which stores students, guardians and assignments. After a successful result requests a
+hidden student, `LogicManager.revealRequestedStudent()` clears the filter before MainWindow applies selection.
+This runs after any required save, preserving the previous filter on failure. Visible targets retain the filter.
+View/Search/List keep the active workspace; View Student still requires selecting the Students tab when Groups is open.
+
+Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
 [Open Student Profile Handover](feature-handover/OpenStudentProfileHandover.md).
