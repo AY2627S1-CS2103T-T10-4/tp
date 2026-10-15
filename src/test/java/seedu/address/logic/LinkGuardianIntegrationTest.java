@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ListChangeListener;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.LinkGuardianCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -63,13 +64,13 @@ class LinkGuardianIntegrationTest {
     }
 
     @Test
-    void execute_linkHiddenStudent_preservesSearchAndPersistsRelationship() throws Exception {
+    void execute_linkHiddenStudent_revealsStudentAndPersistsRelationship() throws Exception {
         logic.execute("find-student n/No Match");
         assertTrue(model.getStudentList().isEmpty());
         assertEquals(0, storage.saveAttempts);
 
         logic.execute("link-guardian sid/S-0007 gid/G-0003");
-        assertTrue(model.getStudentList().isEmpty());
+        assertEquals(2, model.getStudentList().size());
         assertTrue(logic.getLinkedGuardian("S-0007").isPresent());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
 
@@ -113,6 +114,51 @@ class LinkGuardianIntegrationTest {
         storage.failure = null;
         logic.execute("link-guardian sid/S-0008 gid/G-0004");
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void execute_groupAndGuardianChanges_preservesBothRelationshipsAcrossEditsAndDeletion() throws Exception {
+        logic.execute("assign-group sid/S-0007 g/MAT");
+        logic.execute("link-guardian sid/S-0007 gid/G-0003");
+        logic.execute("link-guardian sid/S-0008 gid/G-0003");
+        logic.execute("assign-group sid/S-0008 g/ENG");
+        logic.execute("edit-student sid/S-0007 al/Sec 4");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        assertEquals(before, storage.readAddressBook().orElseThrow());
+        assertEquals(2, before.getGuardianLinks().size());
+        assertEquals(2, before.getGroupAssignments().size());
+
+        logic.execute("find-student n/No Match");
+        storage.failure = new IOException("Disk full");
+        assertThrows(CommandException.class, () -> logic.execute("delete-student sid/S-0007"));
+        assertEquals(before, model.getAddressBook());
+        assertTrue(model.getStudentList().isEmpty());
+        storage.failure = null;
+        logic.execute("delete-student sid/S-0007");
+        assertEquals(1, model.getAddressBook().getGuardianLinks().size());
+        assertEquals(1, model.getAddressBook().getGroupAssignments().size());
+        assertTrue(logic.getLinkedGuardian("S-0008").isPresent());
+        assertEquals(2, model.getGuardianList().size());
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void execute_recoveryMode_blocksLinkWithoutChangingData() throws Exception {
+        Files.writeString(storage.getAddressBookFilePath(), "{invalid}");
+        StorageManager recovering = new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        assertThrows(DataLoadingException.class, recovering::readAddressBook);
+        Logic recoveringLogic = new LogicManager(model, recovering);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                recoveringLogic.execute("link-guardian sid/S-0007 gid/G-0003"));
+
+        assertEquals(DataLoadingException.MESSAGE_RECOVERY, error.getMessage());
+        assertEquals(before, model.getAddressBook());
+        assertEquals(0, storage.saveAttempts);
+        assertEquals("{invalid}", Files.readString(storage.getAddressBookFilePath()));
+        recoveringLogic.execute("view-student sid/S-0007");
     }
 
     /** Records write attempts and can reject a write before modifying the file. */

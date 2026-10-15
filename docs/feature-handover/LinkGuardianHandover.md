@@ -40,12 +40,14 @@ replacement and failed-load recovery protection remain separate storage work.
 `MainWindow` retrieves `logic.getLinkedGuardian(studentId)` when displaying a
 profile. The details panel shows the current name and canonical phone, or
 `Guardian: none`. Successful profile requests explicitly refresh the details,
-even when the student was already selected, and open the Students workspace.
+even when the student was already selected. Linking explicitly requests the
+Students workspace through `CommandResult.Workspace.STUDENTS`.
 
-`Logic#findStudent(String)` resolves profiles from the complete register. If a
-search hides the requested student, the profile still opens while the filter
-remains unchanged and the list selection is cleared. Failed commands preserve
-the previous profile. Saved guardian details also appear on startup and selection.
+After a successful command and save, Logic reveals a requested student hidden by
+search by clearing the filter, following the shared selection contract from master.
+The UI selects that student and refreshes both guardian and group details.
+Failed commands preserve the previous filter and profile. Saved guardian details
+also appear on startup and selection.
 
 JavaFX integration tests exercise real commands and storage for same-row refresh,
 different students, hidden students, reopening saved data, and save failures.
@@ -53,15 +55,14 @@ The User Guide remains with its owner and should mark linking available.
 
 ## Integration with parallel work
 
-This branch starts from `a3611c19`, after PRs #51 and #57. It does not depend on
-unmerged PR #59. Both branches touch model copying, equality, JSON storage,
-parsing, and save rollback. When merging, retain students, guardians, guardian
-links, and group assignments in all of those paths. Preserve the null-guardian
-validation from #51 and the read-only behavior of `view-student` from #57.
+The merge of `upstream/master` at `5eb1667c` integrates PR #59 and student editing
+and deletion. Snapshots, equality, JSON storage, and rollback retain both guardian
+links and group assignments. Deletion removes both relationships for the deleted
+student while retaining shared guardians and other students' relationships.
 
-If #59's recovery gate is adopted, `link-guardian` must remain mutating and be
-blocked during recovery. Preserve its command-specific save failure message.
-Reuse the same `sid/` prefix rather than introducing duplicate constants.
+`link-guardian` remains mutating and is blocked by the shared recovery gate.
+Its command-specific save failure message is retained. Read-only profile and
+group commands remain available during recovery.
 
 ## Validation
 

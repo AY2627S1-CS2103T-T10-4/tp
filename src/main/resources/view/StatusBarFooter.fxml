@@ -6,7 +6,7 @@
 
 <HBox alignment="CENTER_LEFT" styleClass="status-bar" xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1">
-  <Label text="Saved locally" styleClass="save-state" />
+  <Label fx:id="saveStatus" text="Saved locally" styleClass="save-state" />
   <Label text="  •  " styleClass="status-muted" />
   <Label fx:id="saveLocationStatus" styleClass="status-muted" />
   <Region HBox.hgrow="ALWAYS" />

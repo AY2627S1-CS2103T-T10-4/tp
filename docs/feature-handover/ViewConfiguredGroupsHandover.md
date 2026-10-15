@@ -5,6 +5,10 @@ title: View Configured Groups Handover
 
 # View Configured Groups: Backend Handover
 
+This is the historical v1.2 foundation record. The current five-group catalogue, `list-groups` UI and assignment
+integration are documented in [Assign Group Handover](AssignGroupHandover.md); the remaining sections below
+describe the earlier issue #42 checkpoint and its tests.
+
 This PR for [issue #42](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/42), iteration v1.2,
 implements only the backend group-catalogue foundation for Feature 8. **Feature 8 is not fully implemented.**
 No production group records, persistence, assignment logic, application-model integration, CLI command or GUI

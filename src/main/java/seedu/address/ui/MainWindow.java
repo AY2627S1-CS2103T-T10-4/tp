@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.beans.binding.Bindings;
@@ -18,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -144,6 +146,7 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         fillStudentPanels();
+        fillGroupPanel();
         fillResultDisplay();
         fillStatusBar();
         fillCommandBox();
@@ -155,37 +158,45 @@ public class MainWindow extends UiPart<Stage> {
         studentDetailsPanel = new StudentDetailsPanel();
         studentDetailsPanelPlaceholder.getChildren().add(studentDetailsPanel.getRoot());
         studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) ->
-                showStudentDetails(newStudent));
+                refreshStudentDetails());
         studentCountLabel.textProperty().bind(
                 Bindings.size(logic.getStudentList()).asString("%d students"));
         studentListPanel.selectFirstStudent();
     }
 
-    private void showStudentDetails(Student student) {
-        studentDetailsPanel.setStudent(student,
-                student == null ? null : logic.getLinkedGuardian(student.getId().value).orElse(null));
+    private void refreshStudentDetails() {
+        Student selected = studentListPanel.selectedStudentProperty().get();
+        studentDetailsPanel.setStudent(selected,
+                selected == null ? List.of() : logic.getAssignedGroups(selected.getId().value),
+                selected == null ? null : logic.getLinkedGuardian(selected.getId().value).orElse(null));
     }
 
-    private void showStudentProfile(String studentId) {
-        logic.findStudent(studentId).ifPresent(student -> {
+    private void restoreStudentSelection(String studentId) {
+        if (studentId == null || !studentListPanel.containsStudentId(studentId)) {
+            studentListPanel.clearSelection();
+        } else {
             studentListPanel.selectStudentId(studentId);
-            if (!student.equals(studentListPanel.selectedStudentProperty().get())) {
-                studentListPanel.clearSelection();
-            }
-            // Selecting an already selected row does not fire a selection change.
-            showStudentDetails(student);
-            setActiveWorkspace(true);
-        });
+        }
+        // Assignment-only changes keep the same Student object, so selection listeners may not fire.
+        refreshStudentDetails();
+    }
+
+    private void fillGroupPanel() {
+        GroupListPanel groupListPanel = new GroupListPanel(logic.getGroupCatalogue());
+        groupsWorkspacePlaceholder.getChildren().add(groupListPanel.getRoot());
     }
 
     private void fillResultDisplay() {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        if (logic.getDataRecoveryReason().isPresent()) {
+            resultDisplay.setFeedbackToUser(DataLoadingException.MESSAGE_RECOVERY);
+        }
         bindResultSectionHeight();
     }
 
     private void fillStatusBar() {
-        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
+        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath, logic.getDataRecoveryReason());
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
     }
 
@@ -214,7 +225,7 @@ public class MainWindow extends UiPart<Stage> {
         setActiveWorkspace(true);
     }
 
-    /** Shows the intentionally empty placeholder reserved for the Groups increment. */
+    /** Shows the configured groups workspace. */
     @FXML
     private void handleGroupsTab() {
         setActiveWorkspace(false);
@@ -276,6 +287,11 @@ public class MainWindow extends UiPart<Stage> {
         return studentListPanel;
     }
 
+    /** Returns the student details panel mounted in this window. */
+    StudentDetailsPanel getStudentDetailsPanel() {
+        return studentDetailsPanel;
+    }
+
     /** Empty compatibility panel for legacy UI tests; it is never attached to the window. */
     @Deprecated
     public PersonListPanel getPersonListPanel() {
@@ -288,13 +304,24 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        String previousStudentId = studentListPanel.getSelectedStudentId();
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-            if (commandResult.getSelectedStudentId() != null) {
-                showStudentProfile(commandResult.getSelectedStudentId());
+            if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
+                handleGroupsTab();
+            } else if (commandResult.getWorkspace() == CommandResult.Workspace.STUDENTS) {
+                handleStudentsTab();
             }
+            String requestedStudentId = commandResult.getSelectedStudentId();
+            String nextStudentId = requestedStudentId == null ? previousStudentId : requestedStudentId;
+            String idToClear = commandResult.getStudentIdToClearSelection();
+            if (commandResult.shouldClearStudentSelection()
+                    && (idToClear == null || idToClear.equals(previousStudentId))) {
+                nextStudentId = null;
+            }
+            restoreStudentSelection(nextStudentId);
 
             if (commandResult.isShowHelp()) {
                 handleHelp();
@@ -308,6 +335,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
+            restoreStudentSelection(previousStudentId);
             throw e;
         }
     }

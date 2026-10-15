@@ -5,7 +5,7 @@ title: UI README
 
 # Mentora UI README
 
-This document maps the JavaFX interface to its implementation classes and FXML files. The main workspace displays Mentora student records. The Add Student increment stores ID, name, and academic level; guardian and group profile sections are not yet implemented.
+This document maps the JavaFX interface to its implementation classes and FXML files. The main workspace displays Mentora student records with ID, name, academic level and configured-group assignments. Guardian profile content is not yet implemented.
 
 ## Screen structure
 
@@ -17,7 +17,7 @@ The main window is arranged from top to bottom as follows:
 4. **Student workspace** — a student list on the left and the selected student's details on the right.
 5. **Status footer** — local data-file status and keyboard hints.
 
-The window defaults to `1000 × 650` and restores larger saved dimensions. Previously saved portrait-sized preferences are raised to at least `900 × 600`, keeping the primary workspace in a landscape layout.
+The window defaults to `1000 × 650` and restores larger saved dimensions. Previously saved portrait-sized preferences are raised to at least `900 × 600`, keeping the primary workspace in a landscape layout. Users can resize down to the FXML minimum of `820 × 560`; the profile scrolls when its content exceeds the available height.
 
 ## Component map
 
@@ -28,8 +28,9 @@ The window defaults to `1000 × 650` and restores larger saved dimensions. Previ
 | Latest command result | `ResultDisplay` | `ResultDisplay.fxml` | Reserves one line of content when empty, measures wrapped or multi-line feedback, and supplies the preferred content height used by the complete result row. |
 | Student list | `StudentListPanel` | `StudentListPanel.fxml` | Owns the student list and stable-ID selection behavior. Each row uses the card component below. |
 | Student list row | `StudentCard` | `StudentListCard.fxml` | Arranges the existing student ID and name as a padded summary on the left and academic level in an aligned right column. |
-| Selected student details | `StudentDetailsPanel` | `StudentDetailsPanel.fxml` | Shows the selected student's ID, name, and academic level, or an empty state. |
-| Persistence footer | `StatusBarFooter` | `StatusBarFooter.fxml` | Shows that data is stored locally, the active JSON path, and keyboard hints. |
+| Configured groups | `GroupListPanel` | `GroupListPanel.fxml` | Displays the fixed catalogue's code, label, kind, order, and actual count in the Groups workspace. |
+| Selected student details | `StudentDetailsPanel` | `StudentDetailsPanel.fxml` | Shows ID, name, academic level and assignments, or an empty state; the profile scrolls as one unit when space is limited. |
+| Persistence footer | `StatusBarFooter` | `StatusBarFooter.fxml` | Shows the active JSON path and keyboard hints; during recovery it shows Saving disabled and retains the load-failure reason in a tooltip. |
 | Help window | `HelpWindow` | `HelpWindow.fxml` | Preserves the existing F1 help action and link-copy behavior. |
 | Application/UI bootstrap | `UiManager` | — | Creates `MainWindow`, supplies application dependencies, and owns fatal-error dialogs. |
 | Shared FXML loader | `UiPart<T>` | — | Loads each FXML resource and installs its Java class as controller. |
@@ -40,7 +41,35 @@ All paths above are relative to `src/main/java/seedu/address/ui/` for Java class
 
 `MainWindow` creates the student list and details panel and passes the selected student to the details view. The first student is selected at startup. After `add-student`, the command result carries the generated ID and the list selects that student after the observable collection refreshes.
 
-The student list uses `Logic#getStudentList()`. The active model and persistence layer store students only. Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
+`MainWindow.refreshStudentDetails()` supplies the selected Student and `Logic#getAssignedGroups(String)` to
+`StudentDetailsPanel.setStudent(Student, List<Group>)`. The projection resolves current catalogue labels and uses
+catalogue order. An empty list displays `No groups assigned.` Selection changes and successful command results
+both trigger this renderer: assigning another group does not replace the Student object, so reselection alone
+is not a reliable notification.
+
+Successful `assign-group` results request `Workspace.STUDENTS` plus the target ID, after persistence succeeds.
+Before execution, MainWindow remembers the current selected ID. A failed command restores that selection (including
+an empty selection) and rerenders the final model after rollback. The workspace does not change on failure.
+Panels/listeners are constructed once. StudentListPanel's `clearSelection()` supports this restoration.
+
+The Student list uses the filtered view from `Logic#getStudentList()`. Stable-ID lookup and persistence use the
+complete AddressBook, which stores students, guardians and assignments. After a successful result requests a
+hidden student, `LogicManager.revealRequestedStudent()` clears the filter before MainWindow applies selection.
+This runs after any required save, preserving the previous filter on failure. Visible targets retain the filter.
+View/Search/List keep the active workspace; View Student still requires selecting the Students tab when Groups is open.
+
+Edit Student uses the same post-success reveal/selection path and keeps the active workspace. Its immutable
+Student replacement retains the ID and assignments; MainWindow explicitly renders the selected replacement,
+including successive edits to the same ID. `restoreStudentSelection()` is the single selection/refresh helper
+for successful results and failed commands. It clears an absent selection instead of selecting a different student.
+
+Delete Student adds conditional clearing metadata to CommandResult alongside the existing workspace and selected-ID
+fields. MainWindow compares the deleted ID with the selection saved before execution, then uses the same
+`restoreStudentSelection()` helper. Deleting the selected student clears the profile; deleting another student,
+including one hidden by Search, retains the visible selection, filter and workspace. Save failures restore the
+complete register and previous selection without applying the deletion result.
+
+Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
 [Open Student Profile Handover](feature-handover/OpenStudentProfileHandover.md).
@@ -48,11 +77,22 @@ For the command-driven selection API and Feature 13 integration notes, see
 For the student-only model migration and PR #45 selection compatibility, see
 [Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
 
+For stable-ID student deletion, assignment cleanup and conditional selection clearing, see
+[Delete Student Handover](feature-handover/DeleteStudentHandover.md).
+
+For student academic-level updates and stable-ID profile refresh, see
+[Edit Student Handover](feature-handover/EditStudentHandover.md).
+
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
+
+On a failed data load, `Logic#getDataRecoveryReason()` exposes the storage session's recovery state. `MainWindow`
+shows the exact recovery explanation in the initial result strip and constructs a write-disabled footer. Read-only
+commands may update the result strip, but the footer remains `Saving disabled` with the original failure reason.
+Mutating commands are rejected before execution. See [Recovery and write protection](feature-handover/AssignGroupHandover.md#recovery-and-write-protection).
 
 ## Student workspace layout
 
-The student workspace follows the established Mentora contact-screen composition while retaining student terminology and fields. List entries are full-width cards with consistent padding, dividers, selection highlighting, and aligned summary columns. The profile pane uses the same inset content area, title hierarchy, separator, and grouped field spacing. No labels, commands, or student data have been changed for this presentation update.
+The student workspace follows the established Mentora contact-screen composition while retaining student terminology and fields. List entries are full-width cards with consistent padding, dividers, selection highlighting, and aligned summary columns. The profile pane keeps its inset content area, title hierarchy, separator and grouped field spacing, with the added Assignments section. One `profileScrollPane` contains all profile fields so long valid names cannot push assignments or the footer offscreen. There are no nested scrolling regions in the profile.
 
 ## Header navigation and Groups handover
 
@@ -61,11 +101,15 @@ The student workspace follows the established Mentora contact-screen composition
 The growing area below the result strip is `workspace-container`. It currently contains:
 
 - `studentWorkspace`, which holds the complete existing student split-pane and is visible by default.
-- `groupsWorkspacePlaceholder`, an intentionally empty `StackPane` that is shown when Groups is selected.
+- `groupsWorkspacePlaceholder`, which holds one `GroupListPanel` and is shown when Groups is selected.
 
-The empty Groups placeholder remains managed while active so it occupies the workspace and keeps the status footer anchored at the bottom. The command box, latest result, menus, and status footer are shared shell components and stay visible when either tab is selected.
+The Groups workspace remains managed while active so it occupies the workspace and keeps the status footer anchored at the bottom. The command box, latest result, menus, and status footer are shared shell components and stay visible when either tab is selected.
 
-The Groups implementer should attach the future Groups root node to `groupsWorkspacePlaceholder`, ideally through a dedicated UI component such as `GroupListPanel` or `GroupWorkspace`. Keep Groups-specific controllers and data binding outside `MainWindow`; `MainWindow` should only construct the component and switch workspace visibility. Do not place temporary labels or student content in the Groups placeholder.
+`MainWindow.fillGroupPanel()` constructs the panel once using `Logic#getGroupCatalogue()`. The model owns access to the shared immutable configuration supplied by `ConfiguredGroups`; the panel renders its rows using the current theme. The catalogue is separate from persisted student data.
+
+`list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` requests `STUDENTS` and a stable student ID. `MainWindow` switches tabs after successful execution, without interpreting feedback text or replacing the Student panels. Earlier commands retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
+
+See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for catalogue, assignment, persistence and refresh contracts. The Student UI change is limited to the Assignments section and the selection/refresh hooks above.
 
 ## Styling
 

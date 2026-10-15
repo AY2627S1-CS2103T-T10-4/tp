@@ -4,19 +4,34 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.guardian.Guardian;
 import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** Read-only view of Mentora's student and guardian records. */
+/**
+ * Read-only view of all students, guardians and validated group relationships.
+ */
 public interface ReadOnlyAddressBook {
-    /** Returns an unmodifiable view of all students. */
+    /**
+     * Returns an unmodifiable view of all students.
+     *
+     * @return The current students; subsequent aggregate changes are reflected in this view.
+     */
     ObservableList<Student> getStudentList();
+
+    /**
+     * Returns an unmodifiable view of the immutable student/group relationships.
+     *
+     * @return The current assignments; subsequent aggregate changes are reflected in this view.
+     */
+    Set<GroupAssignment> getGroupAssignments();
 
     /** Returns an unmodifiable view of all guardians. */
     default ObservableList<Guardian> getGuardianList() {

@@ -14,5 +14,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_ACADEMIC_LEVEL = new Prefix("al/");
     public static final Prefix PREFIX_STUDENT_ID = new Prefix("sid/");
     public static final Prefix PREFIX_GUARDIAN_ID = new Prefix("gid/");
+    public static final Prefix PREFIX_GROUP = new Prefix("g/");
 
 }

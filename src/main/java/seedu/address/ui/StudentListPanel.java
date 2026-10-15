@@ -27,14 +27,25 @@ public class StudentListPanel extends UiPart<Region> {
         return studentListView.getSelectionModel().selectedItemProperty();
     }
 
+    /** Returns the ID of the currently selected student, if any. */
+    public String getSelectedStudentId() {
+        Student selected = studentListView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getId().value;
+    }
+
+    /** Returns whether the ID is currently visible in the list. */
+    public boolean containsStudentId(String id) {
+        return studentListView.getItems().stream().anyMatch(student -> student.getId().value.equals(id));
+    }
+
+    /** Clears the current student selection. */
+    public void clearSelection() {
+        studentListView.getSelectionModel().clearSelection();
+    }
+
     /** Selects the first visible student, if one exists. */
     public void selectFirstStudent() {
         studentListView.getSelectionModel().selectFirst();
-    }
-
-    /** Clears the list selection when displaying a profile outside the current search results. */
-    public void clearSelection() {
-        studentListView.getSelectionModel().clearSelection();
     }
 
     /** Selects and scrolls to the student with the supplied generated ID, if it is visible. */

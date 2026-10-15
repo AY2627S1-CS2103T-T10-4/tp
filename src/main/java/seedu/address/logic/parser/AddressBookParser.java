@@ -10,11 +10,15 @@ import java.util.regex.Pattern;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
+import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.DeleteStudentCommand;
+import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindStudentCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.LinkGuardianCommand;
+import seedu.address.logic.commands.ListGroupsCommand;
 import seedu.address.logic.commands.ListStudentsCommand;
 import seedu.address.logic.commands.ViewStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -25,9 +29,10 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class AddressBookParser {
 
     /**
-     * Used for initial separation of command word and args.
+     * Separates the command word from all argument text so each command can validate extra input.
      */
-    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
+    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile(
+            "(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
 
     /**
@@ -54,6 +59,10 @@ public class AddressBookParser {
         return switch (commandWord.toLowerCase(java.util.Locale.ROOT)) {
             case AddGuardianCommand.COMMAND_WORD -> new AddGuardianCommandParser().parse(arguments);
             case AddStudentCommand.COMMAND_WORD -> new AddStudentCommandParser().parse(arguments);
+            case AssignGroupCommand.COMMAND_WORD -> new AssignGroupCommandParser().parse(arguments);
+            case ListGroupsCommand.COMMAND_WORD -> new ListGroupsCommandParser().parse(arguments);
+            case DeleteStudentCommand.COMMAND_WORD -> new DeleteStudentCommandParser().parse(arguments);
+            case EditStudentCommand.COMMAND_WORD -> new EditStudentCommandParser().parse(arguments);
             case FindStudentCommand.COMMAND_WORD -> new FindStudentCommandParser().parse(arguments);
             case LinkGuardianCommand.COMMAND_WORD -> new LinkGuardianCommandParser().parse(arguments);
             case ListStudentsCommand.COMMAND_WORD -> new ListStudentsCommandParser().parse(arguments);

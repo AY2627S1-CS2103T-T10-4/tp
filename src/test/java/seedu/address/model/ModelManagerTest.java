@@ -1,18 +1,33 @@
 package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentName;
 
 class ModelManagerTest {
+    @Test
+    void getGroupCatalogue_studentDataReset_preservesReadOnlyConfiguration() {
+        ModelManager model = new ModelManager();
+        GroupCatalogue catalogue = model.getGroupCatalogue();
+
+        model.setAddressBook(new AddressBook());
+
+        assertSame(ConfiguredGroups.getCatalogue(), catalogue);
+        assertSame(catalogue, model.getGroupCatalogue());
+        assertThrows(UnsupportedOperationException.class, () -> catalogue.getGroups().clear());
+    }
+
     @Test
     void studentOperations_useStudentRegister() {
         ModelManager model = new ModelManager();

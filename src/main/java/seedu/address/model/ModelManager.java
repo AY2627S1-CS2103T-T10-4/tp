@@ -3,25 +3,35 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.group.GroupCode;
 import seedu.address.model.guardian.Guardian;
 import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 
-/** In-memory model of Mentora's student register and user preferences. */
+/** In-memory model of the complete register, filtered Student view and user preferences. */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
     private final AddressBook addressBook;
     private final FilteredList<Student> filteredStudents;
     private final UserPrefs userPrefs;
+    private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
 
     /** Creates a model manager with the supplied student data and user preferences. */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
@@ -73,8 +83,43 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public GroupCatalogue getGroupCatalogue() {
+        return groupCatalogue;
+    }
+
+    @Override
+    public Optional<Student> findStudent(String studentId) {
+        return addressBook.findStudent(studentId);
+    }
+
+    @Override
+    public Optional<Student> findStudent(StudentId id) {
+        return addressBook.findStudent(id);
+    }
+
+    @Override
+    public void addGroupAssignment(GroupAssignment assignment) {
+        addressBook.addGroupAssignment(assignment);
+    }
+
+    @Override
+    public List<Group> getAssignedGroups(String studentId) {
+        requireNonNull(studentId);
+        Set<GroupCode> codes = addressBook.getGroupAssignments().stream()
+                .filter(assignment -> assignment.getStudentId().value.equals(studentId))
+                .map(GroupAssignment::getGroupCode)
+                .collect(Collectors.toSet());
+        return groupCatalogue.getGroups().stream().filter(group -> codes.contains(group.getCode())).toList();
+    }
+
+    @Override
     public boolean hasStudent(Student student) {
         return addressBook.hasStudent(student);
+    }
+
+    @Override
+    public void updateStudent(Student student) {
+        addressBook.updateStudent(student);
     }
 
     @Override
@@ -116,5 +161,10 @@ public class ModelManager implements Model {
     public boolean equals(Object other) {
         return other == this || other instanceof ModelManager manager
                 && addressBook.equals(manager.addressBook) && userPrefs.equals(manager.userPrefs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(addressBook, userPrefs);
     }
 }

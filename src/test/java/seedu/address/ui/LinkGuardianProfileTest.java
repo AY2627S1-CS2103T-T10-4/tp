@@ -1,7 +1,6 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.GuardianLinkTestUtil.getUnlinkedAddressBook;
 
@@ -16,6 +15,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -47,9 +47,13 @@ class LinkGuardianProfileTest {
                 openWindow(stage, model, storage);
                 assertEquals("Guardian: none", label(stage, "guardianDetails"));
 
+                submit(stage, "assign-group sid/S-0007 g/MAT");
+
                 submit(stage, "link-guardian sid/S-0007 gid/G-0003");
                 assertEquals("S-0007", label(stage, "id"));
                 assertEquals("Anita Lim\n+65 91234567", label(stage, "guardianDetails"));
+                VBox assignments = (VBox) stage.getScene().lookup("#assignments");
+                assertTrue(((Label) assignments.getChildren().get(0)).getText().startsWith("MAT"));
 
                 submit(stage, "view-student sid/S-0008");
                 assertEquals("Guardian: none", label(stage, "guardianDetails"));
@@ -69,7 +73,7 @@ class LinkGuardianProfileTest {
     }
 
     @Test
-    void submit_linkHiddenStudent_opensProfileWithoutClearingSearch() {
+    void submit_linkHiddenStudent_revealsStudentAndOpensProfile() {
         JavaFxTestUtils.runOnFxThread(() -> {
             ModelManager model = new ModelManager(getUnlinkedAddressBook(), new UserPrefs());
             Stage stage = new Stage();
@@ -81,8 +85,8 @@ class LinkGuardianProfileTest {
                 groupsTab.fire();
                 submit(stage, "link-guardian sid/S-0007 gid/G-0003");
 
-                assertTrue(model.getStudentList().isEmpty());
-                assertNull(window.getStudentListPanel().selectedStudentProperty().get());
+                assertEquals(2, model.getStudentList().size());
+                assertEquals("S-0007", window.getStudentListPanel().getSelectedStudentId());
                 assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
                 assertEquals("S-0007", label(stage, "id"));
                 assertEquals("Anita Lim\n+65 91234567", label(stage, "guardianDetails"));

@@ -88,7 +88,7 @@ class AddressBookGuardianLinkTest {
     void resetData_danglingLink_rejectsReplacementWithoutPartialChanges() {
         AddressBook register = getUnlinkedAddressBook();
         AddressBook before = new AddressBook(register);
-        ReadOnlyAddressBook invalid = new ReadOnlyAddressBook() {
+        ReadOnlyAddressBook invalid = new AddressBook() {
             @Override
             public ObservableList<Student> getStudentList() {
                 return before.getStudentList();

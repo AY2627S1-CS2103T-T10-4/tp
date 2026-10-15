@@ -44,7 +44,7 @@ public class LinkGuardianCommand extends Command {
             throw new CommandException(e.getMessage(), e);
         }
         return new CommandResult(String.format(MESSAGE_SUCCESS, studentId, student.getName(),
-                guardianId, guardian.getName(), guardian.getPhone()), false, false, studentId);
+                guardianId, guardian.getName(), guardian.getPhone()), studentId, CommandResult.Workspace.STUDENTS);
     }
 
     @Override
