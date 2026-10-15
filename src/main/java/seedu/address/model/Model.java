@@ -17,6 +17,9 @@ public interface Model {
     /** Always-true predicate retained for retired Person command source compatibility. */
     @Deprecated Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
+    /** Predicate that displays every student in the register. */
+    Predicate<Student> PREDICATE_SHOW_ALL_STUDENTS = unused -> true;
+
     /** Compatibility view for retired Address Book commands; the student register contains no persons. */
     @Deprecated
     default ObservableList<Person> getFilteredPersonList() {
@@ -57,6 +60,12 @@ public interface Model {
     default ObservableList<Student> getStudentList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
+
+    /** Updates the students shown in the UI using the supplied predicate. */
+    default void updateFilteredStudentList(Predicate<Student> predicate) {
+        throw new UnsupportedOperationException();
+    }
+
     default boolean hasStudent(Student student) {
         return false;
     }
