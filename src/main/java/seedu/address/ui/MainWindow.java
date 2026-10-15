@@ -22,6 +22,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.student.Student;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -274,6 +275,7 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Student selectedStudentBeforeCommand = studentListPanel.selectedStudentProperty().get();
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
@@ -281,7 +283,10 @@ public class MainWindow extends UiPart<Stage> {
             if (commandResult.getSelectedStudentId() != null) {
                 studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
             }
-            if (commandResult.shouldClearStudentSelection()) {
+            String idToClear = commandResult.getStudentIdToClearSelection();
+            if (commandResult.shouldClearStudentSelection()
+                    && (idToClear == null || selectedStudentBeforeCommand != null
+                    && selectedStudentBeforeCommand.getId().value.equals(idToClear))) {
                 studentListPanel.clearSelection();
             }
 

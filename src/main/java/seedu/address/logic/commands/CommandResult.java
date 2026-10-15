@@ -15,6 +15,7 @@ public class CommandResult {
     private final boolean exit;
     private final String selectedStudentId;
     private final boolean clearStudentSelection;
+    private final String studentIdToClearSelection;
 
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
         this(feedbackToUser, showHelp, exit, null);
@@ -28,11 +29,18 @@ public class CommandResult {
     /** Constructs a result that asks the UI to clear the current student selection. */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, String selectedStudentId,
             boolean clearStudentSelection) {
+        this(feedbackToUser, showHelp, exit, selectedStudentId, clearStudentSelection, null);
+    }
+
+    /** Constructs a result that clears selection only when it belongs to the specified student. */
+    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, String selectedStudentId,
+            boolean clearStudentSelection, String studentIdToClearSelection) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
         this.selectedStudentId = selectedStudentId;
         this.clearStudentSelection = clearStudentSelection;
+        this.studentIdToClearSelection = studentIdToClearSelection;
     }
 
     /** Retired Person-list selection constructor. The requested index is intentionally ignored. */
@@ -65,6 +73,10 @@ public class CommandResult {
         return clearStudentSelection;
     }
 
+    public String getStudentIdToClearSelection() {
+        return studentIdToClearSelection;
+    }
+
     /** Retired Person-list selection API; student selection uses stable IDs. */
     @Deprecated
     public Optional<Index> getSelectedIndex() {
@@ -76,18 +88,21 @@ public class CommandResult {
         return other == this || other instanceof CommandResult result
                 && feedbackToUser.equals(result.feedbackToUser) && showHelp == result.showHelp
                 && exit == result.exit && Objects.equals(selectedStudentId, result.selectedStudentId)
-                && clearStudentSelection == result.clearStudentSelection;
+                && clearStudentSelection == result.clearStudentSelection
+                && Objects.equals(studentIdToClearSelection, result.studentIdToClearSelection);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, selectedStudentId, clearStudentSelection);
+        return Objects.hash(feedbackToUser, showHelp, exit, selectedStudentId, clearStudentSelection,
+                studentIdToClearSelection);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp).add("exit", exit).add("selectedStudentId", selectedStudentId)
-                .add("clearStudentSelection", clearStudentSelection).toString();
+                .add("clearStudentSelection", clearStudentSelection)
+                .add("studentIdToClearSelection", studentIdToClearSelection).toString();
     }
 }

@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class DeleteStudentCommandTest {
         model.addStudent(deleted);
         model.addStudent(retained);
 
-        CommandResult result = new DeleteStudentCommand(deleted.getId()).execute(model);
+        CommandResult result = new DeleteStudentCommand(deleted.getId().value).execute(model);
 
         assertEquals("Deleted student S-0301: Mei Lin.", result.getFeedbackToUser());
         assertTrue(result.shouldClearStudentSelection());
@@ -38,11 +39,21 @@ class DeleteStudentCommandTest {
         Student retained = new Student(new StudentId("S-0310"), new StudentName("Amy Tan"),
                 new AcademicLevel("Sec 1"));
         model.addStudent(retained);
-        DeleteStudentCommand command = new DeleteStudentCommand(new StudentId("S-0399"));
+        DeleteStudentCommand command = new DeleteStudentCommand("S-0399");
 
         Executable execution = () -> command.execute(model);
 
         assertThrows(CommandException.class, "Student S-0399 was not found.", execution);
         assertEquals(java.util.List.of(retained), model.getStudentList());
+    }
+
+    @Test
+    void execute_unknownLargeId_doesNotAdvanceIdGenerator() {
+        ModelManager model = new ModelManager();
+        assertThrows(CommandException.class,
+                () -> new DeleteStudentCommand("S-999999999999").execute(model));
+
+        long after = Long.parseLong(StudentId.generate().value.substring(2));
+        assertTrue(after < 999999999999L);
     }
 }

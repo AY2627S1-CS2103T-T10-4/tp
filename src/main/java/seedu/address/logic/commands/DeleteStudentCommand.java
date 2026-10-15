@@ -5,7 +5,6 @@ import java.util.Objects;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.student.Student;
-import seedu.address.model.student.StudentId;
 
 /** Deletes a student record by its permanent ID. */
 public class DeleteStudentCommand extends Command {
@@ -15,25 +14,25 @@ public class DeleteStudentCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Deleted student %s: %s.";
     public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. Student %s was not deleted.";
 
-    private final StudentId studentId;
+    private final String studentId;
 
     /** Creates a command for the supplied student ID. */
-    public DeleteStudentCommand(StudentId studentId) {
+    public DeleteStudentCommand(String studentId) {
         this.studentId = studentId;
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         Student student = model.getStudentList().stream()
-                .filter(candidate -> candidate.getId().equals(studentId))
+                .filter(candidate -> candidate.getId().value.equals(studentId))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_STUDENT_NOT_FOUND, studentId)));
-        model.deleteStudent(studentId);
+        model.deleteStudent(student.getId());
         String feedback = String.format(MESSAGE_SUCCESS, studentId, student.getName());
-        return new CommandResult(feedback, false, false, null, true);
+        return new CommandResult(feedback, false, false, null, true, studentId);
     }
 
-    public StudentId getStudentId() {
+    public String getStudentId() {
         return studentId;
     }
 

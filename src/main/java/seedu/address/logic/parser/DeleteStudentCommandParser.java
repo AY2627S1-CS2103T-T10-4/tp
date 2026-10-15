@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.DeleteStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.student.StudentId;
 
 /** Parses delete-student arguments. */
 public class DeleteStudentCommandParser implements Parser<DeleteStudentCommand> {
@@ -28,7 +27,10 @@ public class DeleteStudentCommandParser implements Parser<DeleteStudentCommand> 
             arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_STUDENT_ID);
             String rawId = arg.getValue(CliSyntax.PREFIX_STUDENT_ID)
                     .orElseThrow(() -> new IllegalArgumentException(DeleteStudentCommand.MESSAGE_USAGE));
-            return new DeleteStudentCommand(new StudentId(rawId));
+            if (!rawId.matches("S-[0-9]{4,}")) {
+                throw new IllegalArgumentException(DeleteStudentCommand.MESSAGE_USAGE);
+            }
+            return new DeleteStudentCommand(rawId);
         } catch (ParseException | IllegalArgumentException e) {
             throw new ParseException(DeleteStudentCommand.MESSAGE_USAGE);
         }

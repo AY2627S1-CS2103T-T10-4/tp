@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,15 @@ class DeleteStudentCommandParserTest {
 
     @Test
     void parse_validId_success() throws Exception {
-        assertEquals(new DeleteStudentCommand(new StudentId("S-0007")), parser.parse("SID/S-0007"));
+        assertEquals(new DeleteStudentCommand("S-0007"), parser.parse("SID/S-0007"));
+    }
+
+    @Test
+    void parse_largeUnknownId_doesNotAdvanceIdGenerator() throws Exception {
+        parser.parse("sid/S-999999999999");
+
+        long after = Long.parseLong(StudentId.generate().value.substring(2));
+        assertTrue(after < 999999999999L);
     }
 
     @Test

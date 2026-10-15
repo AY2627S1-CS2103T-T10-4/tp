@@ -19,7 +19,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Logic;
@@ -172,26 +171,28 @@ public class MainWindowTest {
     }
 
     @Test
-    public void submitCommand_deleteSelectedStudent_clearsDetailsSelection() {
+    public void submitCommand_deleteDifferentStudent_preservesDetailsSelection() {
         JavaFxTestUtils.runOnFxThread(() -> {
             TestLogic logic = new TestLogic(new GuiSettings());
-            Student student = new Student(new StudentId("S-0212"), new StudentName("Mei Lin"),
+            Student amy = new Student(new StudentId("S-0212"), new StudentName("Amy Tan"),
+                    new AcademicLevel("Sec 2"));
+            Student student = new Student(new StudentId("S-0213"), new StudentName("Mei Lin"),
                     new AcademicLevel("Sec 3"));
-            logic.students.add(student);
+            logic.students.addAll(amy, student);
             Stage stage = new Stage();
             MainWindow mainWindow = new MainWindow(stage, logic, DATA_FILE_PATH);
             mainWindow.fillInnerParts();
+            stage.getScene().getRoot().applyCss();
             TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
             logic.removeStudentOnDelete = true;
-            logic.commandResult = new CommandResult("Deleted student", false, false, null, true);
+            logic.commandResult = new CommandResult("Deleted student", false, false, null, true,
+                    student.getId().value);
+            mainWindow.getStudentListPanel().selectStudentId(amy.getId().value);
 
-            commandTextField.setText("delete-student sid/S-0212");
+            commandTextField.setText("delete-student sid/S-0213");
             submit(commandTextField);
 
-            assertNull(mainWindow.getStudentListPanel().selectedStudentProperty().get());
-            VBox detailsRoot = (VBox) mainWindow.getStudentDetailsPanel().getRoot();
-            VBox emptyState = (VBox) detailsRoot.getChildren().get(0);
-            assertEquals("No student selected", ((Label) emptyState.getChildren().get(0)).getText());
+            assertEquals(amy, mainWindow.getStudentListPanel().selectedStudentProperty().get());
             stage.close();
         });
     }
