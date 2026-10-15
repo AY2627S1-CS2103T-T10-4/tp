@@ -8,11 +8,12 @@
 - Guardian phone numbers are unique after canonicalization. Duplicate attempts identify the existing guardian ID and recommend linking that record.
 - Extended `AddressBook`, `ReadOnlyAddressBook`, `Model`, and `ModelManager` to retain guardian records independently from students. Guardians are sorted by normalized name and then stable ID for deterministic persistence and future list views.
 - Extended JSON persistence with a `guardians` collection. Existing student-only files remain compatible because an absent guardian collection loads as empty. Invalid IDs, names, phones, duplicate IDs, and duplicate canonical phones are rejected on load.
-- `LogicManager` now rolls back an added guardian if the local save fails and reports the specified guardian-specific save error.
+- `LogicManager` restores the complete Student/Guardian/assignment register if saving fails and retains the specified guardian-specific save error. Queries bypass saving and remain available during recovery.
 - Updated the current-build note in the user guide. No JavaFX/FXML changes were made, and an added guardian is not selected or displayed in the current student-only UI.
 
 ## Integration notes for guardian linking
 
+- The combined serializer recognizes `guardians` alongside `students` and `groupAssignments`. An absent guardian array is empty; explicit JSON null, null entries, non-string fields and unsupported properties fail loading and latch recovery. Existing Java compatibility constructors still allow null collections to mean absent data.
 - `GuardianId` is stable and generated independently as `G-0001`, `G-0002`, and so on. Loading a stored ID advances the generator beyond it.
 - Use `Model#getGuardianList()` to resolve a `GuardianId` when implementing `link-guardian`; do not copy guardian name or phone into `Student`. Store only the relationship/guardian ID so later phone edits remain visible to every linked student.
 - The MVP relationship is one optional guardian per student and many students per guardian. Adding a guardian deliberately creates no relationship.

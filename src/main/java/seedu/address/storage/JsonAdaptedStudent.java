@@ -1,7 +1,9 @@
 package seedu.address.storage;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.student.AcademicLevel;
@@ -16,8 +18,11 @@ class JsonAdaptedStudent {
     private final String academicLevel;
 
     @JsonCreator
-    JsonAdaptedStudent(@JsonProperty("id") String id, @JsonProperty("name") String name,
-            @JsonProperty("academicLevel") String academicLevel) {
+    JsonAdaptedStudent(
+            @JsonProperty("id") @JsonDeserialize(using = StoredStringDeserializer.class) String id,
+            @JsonProperty("name") @JsonDeserialize(using = StoredStringDeserializer.class) String name,
+            @JsonProperty("academicLevel") @JsonDeserialize(using = StoredStringDeserializer.class)
+            String academicLevel) {
         this.id = id;
         this.name = name;
         this.academicLevel = academicLevel;
@@ -29,6 +34,18 @@ class JsonAdaptedStudent {
         academicLevel = student.getAcademicLevel().toString();
     }
 
+    /** Prevents data from an unsupported record format from being discarded during a later save. */
+    @JsonAnySetter
+    private void rejectUnknownProperty(String property, Object ignoredValue) {
+        throw new IllegalArgumentException("Unsupported student field: " + property + ".");
+    }
+
+    /**
+     * Converts all required fields to a Student using the existing stored-ID loading policy.
+     *
+     * @return The validated student.
+     * @throws IllegalValueException If a required field is absent or violates a domain constraint.
+     */
     Student toModelType() throws IllegalValueException {
         try {
             if (id == null || name == null || academicLevel == null) {

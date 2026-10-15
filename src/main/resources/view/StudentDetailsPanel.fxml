@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
@@ -11,26 +12,36 @@
     <Label text="Choose a student to view their details." styleClass="empty-state-copy" />
   </VBox>
 
-  <VBox fx:id="detailsContent" managed="false" spacing="0" visible="false">
-    <Label text="STUDENT PROFILE" styleClass="eyebrow-label" />
-    <Label fx:id="name" styleClass="profile-name" wrapText="true">
-      <VBox.margin>
-        <Insets top="8" />
-      </VBox.margin>
-    </Label>
-    <Separator>
-      <VBox.margin>
-        <Insets top="22" />
-      </VBox.margin>
-    </Separator>
+  <VBox fx:id="detailsContent" managed="false" spacing="0" visible="false" minHeight="0" VBox.vgrow="ALWAYS">
+    <ScrollPane fx:id="profileScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+                minHeight="0" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;">
+      <VBox spacing="0">
+        <Label text="STUDENT PROFILE" styleClass="eyebrow-label" />
+        <Label fx:id="name" styleClass="profile-name" wrapText="true">
+          <VBox.margin>
+            <Insets top="8" />
+          </VBox.margin>
+        </Label>
+        <Separator>
+          <VBox.margin>
+            <Insets top="22" />
+          </VBox.margin>
+        </Separator>
 
-    <VBox spacing="6" styleClass="detail-group">
-      <Label text="STUDENT ID" styleClass="detail-key" />
-      <Label fx:id="id" styleClass="detail-value" wrapText="true" />
-    </VBox>
-    <VBox spacing="6" styleClass="detail-group">
-      <Label text="ACADEMIC LEVEL" styleClass="detail-key" />
-      <Label fx:id="academicLevel" styleClass="detail-value" wrapText="true" />
-    </VBox>
+        <VBox spacing="6" styleClass="detail-group">
+          <Label text="STUDENT ID" styleClass="detail-key" />
+          <Label fx:id="id" styleClass="detail-value" wrapText="true" />
+        </VBox>
+        <VBox spacing="6" styleClass="detail-group">
+          <Label text="ACADEMIC LEVEL" styleClass="detail-key" />
+          <Label fx:id="academicLevel" styleClass="detail-value" wrapText="true" />
+        </VBox>
+        <VBox spacing="6" styleClass="detail-group">
+          <Label text="ASSIGNMENTS" styleClass="detail-key" />
+          <VBox fx:id="assignments" spacing="6" />
+        </VBox>
+      </VBox>
+    </ScrollPane>
   </VBox>
 </VBox>

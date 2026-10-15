@@ -28,6 +28,30 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
+#### Current Mentora implementation: Packages A, R and B
+
+The inherited AB3 diagrams and Person-command examples below are historical reference material. The current
+runtime stores Students, Guardians and group assignments; retired Person APIs remain only for source compatibility.
+
+- `ConfiguredGroups` supplies one immutable five-entry catalogue through Model and Logic.
+- `AddressBook` owns immutable `GroupAssignment` pairs, validates both references and uniqueness, and includes
+  all three collections in copy/reset/equality/hash. Student replacement keeps memberships by stable ID.
+- `assign-group` parses ID text without allocating IDs, validates before mutation and requests the Students
+  workspace only after Logic has saved successfully. `list-groups` is a read-only query and requests Groups.
+- JSON has `students`, optional `guardians` and optional `groupAssignments` arrays. Stored text must be JSON strings; malformed
+  relationships or records fail the complete load instead of publishing partial data.
+- `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
+  writes independently. Read-only commands remain available. Save failure restores the in-memory aggregate;
+  direct normal writes are not atomic and can still partially damage a file.
+- MainWindow coordinates selection/navigation and explicitly refreshes assignment-only changes. The profile
+  scrolls as a whole to keep long names and assignments reachable at compact sizes without changing its styling.
+- Model exposes a filtered Student view while the complete register remains authoritative for lookup and saving.
+  View/Search/List are read-only; successful View/Assign/Add Student results reveal a hidden target by clearing
+  the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
+
+See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for the combined catalogue, assignment and
+recovery APIs, validation, tests and integration limits.
+
 <img src="images/ArchitectureDiagram.png" width="280" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.

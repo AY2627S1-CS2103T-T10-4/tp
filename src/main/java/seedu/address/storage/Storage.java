@@ -43,14 +43,24 @@ public interface Storage {
      * Returns AddressBook data as a {@link ReadOnlyAddressBook}.
      * Returns {@code Optional.empty()} if storage file is not found.
      *
+     * A loading failure disables address-book writes for this storage session.
+     *
      * @throws DataLoadingException if loading the data from storage failed.
      */
     Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException;
 
     /**
+     * Returns the first data-loading failure reason, or empty when this session permits data writes.
+     * Recovery remains active until a new application session successfully loads or initializes its data.
+     *
+     * @return The retained failure reason, or empty before any failed register load.
+     */
+    Optional<String> getDataRecoveryReason();
+
+    /**
      * Saves the given {@link ReadOnlyAddressBook} to the storage.
      * @param addressBook cannot be null.
-     * @throws IOException if there was any problem writing to the file.
+     * @throws IOException if recovery has disabled saving, or there was any problem writing to the file.
      */
     void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException;
 

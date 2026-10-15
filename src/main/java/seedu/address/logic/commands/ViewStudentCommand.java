@@ -25,11 +25,14 @@ public class ViewStudentCommand extends Command {
     }
 
     @Override
+    public boolean isReadOnly() {
+        return true;
+    }
+
+    @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        boolean hasStudent = model.getStudentList().stream()
-                .anyMatch(student -> student.getId().value.equals(studentId));
-        if (!hasStudent) {
+        if (model.findStudent(studentId).isEmpty()) {
             throw new CommandException(String.format(MESSAGE_STUDENT_NOT_FOUND, studentId));
         }
         return new CommandResult(String.format(MESSAGE_SUCCESS, studentId), false, false, studentId);

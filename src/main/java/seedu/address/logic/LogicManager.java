@@ -2,13 +2,17 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
+import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteStudentCommand;
@@ -18,6 +22,8 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.group.Group;
+import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
@@ -43,31 +49,40 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
         Command command = parser.parseCommand(commandText);
+        if (command.isReadOnly()) {
+            return revealRequestedStudent(command.execute(model));
+        }
+        if (storage.getDataRecoveryReason().isPresent()) {
+            throw new CommandException(DataLoadingException.MESSAGE_RECOVERY);
+        }
         AddressBook beforeCommand = new AddressBook(model.getAddressBook());
         CommandResult result = command.execute(model);
         if (beforeCommand.equals(model.getAddressBook())) {
-            return result;
+            return revealRequestedStudent(result);
         }
         try {
             storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            rollbackChange(command, beforeCommand);
-            throw new CommandException(getSaveError(command, e), e);
         } catch (IOException e) {
-            rollbackChange(command, beforeCommand);
+            model.setAddressBook(beforeCommand);
             throw new CommandException(getSaveError(command, e), e);
+        }
+        return revealRequestedStudent(result);
+    }
+
+    /** Reveals a hidden selection target only after execution and any required save have succeeded. */
+    private CommandResult revealRequestedStudent(CommandResult result) {
+        String studentId = result.getSelectedStudentId();
+        if (studentId != null && model.findStudent(studentId).isPresent()
+                && model.getStudentList().stream().noneMatch(student -> student.getId().value.equals(studentId))) {
+            model.updateFilteredStudentList(Model.PREDICATE_SHOW_ALL_STUDENTS);
         }
         return result;
     }
 
-    private void rollbackChange(Command command, AddressBook beforeCommand) {
-        if (command instanceof AddStudentCommand || command instanceof AddGuardianCommand
-                || command instanceof DeleteStudentCommand || command instanceof EditStudentCommand) {
-            model.setAddressBook(beforeCommand);
-        }
-    }
-
     private String getSaveError(Command command, IOException cause) {
+        if (command instanceof AssignGroupCommand) {
+            return AssignGroupCommand.MESSAGE_SAVE_FAILURE;
+        }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
         }
@@ -89,6 +104,21 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Student> getStudentList() {
         return model.getStudentList();
+    }
+
+    @Override
+    public GroupCatalogue getGroupCatalogue() {
+        return model.getGroupCatalogue();
+    }
+
+    @Override
+    public Optional<String> getDataRecoveryReason() {
+        return storage.getDataRecoveryReason();
+    }
+
+    @Override
+    public List<Group> getAssignedGroups(String studentId) {
+        return model.getAssignedGroups(studentId);
     }
 
     @Override

@@ -2,7 +2,6 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -50,8 +49,8 @@ class DeleteStudentCommandTest {
     @Test
     void execute_unknownLargeId_doesNotAdvanceIdGenerator() {
         ModelManager model = new ModelManager();
-        assertThrows(CommandException.class,
-                () -> new DeleteStudentCommand("S-999999999999").execute(model));
+        assertThrows(CommandException.class, () ->
+                new DeleteStudentCommand("S-999999999999").execute(model));
 
         long after = Long.parseLong(StudentId.generate().value.substring(2));
         assertTrue(after < 999999999999L);

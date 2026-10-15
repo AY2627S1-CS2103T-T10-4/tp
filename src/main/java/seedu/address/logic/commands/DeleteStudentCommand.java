@@ -1,5 +1,7 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Objects;
 
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -16,22 +18,40 @@ public class DeleteStudentCommand extends Command {
 
     private final String studentId;
 
-    /** Creates a command for the supplied student ID. */
+    /**
+     * Retains the parsed ID text without allocating or reserving a StudentId.
+     *
+     * @param studentId The stable ID text validated by the parser.
+     * @throws NullPointerException If {@code studentId} is null.
+     */
     public DeleteStudentCommand(String studentId) {
-        this.studentId = studentId;
+        this.studentId = requireNonNull(studentId);
     }
 
+    /**
+     * Resolves the complete register and removes the student and their assignments by the existing ID.
+     * Other students, assignments and guardian records are preserved by the model.
+     *
+     * @param model The authoritative register, independent of its filtered Student view.
+     * @return Success feedback and a request to clear selection only if the deleted student was selected.
+     * @throws CommandException If the student does not exist.
+     * @throws NullPointerException If {@code model} is null.
+     */
     @Override
     public CommandResult execute(Model model) throws CommandException {
-        Student student = model.getStudentList().stream()
-                .filter(candidate -> candidate.getId().value.equals(studentId))
-                .findFirst()
+        requireNonNull(model);
+        Student student = model.findStudent(studentId)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_STUDENT_NOT_FOUND, studentId)));
         model.deleteStudent(student.getId());
         String feedback = String.format(MESSAGE_SUCCESS, studentId, student.getName());
         return new CommandResult(feedback, false, false, null, true, studentId);
     }
 
+    /**
+     * Returns the ID used in the delete-specific save-failure message.
+     *
+     * @return The supplied stable student ID text.
+     */
     public String getStudentId() {
         return studentId;
     }

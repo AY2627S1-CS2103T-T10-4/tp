@@ -12,6 +12,11 @@ public class ListStudentsCommand extends Command {
     public static final String MESSAGE_EMPTY = "No students registered.";
 
     @Override
+    public boolean isReadOnly() {
+        return true;
+    }
+
+    @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredStudentList(Model.PREDICATE_SHOW_ALL_STUDENTS);

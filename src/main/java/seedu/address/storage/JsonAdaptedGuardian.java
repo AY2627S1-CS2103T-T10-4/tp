@@ -1,7 +1,9 @@
 package seedu.address.storage;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.guardian.Guardian;
@@ -16,8 +18,10 @@ class JsonAdaptedGuardian {
     private final String phone;
 
     @JsonCreator
-    JsonAdaptedGuardian(@JsonProperty("id") String id, @JsonProperty("name") String name,
-            @JsonProperty("phone") String phone) {
+    JsonAdaptedGuardian(
+            @JsonProperty("id") @JsonDeserialize(using = StoredStringDeserializer.class) String id,
+            @JsonProperty("name") @JsonDeserialize(using = StoredStringDeserializer.class) String name,
+            @JsonProperty("phone") @JsonDeserialize(using = StoredStringDeserializer.class) String phone) {
         this.id = id;
         this.name = name;
         this.phone = phone;
@@ -29,6 +33,18 @@ class JsonAdaptedGuardian {
         phone = guardian.getPhone().toString();
     }
 
+    /** Rejects unsupported stored fields before they could be lost on the next successful save. */
+    @JsonAnySetter
+    private void rejectUnknownProperty(String property, Object ignoredValue) {
+        throw new IllegalArgumentException("Unsupported guardian field: " + property + ".");
+    }
+
+    /**
+     * Converts required guardian fields using their existing validation and ID-loading policy.
+     *
+     * @return A validated guardian record.
+     * @throws IllegalValueException If a field is absent or violates a domain constraint.
+     */
     Guardian toModelType() throws IllegalValueException {
         try {
             if (id == null || name == null || phone == null) {

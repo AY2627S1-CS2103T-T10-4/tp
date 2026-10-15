@@ -1,5 +1,9 @@
 # Delete Student Implementation Plan
 
+> Historical plan from PR #54, preserved for its original scope and records. Its student-only model and command
+> availability statements describe that earlier snapshot. See [Delete Student Handover](DeleteStudentHandover.md)
+> for the current combined register, profile behavior, recovery contracts and verification.
+
 ## Scope
 
 Implement the currently specified `delete-student sid/STUDENT_ID` command against

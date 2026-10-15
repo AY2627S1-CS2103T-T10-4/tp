@@ -1,11 +1,15 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,8 +53,41 @@ class LogicManagerTest {
         assertEquals(1, logic.getStudentList().size());
         assertEquals("Mei Lin", logic.getStudentList().get(0).getName().toString());
         assertEquals(logic.getStudentList().get(0).getId().value, result.getSelectedStudentId());
-        assertEquals(model.getAddressBook(),
-                new JsonAddressBookStorage(temporaryFolder.resolve("students.json")).readAddressBook().orElseThrow());
+        JsonAddressBookStorage savedStorage = new JsonAddressBookStorage(temporaryFolder.resolve("students.json"));
+        assertEquals(model.getAddressBook(), savedStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void execute_listGroups_doesNotSaveOrModifyStudents() throws Exception {
+        Student student = new Student(new StudentName("Mei Lin"), new AcademicLevel("Sec 2"));
+        model.addStudent(student);
+        JsonAddressBookStorage forbiddenStorage = new JsonAddressBookStorage(temporaryFolder.resolve("unused.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("list-groups must not save student data.");
+            }
+        };
+        logic = createLogic(forbiddenStorage);
+
+        CommandResult result = logic.execute("list-groups");
+
+        assertEquals("Listed 5 configured group(s).", result.getFeedbackToUser());
+        assertEquals(List.of(student), model.getStudentList());
+        assertSame(model.getGroupCatalogue(), logic.getGroupCatalogue());
+        assertFalse(Files.exists(temporaryFolder.resolve("unused.json")));
+    }
+
+    @Test
+    void execute_listGroups_preservesExistingInvalidFile() throws Exception {
+        Path path = temporaryFolder.resolve("invalid.json");
+        String original = "invalid student data that must remain untouched";
+        Files.writeString(path, original);
+        logic = createLogic(new JsonAddressBookStorage(path));
+
+        logic.execute("LIST-GROUPS");
+
+        assertEquals(original, Files.readString(path));
+        assertEquals(0, model.getStudentList().size());
     }
 
     @Test

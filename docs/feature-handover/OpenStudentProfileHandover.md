@@ -18,8 +18,10 @@ CommandResult.getSelectedStudentId()
     -> Selection listener updates StudentDetailsPanel
 ```
 
-The command must validate the ID and ensure the student is in the displayed list;
-the panel does nothing if no displayed student matches. The old `Index` constructor
+The command validates the ID against `Model.findStudent(String)` and the complete register.
+After successful execution, Logic clears the active search filter only if it hides the requested student;
+MainWindow then selects that visible record. Failed commands keep the previous filter and selection.
+The old `Index` constructor
 and `getSelectedIndex()` are deprecated and no longer request selection.
 
 `view-student sid/STUDENT_ID` now uses this contract through `ViewStudentCommandParser`
@@ -27,16 +29,16 @@ and `ViewStudentCommand`. The parser rejects missing, malformed, repeated, and e
 arguments. The command verifies that the ID exists before requesting selection;
 lookup does not construct a `StudentId`, because its constructor advances the ID generator.
 
-The existing UI displays ID, name, and academic level for the selected student.
+The existing UI displays ID, name, academic level and configured-group assignments for the selected student.
 Users must open the Students tab themselves; the command does not switch tabs.
-`LogicManager` skips saving when student data is unchanged, so viewing a profile
-does not require writable storage.
+ViewStudentCommand explicitly declares read-only execution, so it never saves and is not blocked by recovery.
+The empty recovery model can still produce the normal student-not-found error.
 
 Parser and command tests cover validation and read-only lookup. `LogicManagerTest`
 checks command execution and persistence behavior. UI and User Guide updates are
 left to their respective owners.
 
-Guardian and assignment details remain pending. See the
+Guardian linking and profile details remain pending. See the
 [migration handover](PersonToStudentMigrationHandover.md) for the shared model changes.
 
 Everything below records the original PR #45 implementation and its validation

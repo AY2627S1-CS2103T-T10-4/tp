@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import seedu.address.model.student.AcademicLevel;
@@ -24,6 +25,8 @@ class StudentDetailsPanelTest {
     void setStudent_displaysStudentProfile() {
         JavaFxTestUtils.runOnFxThread(() -> {
             StudentDetailsPanel panel = new StudentDetailsPanel();
+            new Scene(panel.getRoot());
+            panel.getRoot().applyCss();
             Student student = new Student(new StudentId("S-0090"), new StudentName("Mei Lin"),
                     new AcademicLevel("Sec 2"));
             panel.setStudent(student);

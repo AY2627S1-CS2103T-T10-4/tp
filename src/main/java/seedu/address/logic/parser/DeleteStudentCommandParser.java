@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,9 +12,18 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class DeleteStudentCommandParser implements Parser<DeleteStudentCommand> {
     private static final Pattern UNKNOWN_PREFIX = Pattern.compile("(?i)(?:^|\\s)([a-z][a-z0-9-]*/)");
 
+    /**
+     * Parses exactly one nonempty {@code sid/} value, ignoring prefix case without reserving an ID.
+     *
+     * @param args The argument text after the command word.
+     * @return A delete command holding the validated ID text.
+     * @throws ParseException If the prefix or ID is missing, malformed, repeated, or accompanied by extra input.
+     * @throws NullPointerException If {@code args} is null.
+     */
     @Override
     public DeleteStudentCommand parse(String args) throws ParseException {
-        String canonical = args.replaceAll("(?i)sid/", "sid/");
+        requireNonNull(args);
+        String canonical = args.strip().replaceAll("\\s+", " ").replaceAll("(?i)(^|\\s)sid/", "$1sid/");
         Matcher matcher = UNKNOWN_PREFIX.matcher(canonical);
         while (matcher.find()) {
             if (!matcher.group(1).equalsIgnoreCase("sid/")) {
