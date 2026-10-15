@@ -275,7 +275,7 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
-        Student selectedStudentBeforeCommand = studentListPanel.selectedStudentProperty().get();
+        String selectedStudentId = studentListPanel.getSelectedStudentId();
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
@@ -285,9 +285,14 @@ public class MainWindow extends UiPart<Stage> {
             }
             String idToClear = commandResult.getStudentIdToClearSelection();
             if (commandResult.shouldClearStudentSelection()
-                    && (idToClear == null || selectedStudentBeforeCommand != null
-                    && selectedStudentBeforeCommand.getId().value.equals(idToClear))) {
+                    && (idToClear == null || idToClear.equals(selectedStudentId))) {
                 studentListPanel.clearSelection();
+            } else if (commandResult.getSelectedStudentId() == null && selectedStudentId != null) {
+                if (studentListPanel.containsStudentId(selectedStudentId)) {
+                    studentListPanel.selectStudentId(selectedStudentId);
+                } else {
+                    studentListPanel.clearSelection();
+                }
             }
 
             if (commandResult.isShowHelp()) {
@@ -300,6 +305,9 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
+            if (selectedStudentId != null && studentListPanel.containsStudentId(selectedStudentId)) {
+                studentListPanel.selectStudentId(selectedStudentId);
+            }
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;

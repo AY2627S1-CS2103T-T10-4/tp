@@ -70,6 +70,14 @@ public interface Model {
         return false;
     }
 
+    default Optional<Student> findStudent(StudentId id) {
+        return getStudentList().stream().filter(student -> student.getId().equals(id)).findFirst();
+    }
+
+    default void updateStudent(Student student) {
+        throw new UnsupportedOperationException();
+    }
+
     default void addStudent(Student student) {
         throw new UnsupportedOperationException();
     }

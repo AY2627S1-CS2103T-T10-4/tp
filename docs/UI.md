@@ -51,6 +51,9 @@ For the student-only model migration and PR #45 selection compatibility, see
 For stable-ID student deletion and clearing the selected details, see
 [Delete Student Handover](feature-handover/DeleteStudentHandover.md).
 
+For student academic-level updates and stable-ID profile refresh, see
+[Edit Student Handover](feature-handover/EditStudentHandover.md).
+
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
 
 ## Student workspace layout
