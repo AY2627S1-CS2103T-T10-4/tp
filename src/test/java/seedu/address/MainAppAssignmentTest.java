@@ -48,6 +48,28 @@ class MainAppAssignmentTest {
     }
 
     @Test
+    void startup_editedStudent_retainsLevelGuardiansAndAssignmentsAcrossRestart() throws Exception {
+        Files.writeString(testFolder.resolve("students.json"), "{" + STUDENTS + "}");
+        StorageManager storage = storage();
+        Model first = new MainApp().initModelManager(storage, new UserPrefs());
+        LogicManager logic = new LogicManager(first, storage);
+        logic.execute("assign-group sid/S-0007 g/MAT");
+        logic.execute("assign-group sid/S-0007 g/S2-MAT-A");
+        logic.execute("add-guardian n/Anita Lim p/91234567");
+        logic.execute("add-guardian n/Raj Kumar p/61234567");
+        logic.execute("find-student n/Unknown");
+        logic.execute("edit-student sid/S-0007 al/Sec 3");
+
+        Model restarted = new MainApp().initModelManager(storage(), new UserPrefs());
+
+        assertEquals(first.getAddressBook(), restarted.getAddressBook());
+        assertEquals("Sec 3", restarted.findStudent("S-0007").orElseThrow().getAcademicLevel().toString());
+        assertEquals(2, restarted.getGuardianList().size());
+        assertEquals(List.of("MAT", "S2-MAT-A"), restarted.getAssignedGroups("S-0007").stream()
+                .map(group -> group.getCode().getValue()).toList());
+    }
+
+    @Test
     void startup_invalidAssignments_publishesNoPartialDataAndBlocksAssignment() throws Exception {
         byte[] original = ("{" + STUDENTS + ",\"groupAssignments\":[{\"studentId\":\"S-0007\","
                 + "\"groupCode\":\"UNKNOWN\"}]}").getBytes(StandardCharsets.UTF_8);

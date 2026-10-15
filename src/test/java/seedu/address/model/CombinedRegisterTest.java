@@ -104,6 +104,36 @@ class CombinedRegisterTest {
         assertEquals(guardians, register.getGuardianList());
     }
 
+    @Test
+    void updateStudent_validatesFullRegisterAndPreservesRelationships() {
+        AddressBook register = register();
+        Student mei = register.findStudent("S-9101").orElseThrow();
+        register.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("S2-MAT-A")));
+        AddressBook before = new AddressBook(register);
+        Student edited = new Student(mei.getId(), mei.getName(), new AcademicLevel("Sec 4"));
+
+        register.updateStudent(edited);
+
+        assertEquals(edited, register.findStudent(mei.getId()).orElseThrow());
+        assertEquals(before.getGuardianList(), register.getGuardianList());
+        assertEquals(before.getGroupAssignments(), register.getGroupAssignments());
+        assertEquals(before.findStudent("S-9102"), register.findStudent("S-9102"));
+        assertNotEquals(before, register);
+        AddressBook copy = new AddressBook(register);
+        register.resetData(register);
+        assertEquals(copy, register);
+        assertEquals(copy.hashCode(), register.hashCode());
+
+        Student amy = register.findStudent("S-9102").orElseThrow();
+        Student duplicate = new Student(amy.getId(), edited.getName(), edited.getAcademicLevel());
+        assertThrows(IllegalArgumentException.class, () -> register.updateStudent(duplicate));
+        assertThrows(IllegalArgumentException.class, () -> register.updateStudent(new Student(
+                new StudentId("S-9199"), new StudentName("Unknown Student"), new AcademicLevel("Sec 1"))));
+        assertEquals(copy, register);
+        register.resetData(before);
+        assertEquals(before, register);
+    }
+
     private static AddressBook register() {
         AddressBook register = new AddressBook();
         Student mei = new Student(new StudentId("S-9101"), new StudentName("Mei Lin"), new AcademicLevel("Sec 2"));

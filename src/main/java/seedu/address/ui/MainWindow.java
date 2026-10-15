@@ -171,11 +171,12 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void restoreStudentSelection(String studentId) {
-        if (studentId == null) {
+        if (studentId == null || !studentListPanel.containsStudentId(studentId)) {
             studentListPanel.clearSelection();
         } else {
             studentListPanel.selectStudentId(studentId);
         }
+        // Assignment-only changes keep the same Student object, so selection listeners may not fire.
         refreshStudentDetails();
     }
 
@@ -297,8 +298,7 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.address.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
-        Student previousSelection = studentListPanel.selectedStudentProperty().get();
-        String previousStudentId = previousSelection == null ? null : previousSelection.getId().value;
+        String previousStudentId = studentListPanel.getSelectedStudentId();
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
@@ -308,11 +308,8 @@ public class MainWindow extends UiPart<Stage> {
             } else if (commandResult.getWorkspace() == CommandResult.Workspace.STUDENTS) {
                 handleStudentsTab();
             }
-            if (commandResult.getSelectedStudentId() != null) {
-                studentListPanel.selectStudentId(commandResult.getSelectedStudentId());
-            }
-            // Assignment-only changes keep the same Student object, so selection listeners may not fire.
-            refreshStudentDetails();
+            String requestedStudentId = commandResult.getSelectedStudentId();
+            restoreStudentSelection(requestedStudentId == null ? previousStudentId : requestedStudentId);
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

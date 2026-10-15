@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -129,6 +130,78 @@ class MergedCommandsIntegrationTest {
     }
 
     @Test
+    void editHiddenStudent_preservesMixedRegisterAndIdWithoutAllocatingAnotherId() throws Exception {
+        model.addGroupAssignment(new GroupAssignment(amy.getId(), new GroupCode("ENG")));
+        model.addGroupAssignment(new GroupAssignment(amy.getId(), new GroupCode("S2-MAT-A")));
+        model.addGuardian(new Guardian(new GuardianId("G-9302"), new GuardianName("Raj Kumar"),
+                new GuardianPhone("61234567")));
+        AddressBook before = new AddressBook(model.getAddressBook());
+        logic.execute("find-student n/Mei");
+        long previousId = Long.parseLong(StudentId.generate().value.substring(2));
+
+        CommandResult result = logic.execute("EDIT-STUDENT AL/ip 4 SID/S-9302");
+
+        assertEquals(previousId + 1, Long.parseLong(StudentId.generate().value.substring(2)));
+        Student edited = model.findStudent("S-9302").orElseThrow();
+        assertSame(amy.getId(), edited.getId());
+        assertEquals(amy.getName(), edited.getName());
+        assertEquals(new AcademicLevel("IP 4"), edited.getAcademicLevel());
+        assertEquals("Updated student S-9302: academic level is now IP 4.", result.getFeedbackToUser());
+        assertEquals("S-9302", result.getSelectedStudentId());
+        assertEquals(CommandResult.Workspace.UNCHANGED, result.getWorkspace());
+        assertEquals(List.of(edited, mei), model.getStudentList());
+        assertEquals(before.getGuardianList(), model.getGuardianList());
+        assertEquals(before.getGroupAssignments(), model.getAddressBook().getGroupAssignments());
+        assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void editDuplicateHiddenByPredicate_rejectsWithoutMutationOrSaving() throws Exception {
+        Student duplicate = new Student(new StudentId("S-9303"), mei.getName(), new AcademicLevel("Sec 4"));
+        model.addStudent(duplicate);
+        data.saveAddressBook(model.getAddressBook());
+        AddressBook before = new AddressBook(model.getAddressBook());
+        byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
+        // Name search cannot separate identical names; use the model's predicate API to hide the duplicate.
+        model.updateFilteredStudentList(student -> student.getId().equals(mei.getId()));
+        JsonAddressBookStorage mustNotSave = new JsonAddressBookStorage(data.getAddressBookFilePath()) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook records) {
+                throw new AssertionError("Rejected edits must not reach storage.");
+            }
+        };
+        LogicManager rejecting = createLogic(model, mustNotSave);
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                rejecting.execute("edit-student sid/S-9301 al/Sec 4"));
+
+        assertEquals("Cannot update S-9301: a student named Mei Lin at Sec 4 already exists.", error.getMessage());
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(mei), model.getStudentList());
+        assertArrayEquals(original, Files.readAllBytes(data.getAddressBookFilePath()));
+    }
+
+    @Test
+    void editSameLevel_suppressesSavingAndRetainsVisibleFilter() throws Exception {
+        logic.execute("find-student n/Mei");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
+        JsonAddressBookStorage mustNotSave = new JsonAddressBookStorage(data.getAddressBookFilePath()) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook records) {
+                throw new AssertionError("An unchanged register must not be saved.");
+            }
+        };
+
+        CommandResult result = createLogic(model, mustNotSave).execute("edit-student sid/S-9301 al/sec 2");
+
+        assertEquals("Updated student S-9301: academic level is now Sec 2.", result.getFeedbackToUser());
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(mei), model.getStudentList());
+        assertArrayEquals(original, Files.readAllBytes(data.getAddressBookFilePath()));
+    }
+
+    @Test
     void queriesDuringRecovery_executeWithoutWritingOrClearingReason() throws Exception {
         byte[] original = "invalid synthetic data".getBytes(StandardCharsets.UTF_8);
         Files.write(data.getAddressBookFilePath(), original);
@@ -146,7 +219,7 @@ class MergedCommandsIntegrationTest {
         recovery.execute("help");
         recovery.execute("exit");
         for (String mutation : List.of("add-student n/Zara Lim al/Sec 4", "add-guardian n/Raj Kumar p/61234567",
-                "assign-group sid/S-9301 g/SCI")) {
+                "assign-group sid/S-9301 g/SCI", "edit-student sid/S-9301 al/Sec 4")) {
             CommandException error = assertThrows(CommandException.class, () -> recovery.execute(mutation));
             assertEquals(DataLoadingException.MESSAGE_RECOVERY, error.getMessage());
         }
@@ -160,9 +233,10 @@ class MergedCommandsIntegrationTest {
         AddressBook before = new AddressBook(model.getAddressBook());
         byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
         String[] commands = {"add-student n/Zara Lim al/Sec 4", "add-guardian n/Raj Kumar p/61234567",
-            "assign-group sid/S-9302 g/SCI"};
+            "assign-group sid/S-9302 g/SCI", "edit-student sid/S-9302 al/Sec 4"};
         String[] messages = {"Could not save changes. No student was added.",
-            "Could not save changes. No guardian was added.", "Could not save changes. The group was not assigned."};
+            "Could not save changes. No guardian was added.", "Could not save changes. The group was not assigned.",
+            "Could not save changes. Student S-9302 was not updated."};
         for (IOException failure : List.of(new IOException("synthetic pre-write failure"),
                 new AccessDeniedException("synthetic denied path"))) {
             JsonAddressBookStorage failed = new JsonAddressBookStorage(data.getAddressBookFilePath()) {
@@ -193,6 +267,24 @@ class MergedCommandsIntegrationTest {
         assertEquals("Student " + unknown + " does not exist.", error.getMessage());
         assertEquals(before + 1, Long.parseLong(StudentId.generate().value.substring(2)));
         assertEquals(List.of(mei), model.getStudentList());
+    }
+
+    @Test
+    void unknownEditId_doesNotReserveIdsChangeDataOrFilter() throws Exception {
+        logic.execute("find-student n/Mei");
+        AddressBook before = new AddressBook(model.getAddressBook());
+        byte[] original = Files.readAllBytes(data.getAddressBookFilePath());
+        long previousId = Long.parseLong(StudentId.generate().value.substring(2));
+        String unknown = "S-999999999999999999999999";
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("edit-student sid/" + unknown + " al/Sec 4"));
+
+        assertEquals("Student " + unknown + " does not exist.", error.getMessage());
+        assertEquals(previousId + 1, Long.parseLong(StudentId.generate().value.substring(2)));
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(mei), model.getStudentList());
+        assertArrayEquals(original, Files.readAllBytes(data.getAddressBookFilePath()));
     }
 
     private LogicManager createLogic(ModelManager target, JsonAddressBookStorage storage) {

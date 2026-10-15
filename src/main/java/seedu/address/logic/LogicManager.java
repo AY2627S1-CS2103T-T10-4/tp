@@ -15,6 +15,7 @@ import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -83,6 +84,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
+        }
+        if (command instanceof EditStudentCommand edit) {
+            return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";
         }
         if (command instanceof AddGuardianCommand) {
             return "Could not save changes. No guardian was added.";

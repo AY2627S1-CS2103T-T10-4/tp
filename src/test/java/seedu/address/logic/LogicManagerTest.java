@@ -156,6 +156,28 @@ class LogicManagerTest {
     }
 
     @Test
+    void execute_editSaveFailure_rollsBackAcademicLevel() throws Exception {
+        model.addStudent(new seedu.address.model.student.Student(
+                new seedu.address.model.student.StudentId("S-0007"),
+                new seedu.address.model.student.StudentName("Mei Lin"),
+                new seedu.address.model.student.AcademicLevel("Sec 2")));
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(
+                temporaryFolder.resolve("edit-failure.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("disk unavailable");
+            }
+        };
+        logic = createLogic(failingStorage);
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("edit-student sid/S-0007 al/Sec 3"));
+
+        assertEquals("Could not save changes. Student S-0007 was not updated.", error.getMessage());
+        assertEquals("Sec 2", model.getStudentList().get(0).getAcademicLevel().toString());
+    }
+
+    @Test
     void execute_saveFailure_rollsBackGuardian() {
         JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
             @Override

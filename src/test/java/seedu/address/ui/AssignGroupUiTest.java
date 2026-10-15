@@ -144,6 +144,89 @@ class AssignGroupUiTest {
     }
 
     @Test
+    void editHiddenStudent_refreshesReplacedProfileAndPreservesAssignmentsAndTabs() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            Student mei = model.findStudent("S-9401").orElseThrow();
+            model.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("S2-MAT-A")));
+            JsonAddressBookStorage data = new JsonAddressBookStorage(testFolder.resolve("edited.json"));
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, data, stage);
+            submit(stage, "find-student n/Amy");
+            submit(stage, "list-groups");
+
+            submit(stage, "edit-student sid/S-9401 al/Sec 4");
+
+            assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+            Student edited = model.findStudent("S-9401").orElseThrow();
+            assertSame(edited, window.getStudentListPanel().selectedStudentProperty().get());
+            assertSame(mei.getId(), edited.getId());
+            assertEquals(2, model.getStudentList().size());
+            selectTab(stage, "studentsTab");
+            Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
+            assertEquals("Mei Lin", ((Label) profile.lookup("#name")).getText());
+            assertEquals("Sec 4", ((Label) profile.lookup("#academicLevel")).getText());
+            assertEquals(List.of("MAT — Mathematics", "S2-MAT-A — Secondary 2 Mathematics A"), assignments(stage));
+
+            submit(stage, "edit-student sid/S-9401 al/IP 5");
+            assertSame(model.findStudent("S-9401").orElseThrow(),
+                    window.getStudentListPanel().selectedStudentProperty().get());
+            assertEquals("IP 5", ((Label) profile.lookup("#academicLevel")).getText());
+            window.getStudentListPanel().selectStudentId("S-9402");
+            assertEquals("Sec 3", ((Label) profile.lookup("#academicLevel")).getText());
+            assertEquals(List.of("No groups assigned."), assignments(stage));
+            window.getStudentListPanel().selectStudentId("S-9401");
+            assertEquals(List.of("MAT — Mathematics", "S2-MAT-A — Secondary 2 Mathematics A"), assignments(stage));
+            assertEquals(model.getAddressBook(), data.readAddressBook().orElseThrow());
+            stage.close();
+        });
+    }
+
+    @Test
+    void failedEdit_restoresProfileFilterSelectionWorkspaceAndCompleteRegister() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = mixedModel();
+            AddressBook before = new AddressBook(model.getAddressBook());
+            Path path = testFolder.resolve("failed-edit.json");
+            new JsonAddressBookStorage(path).saveAddressBook(before);
+            byte[] original = Files.readAllBytes(path);
+            JsonAddressBookStorage failed = new JsonAddressBookStorage(path) {
+                @Override
+                public void saveAddressBook(ReadOnlyAddressBook records) throws IOException {
+                    throw new IOException("synthetic failure before writing");
+                }
+            };
+            Stage stage = new Stage();
+            MainWindow window = createWindow(model, failed, stage);
+            submit(stage, "find-student n/Mei");
+            window.getStudentListPanel().selectStudentId("S-9401");
+            Student mei = window.getStudentListPanel().selectedStudentProperty().get();
+            submit(stage, "list-groups");
+
+            for (String target : List.of("S-9401", "S-9402")) {
+                submit(stage, "edit-student sid/" + target + " al/Sec 4");
+                assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
+                assertEquals(List.of(mei), model.getStudentList());
+                assertSame(mei, window.getStudentListPanel().selectedStudentProperty().get());
+                Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
+                assertEquals("Sec 2", ((Label) profile.lookup("#academicLevel")).getText());
+                assertEquals(List.of("MAT — Mathematics"), assignments(stage));
+                assertEquals(before, model.getAddressBook());
+                assertArrayEquals(original, Files.readAllBytes(path));
+                Label feedback = (Label) stage.getScene().lookup("#resultDisplay");
+                assertEquals("Could not save changes. Student " + target + " was not updated.", feedback.getText());
+            }
+            window.getStudentListPanel().clearSelection();
+            submit(stage, "edit-student sid/S-9401 al/Sec 4");
+            assertNull(window.getStudentListPanel().selectedStudentProperty().get());
+            assertTrue(assignments(stage).isEmpty());
+            assertEquals(before, model.getAddressBook());
+            assertArrayEquals(original, Files.readAllBytes(path));
+            stage.close();
+        });
+    }
+
+    @Test
     void failedAssignmentToHiddenStudent_preservesFilterSelectionWorkspaceAndMixedState() {
         JavaFxTestUtils.runOnFxThread(() -> {
             ModelManager model = mixedModel();

@@ -93,6 +93,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Optional<Student> findStudent(StudentId id) {
+        return addressBook.findStudent(id);
+    }
+
+    @Override
     public void addGroupAssignment(GroupAssignment assignment) {
         addressBook.addGroupAssignment(assignment);
     }
@@ -110,6 +115,11 @@ public class ModelManager implements Model {
     @Override
     public boolean hasStudent(Student student) {
         return addressBook.hasStudent(student);
+    }
+
+    @Override
+    public void updateStudent(Student student) {
+        addressBook.updateStudent(student);
     }
 
     @Override

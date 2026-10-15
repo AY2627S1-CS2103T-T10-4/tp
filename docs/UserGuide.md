@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** Supported commands are `add-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal, Student edit/delete and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups.
+> **Current build:** Supported commands are `add-student`, `edit-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal, Student deletion and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
 
 * Table of Contents
 {:toc}
@@ -30,7 +30,7 @@ The **command box** accepts typed commands: enter one command and press **Enter*
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Enter `list-groups` to browse the catalogue, then use that student's ID in `assign-group sid/STUDENT_ID g/MAT`. A successful assignment opens the student's profile and saves the change locally. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact. Use `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact, `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
 
 ## Understanding commands and values
 
@@ -82,7 +82,9 @@ Format: `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL`
 
 Example: `edit-student sid/S-0007 al/Sec 3`
 
-Changes the student's academic level. The list and profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` The linked guardian and group assignments remain unchanged. Review class assignments separately when a student moves up a level.
+Changes only the student's academic level, retaining the same ID, name, group assignments and all guardian records. The list and selected profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` Review class assignments separately when a student moves up a level. Guardian linking remains future work.
+
+Lookup and duplicate checks use every registered student, including records hidden by a search. After a successful edit, a filter hiding the target is cleared and that student is selected. The command keeps the current tab; select Students if Groups is open. Command and prefix names ignore case, either prefix order works, and each nonempty prefix is required exactly once.
 
 If the change would duplicate another student's name and level, it is rejected: `Cannot update S-0007: a student named Mei Lin at Sec 3 already exists.` This command only changes academic level; it does not edit names.
 
@@ -259,11 +261,11 @@ Command-specific `help COMMAND`, its validation messages and the illustrated hel
 
 ### Saving and reopening
 
-The current build saves the complete Student, Guardian and assignment register after successful `add-student`, `add-guardian` and `assign-group` commands. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
+The current build saves the complete Student, Guardian and assignment register after successful changes from `add-student`, `edit-student`, `add-guardian` and `assign-group`. Editing to the existing academic level does not rewrite the file. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
 
 When Mentora reopens, it loads the complete register. Older files without guardians or assignments load with those collections empty. Explicit null collections or malformed records trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
 
-**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
+**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.`, using the supplied ID. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
 
 **If loading fails**, Mentora preserves the original file, opens an empty recovery model, and disables student-data changes and saving for the session. It reports:
 

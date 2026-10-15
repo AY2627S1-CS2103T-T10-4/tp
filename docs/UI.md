@@ -58,6 +58,11 @@ hidden student, `LogicManager.revealRequestedStudent()` clears the filter before
 This runs after any required save, preserving the previous filter on failure. Visible targets retain the filter.
 View/Search/List keep the active workspace; View Student still requires selecting the Students tab when Groups is open.
 
+Edit Student uses the same post-success reveal/selection path and keeps the active workspace. Its immutable
+Student replacement retains the ID and assignments; MainWindow explicitly renders the selected replacement,
+including successive edits to the same ID. `restoreStudentSelection()` is the single selection/refresh helper
+for successful results and failed commands. It clears an absent selection instead of selecting a different student.
+
 Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
@@ -65,6 +70,9 @@ For the command-driven selection API and Feature 13 integration notes, see
 
 For the student-only model migration and PR #45 selection compatibility, see
 [Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
+
+For student academic-level updates and stable-ID profile refresh, see
+[Edit Student Handover](feature-handover/EditStudentHandover.md).
 
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
 

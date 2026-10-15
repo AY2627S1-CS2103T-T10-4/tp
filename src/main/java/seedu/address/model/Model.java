@@ -81,6 +81,17 @@ public interface Model {
     Optional<Student> findStudent(String studentId);
 
     /**
+     * Resolves an existing ID against the full register, independent of the filtered view.
+     *
+     * @param id The previously constructed student ID; use {@link #findStudent(String)} for user input.
+     * @return The matching student, or an empty optional if absent.
+     * @throws NullPointerException If {@code id} is null.
+     */
+    default Optional<Student> findStudent(StudentId id) {
+        return findStudent(id.value);
+    }
+
+    /**
      * Adds a relationship after validating both references and canonical pair uniqueness.
      * Validation failure leaves the register unchanged.
      *
@@ -116,6 +127,18 @@ public interface Model {
 
     default boolean hasStudent(Student student) {
         return false;
+    }
+
+    /**
+     * Replaces an existing student after validating identity across the complete register.
+     * Preserves assignments and guardians. Validation failure must leave all data unchanged.
+     *
+     * @param student The replacement with the same stable ID.
+     * @throws IllegalArgumentException If the ID is absent or the normalized name/level duplicates another student.
+     * @throws NullPointerException If {@code student} is null.
+     */
+    default void updateStudent(Student student) {
+        throw new UnsupportedOperationException();
     }
 
     default void addStudent(Student student) {

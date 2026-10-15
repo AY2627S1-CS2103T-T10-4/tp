@@ -122,6 +122,17 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Looks up an existing ID in the complete register.
+     *
+     * @param id The previously constructed student ID.
+     * @return The matching student, or an empty optional if absent.
+     * @throws NullPointerException If {@code id} is null.
+     */
+    public Optional<Student> findStudent(StudentId id) {
+        return findStudent(requireNonNull(id).value);
+    }
+
+    /**
      * Adds an assignment after checking both references and pair uniqueness.
      * Validation failure leaves the register unchanged.
      *
@@ -142,6 +153,32 @@ public class AddressBook implements ReadOnlyAddressBook {
                     assignment.getStudentId(), assignment.getGroupCode()));
         }
         groupAssignments.add(assignment);
+    }
+
+    /**
+     * Replaces a student by stable ID after validating identity against the complete register.
+     * All assignments, guardians and other students are retained; failed validation changes nothing.
+     *
+     * @param student The replacement record with an existing ID.
+     * @throws IllegalArgumentException If the ID is absent or another student has the same normalized name/level.
+     * @throws NullPointerException If {@code student} is null.
+     */
+    public void updateStudent(Student student) {
+        requireNonNull(student);
+        int index = -1;
+        for (int i = 0; i < students.size(); i++) {
+            Student existing = students.get(i);
+            if (existing.getId().equals(student.getId())) {
+                index = i;
+            } else if (existing.sameIdentity(student)) {
+                throw new IllegalArgumentException("Duplicate student identity.");
+            }
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Student ID does not exist.");
+        }
+        students.set(index, student);
+        sortStudents();
     }
 
     /** Adds a student while enforcing unique IDs and identities. */
