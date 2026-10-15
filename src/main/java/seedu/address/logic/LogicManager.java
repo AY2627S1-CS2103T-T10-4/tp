@@ -17,6 +17,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteStudentCommand;
 import seedu.address.logic.commands.EditStudentCommand;
+import seedu.address.logic.commands.LinkGuardianCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -24,6 +25,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.student.Student;
 import seedu.address.storage.Storage;
 
@@ -80,6 +82,9 @@ public class LogicManager implements Logic {
     }
 
     private String getSaveError(Command command, IOException cause) {
+        if (command instanceof LinkGuardianCommand) {
+            return LinkGuardianCommand.MESSAGE_SAVE_FAILURE;
+        }
         if (command instanceof AssignGroupCommand) {
             return AssignGroupCommand.MESSAGE_SAVE_FAILURE;
         }
@@ -119,6 +124,16 @@ public class LogicManager implements Logic {
     @Override
     public List<Group> getAssignedGroups(String studentId) {
         return model.getAssignedGroups(studentId);
+    }
+
+    @Override
+    public Optional<Student> findStudent(String studentId) {
+        return model.findStudent(studentId);
+    }
+
+    @Override
+    public Optional<Guardian> getLinkedGuardian(String studentId) {
+        return model.getLinkedGuardian(studentId);
     }
 
     @Override

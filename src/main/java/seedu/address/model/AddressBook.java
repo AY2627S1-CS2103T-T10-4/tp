@@ -4,8 +4,10 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -28,12 +30,18 @@ import seedu.address.model.student.StudentId;
  */
 public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student %s does not exist.";
+    public static final String MESSAGE_UNKNOWN_GUARDIAN = "Guardian %s does not exist.";
+    public static final String MESSAGE_DUPLICATE_LINK = "Student %s is already linked to guardian %s.";
+    public static final String MESSAGE_EXISTING_GUARDIAN =
+            "Student %s already has guardian %s. Unlink it before linking another guardian.";
+
     public static final String MESSAGE_UNKNOWN_GROUP =
             "Group %s is not configured. Run list-groups to see available groups.";
     public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
 
     private final ObservableList<Student> students = FXCollections.observableArrayList();
     private final ObservableList<Guardian> guardians = FXCollections.observableArrayList();
+    private final Map<StudentId, GuardianId> guardianLinks = new LinkedHashMap<>();
     private final Set<GroupAssignment> groupAssignments = new LinkedHashSet<>();
 
     public AddressBook() { }
@@ -63,10 +71,18 @@ public class AddressBook implements ReadOnlyAddressBook {
         List.copyOf(newData.getStudentList()).forEach(replacement::addStudent);
         List.copyOf(newData.getGuardianList()).forEach(replacement::addGuardian);
         newData.getGroupAssignments().forEach(replacement::addGroupAssignment);
+        newData.getGuardianLinks().forEach((studentId, guardianId) ->
+                replacement.linkGuardian(studentId.toString(), guardianId.toString()));
+        guardianLinks.clear();
+        guardianLinks.putAll(replacement.guardianLinks);
         groupAssignments.clear();
         groupAssignments.addAll(replacement.groupAssignments);
-        guardians.setAll(replacement.guardians);
-        students.setAll(replacement.students);
+        if (!guardians.equals(replacement.guardians)) {
+            guardians.setAll(replacement.guardians);
+        }
+        if (!students.equals(replacement.students)) {
+            students.setAll(replacement.students);
+        }
     }
 
     /**
@@ -80,6 +96,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     public void setStudents(List<Student> newStudents) {
         AddressBook replacement = new AddressBook();
         List.copyOf(newStudents).forEach(replacement::addStudent);
+        guardianLinks.keySet().removeIf(studentId -> !replacement.hasStudentId(studentId));
         groupAssignments.removeIf(assignment -> !replacement.hasStudentId(assignment.getStudentId()));
         students.setAll(replacement.students);
     }
@@ -94,7 +111,31 @@ public class AddressBook implements ReadOnlyAddressBook {
     public void setGuardians(List<Guardian> newGuardians) {
         AddressBook replacement = new AddressBook();
         List.copyOf(newGuardians).forEach(replacement::addGuardian);
+        for (GuardianId guardianId : guardianLinks.values()) {
+            if (!replacement.hasGuardianId(guardianId)) {
+                throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GUARDIAN, guardianId));
+            }
+        }
         guardians.setAll(replacement.guardians);
+    }
+
+    /**
+     * Links existing records without replacing a student's guardian or copying contact details.
+     *
+     * @throws IllegalArgumentException If either record is missing or the student already has a guardian.
+     */
+    public void linkGuardian(String studentId, String guardianId) {
+        Student student = findStudent(studentId).orElseThrow(() ->
+                new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, studentId)));
+        Guardian guardian = findGuardian(guardianId).orElseThrow(() ->
+                new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GUARDIAN, guardianId)));
+        GuardianId existingGuardianId = guardianLinks.get(student.getId());
+        if (existingGuardianId != null) {
+            String message = existingGuardianId.equals(guardian.getId())
+                    ? MESSAGE_DUPLICATE_LINK : MESSAGE_EXISTING_GUARDIAN;
+            throw new IllegalArgumentException(String.format(message, studentId, existingGuardianId));
+        }
+        guardianLinks.put(student.getId(), guardian.getId());
     }
 
     /** Returns whether a student with the same ID or normalized name and level exists. */
@@ -229,6 +270,7 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void deleteStudent(StudentId id) {
         requireNonNull(id);
+        guardianLinks.remove(id);
         groupAssignments.removeIf(assignment -> assignment.getStudentId().equals(id));
         students.removeIf(student -> student.getId().equals(id));
     }
@@ -275,6 +317,11 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     @Override
+    public Map<StudentId, GuardianId> getGuardianLinks() {
+        return Collections.unmodifiableMap(guardianLinks);
+    }
+
+    @Override
     public Set<GroupAssignment> getGroupAssignments() {
         return Collections.unmodifiableSet(groupAssignments);
     }
@@ -287,17 +334,18 @@ public class AddressBook implements ReadOnlyAddressBook {
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("students", students).add("guardians", guardians)
-                .add("groupAssignments", groupAssignments).toString();
+                .add("guardianLinks", guardianLinks).add("groupAssignments", groupAssignments).toString();
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof AddressBook addressBook && students.equals(addressBook.students)
-                && guardians.equals(addressBook.guardians) && groupAssignments.equals(addressBook.groupAssignments);
+                && guardians.equals(addressBook.guardians) && guardianLinks.equals(addressBook.guardianLinks)
+                && groupAssignments.equals(addressBook.groupAssignments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(students, guardians, groupAssignments);
+        return Objects.hash(students, guardians, guardianLinks, groupAssignments);
     }
 }

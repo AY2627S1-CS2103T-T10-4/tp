@@ -26,6 +26,7 @@ class JsonSerializableAddressBook {
 
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
     private final List<JsonAdaptedGuardian> guardians = new ArrayList<>();
+    private final List<JsonAdaptedGuardianLink> guardianLinks = new ArrayList<>();
     private final List<JsonAdaptedGroupAssignment> groupAssignments = new ArrayList<>();
 
     @JsonCreator
@@ -61,7 +62,19 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
         students.addAll(source.getStudentList().stream().map(JsonAdaptedStudent::new).toList());
         guardians.addAll(source.getGuardianList().stream().map(JsonAdaptedGuardian::new).toList());
+        source.getGuardianLinks().forEach((studentId, guardianId) ->
+                guardianLinks.add(new JsonAdaptedGuardianLink(studentId.toString(), guardianId.toString())));
         groupAssignments.addAll(source.getGroupAssignments().stream().map(JsonAdaptedGroupAssignment::new).toList());
+    }
+
+    /** Older files may omit links, but an explicitly null collection is malformed. */
+    @JsonSetter("guardianLinks")
+    private void setGuardianLinks(List<JsonAdaptedGuardianLink> links) {
+        if (links == null) {
+            throw new IllegalArgumentException("Guardian links must be a JSON array, not null.");
+        }
+        guardianLinks.clear();
+        guardianLinks.addAll(links);
     }
 
     /** Accepts an absent guardian property but rejects a malformed present collection. */
@@ -138,6 +151,12 @@ class JsonSerializableAddressBook {
             } catch (IllegalArgumentException e) {
                 throw new IllegalValueException(e.getMessage());
             }
+        }
+        for (JsonAdaptedGuardianLink link : guardianLinks) {
+            if (link == null) {
+                throw new IllegalValueException("Guardian links contain a null record.");
+            }
+            link.addTo(register);
         }
         return register;
     }

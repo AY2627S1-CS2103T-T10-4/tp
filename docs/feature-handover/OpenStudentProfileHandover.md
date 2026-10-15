@@ -29,16 +29,20 @@ and `ViewStudentCommand`. The parser rejects missing, malformed, repeated, and e
 arguments. The command verifies that the ID exists before requesting selection;
 lookup does not construct a `StudentId`, because its constructor advances the ID generator.
 
-The existing UI displays ID, name, academic level and configured-group assignments for the selected student.
-Users must open the Students tab themselves; the command does not switch tabs.
+The UI displays ID, name, academic level, configured-group assignments, and the
+current guardian name and phone (or `Guardian: none`). Successful profile requests
+explicitly refresh details even when the row is already selected. Workspace changes
+follow the command result: linking and group assignment open Students, while viewing
+or editing a student retains the current tab.
 ViewStudentCommand explicitly declares read-only execution, so it never saves and is not blocked by recovery.
 The empty recovery model can still produce the normal student-not-found error.
 
 Parser and command tests cover validation and read-only lookup. `LogicManagerTest`
-checks command execution and persistence behavior. UI and User Guide updates are
-left to their respective owners.
+checks command execution and persistence behavior. `LinkGuardianProfileTest`
+checks guardian display, same-row refresh, and save failures through real commands.
+User Guide updates remain with their owner.
 
-Guardian linking and profile details remain pending. See the
+Guardian and group details are integrated. See the
 [migration handover](PersonToStudentMigrationHandover.md) for the shared model changes.
 
 Everything below records the original PR #45 implementation and its validation

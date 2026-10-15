@@ -11,6 +11,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
 
@@ -57,6 +58,15 @@ public interface Logic {
 
     default ObservableList<Student> getStudentList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+    }
+    /** Finds a student for profile display, including students hidden by the current search. */
+    default Optional<Student> findStudent(String studentId) {
+        return getStudentList().stream().filter(student -> student.getId().value.equals(studentId)).findFirst();
+    }
+
+    /** Returns current guardian details for a student profile, or empty if there is no linked guardian. */
+    default Optional<Guardian> getLinkedGuardian(String studentId) {
+        return Optional.empty();
     }
     /** Empty compatibility view for callers compiled against the retired Person UI. */
     @Deprecated

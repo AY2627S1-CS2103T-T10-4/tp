@@ -167,7 +167,8 @@ public class MainWindow extends UiPart<Stage> {
     private void refreshStudentDetails() {
         Student selected = studentListPanel.selectedStudentProperty().get();
         studentDetailsPanel.setStudent(selected,
-                selected == null ? List.of() : logic.getAssignedGroups(selected.getId().value));
+                selected == null ? List.of() : logic.getAssignedGroups(selected.getId().value),
+                selected == null ? null : logic.getLinkedGuardian(selected.getId().value).orElse(null));
     }
 
     private void restoreStudentSelection(String studentId) {

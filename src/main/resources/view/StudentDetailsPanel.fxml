@@ -38,6 +38,10 @@
           <Label fx:id="academicLevel" styleClass="detail-value" wrapText="true" />
         </VBox>
         <VBox spacing="6" styleClass="detail-group">
+          <Label text="GUARDIAN" styleClass="detail-key" />
+          <Label fx:id="guardianDetails" styleClass="detail-value" wrapText="true" />
+        </VBox>
+        <VBox spacing="6" styleClass="detail-group">
           <Label text="ASSIGNMENTS" styleClass="detail-key" />
           <VBox fx:id="assignments" spacing="6" />
         </VBox>

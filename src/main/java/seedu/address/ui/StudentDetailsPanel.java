@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.group.Group;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.student.Student;
 
 /**
@@ -21,6 +22,7 @@ public class StudentDetailsPanel extends UiPart<Region> {
     @FXML private Label id;
     @FXML private Label name;
     @FXML private Label academicLevel;
+    @FXML private Label guardianDetails;
     @FXML private VBox assignments;
 
     /**
@@ -49,12 +51,19 @@ public class StudentDetailsPanel extends UiPart<Region> {
      * @throws NullPointerException If assignedGroups is null.
      */
     public void setStudent(Student student, List<Group> assignedGroups) {
+        setStudent(student, assignedGroups, null);
+    }
+
+    /** Displays current group assignments and guardian details, or no guardian when unlinked. */
+    public void setStudent(Student student, List<Group> assignedGroups, Guardian guardian) {
         requireNonNull(assignedGroups);
         boolean selected = student != null;
         emptyState.setVisible(!selected);
         emptyState.setManaged(!selected);
         detailsContent.setVisible(selected);
         detailsContent.setManaged(selected);
+        guardianDetails.setText(selected && guardian != null
+                ? guardian.getName() + "\n" + guardian.getPhone() : "Guardian: none");
         assignments.getChildren().clear();
         if (selected) {
             id.setText(student.getId().toString());
