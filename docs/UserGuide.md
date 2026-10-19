@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so one saved contact can appear in every linked student's profile.
 
-> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `link-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, unlinking a guardian, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
+> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `link-guardian`, `unlink-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
 
 * Table of Contents
 {:toc}
@@ -194,8 +194,6 @@ Repeating a link reports `Student S-0007 is already linked to guardian G-0003.` 
 
 ### Removing or correcting a guardian link: `unlink-guardian`
 
-**Not implemented in the current MVP build.** The following describes the planned behavior.
-
 Format: `unlink-guardian sid/STUDENT_ID`
 
 Example: `unlink-guardian sid/S-0007`
@@ -204,7 +202,9 @@ Removes the relationship while keeping both records and the guardian's links to 
 
 Example result: `Removed guardian G-0003 from student S-0007. Guardian record was retained.` If there is no existing link, it reports `Student S-0007 has no guardian to unlink.`
 
-Because unlinking is not yet available, a mistaken guardian link cannot currently be corrected from the command box. Restore a valid backup if necessary rather than editing the JSON data file by hand.
+To correct a link, run `unlink-guardian` and then `link-guardian` with the correct guardian ID. Successful unlinking opens the Students tab and refreshes the target profile, including when it is already selected. A filter hiding the student is cleared after saving succeeds. The guardian list count and linked-student details also refresh.
+
+An unknown ID reports `Student S-0007 does not exist.` If saving fails, the relationship is restored and the result says `Could not save changes. The guardian link was not removed.` Invalid input leaves the current tab and list unchanged. Unlinking is unavailable during storage recovery.
 
 ## Managing subjects and classes
 
@@ -360,6 +360,7 @@ These are the commands supported by the current MVP build. Replace example IDs w
 | List all guardians | `list-guardians` | `list-guardians` |
 | Update guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` | `edit-guardian gid/G-0003 p/98765432` |
 | Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
+| Unlink guardian | `unlink-guardian sid/STUDENT_ID` | `unlink-guardian sid/S-0007` |
 | View configured groups | `list-groups` | `list-groups` |
 | Assign group | `assign-group sid/STUDENT_ID g/GROUP_CODE` | `assign-group sid/S-0007 g/MAT` |
 | Get help | `help` | `help` |
