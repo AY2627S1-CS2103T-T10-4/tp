@@ -15,14 +15,15 @@ import seedu.address.model.guardian.Guardian;
 public class GuardianListPanel extends UiPart<Region> {
     private static final String FXML = "GuardianListPanel.fxml";
 
-    private final ToIntFunction<Guardian> linkedStudentCount;
+    private final ToIntFunction<Guardian> linkedStudentCountProvider;
 
     @FXML private ListView<Guardian> guardianListView;
 
     /** Creates the panel backed by the supplied observable guardian list. */
-    public GuardianListPanel(ObservableList<Guardian> guardians, ToIntFunction<Guardian> linkedStudentCount) {
+    public GuardianListPanel(ObservableList<Guardian> guardians,
+            ToIntFunction<Guardian> linkedStudentCountProvider) {
         super(FXML);
-        this.linkedStudentCount = linkedStudentCount;
+        this.linkedStudentCountProvider = linkedStudentCountProvider;
         guardianListView.setItems(guardians);
         guardianListView.setPlaceholder(new Label("No guardians registered."));
         guardianListView.setCellFactory(unused -> new GuardianListViewCell());
@@ -52,7 +53,8 @@ public class GuardianListPanel extends UiPart<Region> {
                 setText(null);
                 return;
             }
-            setGraphic(new GuardianCard(guardian, linkedStudentCount.applyAsInt(guardian)).getRoot());
+            int linkedStudentCount = linkedStudentCountProvider.applyAsInt(guardian);
+            setGraphic(new GuardianCard(guardian, linkedStudentCount).getRoot());
             setText(null);
         }
     }

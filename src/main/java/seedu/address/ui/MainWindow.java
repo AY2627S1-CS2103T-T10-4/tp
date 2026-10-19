@@ -197,13 +197,13 @@ public class MainWindow extends UiPart<Stage> {
         guardianDetailsPanel = new GuardianDetailsPanel();
         guardianDetailsPanelPlaceholder.getChildren().add(guardianDetailsPanel.getRoot());
         guardianListPanel.selectedGuardianProperty().addListener((observable, oldGuardian, newGuardian) ->
-                refreshGuardianDetails());
+                refreshGuardianWorkspace());
         guardianCountLabel.textProperty().bind(
                 Bindings.size(logic.getGuardianList()).asString("%d guardians"));
         guardianListPanel.selectFirstGuardian();
     }
 
-    private void refreshGuardianDetails() {
+    private void refreshGuardianWorkspace() {
         Guardian selected = guardianListPanel.selectedGuardianProperty().get();
         guardianDetailsPanel.setGuardian(selected, selected == null
                 ? List.of() : logic.getLinkedStudents(selected.getId().toString()));
@@ -384,7 +384,7 @@ public class MainWindow extends UiPart<Stage> {
                 nextStudentId = null;
             }
             restoreStudentSelection(nextStudentId);
-            refreshGuardianDetails();
+            refreshGuardianWorkspace();
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

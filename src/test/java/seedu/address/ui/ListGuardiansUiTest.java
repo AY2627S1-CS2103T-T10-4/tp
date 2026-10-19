@@ -106,6 +106,31 @@ class ListGuardiansUiTest {
         });
     }
 
+    @Test
+    void listGuardians_emptyRegister_showsEmptyState() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            ModelManager model = new ModelManager();
+            Path dataPath = temporaryFolder.resolve("empty-guardians.json");
+            Logic logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(dataPath),
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("empty-prefs.json"))));
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, dataPath);
+            mainWindow.fillInnerParts();
+            stage.getScene().getRoot().applyCss();
+
+            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+            input.setText("list-guardians");
+            submit(input);
+
+            ListView<?> guardians = (ListView<?>) stage.getScene().lookup("#guardianListView");
+            assertTrue(toggle(stage, "#guardiansTab").isSelected());
+            assertTrue(guardians.getItems().isEmpty());
+            assertEquals("No guardians registered.", ((Label) guardians.getPlaceholder()).getText());
+            assertEquals("No guardians registered.", label(stage, "#resultDisplay").getText());
+            stage.close();
+        });
+    }
+
     private static Guardian guardian(String id, String name, String phone) {
         return new Guardian(new GuardianId(id), new GuardianName(name), new GuardianPhone(phone));
     }

@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +29,9 @@ import seedu.address.model.student.StudentId;
 /** In-memory model of the complete register, filtered Student view and user preferences. */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
+    private static final Comparator<Student> STUDENT_DISPLAY_ORDER =
+            Comparator.comparing((Student student) -> student.getName().normalized())
+                    .thenComparing(Student::getId);
     private final AddressBook addressBook;
     private final FilteredList<Student> filteredStudents;
     private final FilteredList<Guardian> filteredGuardians;
@@ -170,10 +174,7 @@ public class ModelManager implements Model {
         return addressBook.getGuardianLinks().entrySet().stream()
                 .filter(entry -> entry.getValue().toString().equals(guardianId))
                 .map(entry -> addressBook.findStudent(entry.getKey()).orElseThrow())
-                .sorted((first, second) -> {
-                    int byName = first.getName().normalized().compareTo(second.getName().normalized());
-                    return byName != 0 ? byName : first.getId().compareTo(second.getId());
-                })
+                .sorted(STUDENT_DISPLAY_ORDER)
                 .toList();
     }
 

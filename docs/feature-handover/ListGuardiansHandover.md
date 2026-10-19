@@ -50,7 +50,7 @@ not change the Guardian workspace or filter.
 | `ListGuardiansCommandParserTest` | Blank input, casing/whitespace, extra text, and exact format error. |
 | `GuardianWorkspaceModelTest` | Independent Guardian filtering and sorted linked-Student projection. |
 | `GuardianCardTest` / `GuardianDetailsPanelTest` | Row fields/count and selected/empty detail states. |
-| `ListGuardiansUiTest` | Three-tab order/state, real command execution, sorted observable rows, contact/link details, and rejected-command workspace preservation. |
+| `ListGuardiansUiTest` | Three-tab order/state, real command execution, sorted observable rows, contact/link details, empty-register feedback/placeholder, and rejected-command workspace preservation. |
 
 Recommended verification from the repository root:
 

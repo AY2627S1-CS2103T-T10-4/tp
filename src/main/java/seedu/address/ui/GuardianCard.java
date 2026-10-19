@@ -15,11 +15,11 @@ public class GuardianCard extends UiPart<Region> {
     @FXML private Label linkedStudentCount;
 
     /** Creates a card for the supplied guardian and current relationship count. */
-    public GuardianCard(Guardian guardian, int studentCount) {
+    public GuardianCard(Guardian guardian, int linkedStudentCount) {
         super(FXML);
         id.setText(guardian.getId().toString());
         name.setText(guardian.getName().toString());
         phone.setText(guardian.getPhone().toString());
-        linkedStudentCount.setText(Integer.toString(studentCount));
+        this.linkedStudentCount.setText(Integer.toString(linkedStudentCount));
     }
 }
