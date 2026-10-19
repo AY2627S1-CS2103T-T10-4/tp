@@ -11,6 +11,7 @@ import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
@@ -190,6 +191,14 @@ public interface Model {
     /** Returns the students linked to a guardian in the register's display order. */
     default List<Student> getLinkedStudents(String guardianId) {
         return List.of();
+    }
+
+    /**
+     * Removes a student's guardian link and returns the former guardian ID.
+     * Rejects unknown or unlinked students without changing the register.
+     */
+    default GuardianId unlinkGuardian(String studentId) {
+        throw new UnsupportedOperationException();
     }
 
     /** Links existing records, rejecting missing IDs and students who already have a guardian. */
