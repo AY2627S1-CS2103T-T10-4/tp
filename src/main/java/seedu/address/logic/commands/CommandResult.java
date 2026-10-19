@@ -18,6 +18,7 @@ public class CommandResult {
      */
     public enum Workspace {
         UNCHANGED,
+        GUARDIANS,
         GROUPS,
         STUDENTS
     }

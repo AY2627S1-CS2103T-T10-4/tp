@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,8 +29,12 @@ import seedu.address.model.student.StudentId;
 /** In-memory model of the complete register, filtered Student view and user preferences. */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
+    private static final Comparator<Student> STUDENT_DISPLAY_ORDER =
+            Comparator.comparing((Student student) -> student.getName().normalized())
+                    .thenComparing(Student::getId);
     private final AddressBook addressBook;
     private final FilteredList<Student> filteredStudents;
+    private final FilteredList<Guardian> filteredGuardians;
     private final UserPrefs userPrefs;
     private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
 
@@ -39,6 +44,7 @@ public class ModelManager implements Model {
         logger.fine("Initializing with student register: " + addressBook + " and user prefs " + userPrefs);
         this.addressBook = new AddressBook(addressBook);
         filteredStudents = new FilteredList<>(this.addressBook.getStudentList());
+        filteredGuardians = new FilteredList<>(this.addressBook.getGuardianList());
         this.userPrefs = new UserPrefs(userPrefs);
     }
 
@@ -134,7 +140,12 @@ public class ModelManager implements Model {
 
     @Override
     public ObservableList<Guardian> getGuardianList() {
-        return addressBook.getGuardianList();
+        return filteredGuardians;
+    }
+
+    @Override
+    public void updateFilteredGuardianList(Predicate<Guardian> predicate) {
+        filteredGuardians.setPredicate(requireNonNull(predicate));
     }
 
     @Override
@@ -155,6 +166,16 @@ public class ModelManager implements Model {
     @Override
     public void linkGuardian(String studentId, String guardianId) {
         addressBook.linkGuardian(studentId, guardianId);
+    }
+
+    @Override
+    public List<Student> getLinkedStudents(String guardianId) {
+        requireNonNull(guardianId);
+        return addressBook.getGuardianLinks().entrySet().stream()
+                .filter(entry -> entry.getValue().toString().equals(guardianId))
+                .map(entry -> addressBook.findStudent(entry.getKey()).orElseThrow())
+                .sorted(STUDENT_DISPLAY_ORDER)
+                .toList();
     }
 
     @Override

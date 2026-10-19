@@ -283,6 +283,17 @@
     -fx-font-size: 12px;
 }
 
+.guardian-phone {
+    -fx-text-fill: #385950;
+    -fx-font-family: "Consolas";
+    -fx-font-size: 11px;
+}
+
+.guardian-count {
+    -fx-text-fill: #385950;
+    -fx-font-size: 12px;
+}
+
 #tags .label {
     -fx-padding: 2px 7px;
     -fx-background-color: #dbeee7;
@@ -292,7 +303,8 @@
     -fx-font-weight: 600;
 }
 
-#detailsRoot {
+#detailsRoot,
+#guardianDetailsRoot {
     -fx-padding: 24px 30px;
     -fx-background-color: #fbfdfc;
 }

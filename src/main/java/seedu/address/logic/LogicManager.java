@@ -112,6 +112,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public ObservableList<Guardian> getGuardianList() {
+        return model.getGuardianList();
+    }
+
+    @Override
     public GroupCatalogue getGroupCatalogue() {
         return model.getGroupCatalogue();
     }
@@ -134,6 +139,11 @@ public class LogicManager implements Logic {
     @Override
     public Optional<Guardian> getLinkedGuardian(String studentId) {
         return model.getLinkedGuardian(studentId);
+    }
+
+    @Override
+    public List<Student> getLinkedStudents(String guardianId) {
+        return model.getLinkedStudents(guardianId);
     }
 
     @Override

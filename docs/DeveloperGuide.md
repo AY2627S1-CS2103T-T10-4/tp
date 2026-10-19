@@ -49,6 +49,9 @@ for source compatibility.
   direct normal writes are not atomic and can still partially damage a file.
 - MainWindow coordinates selection/navigation and explicitly refreshes assignment-only changes. The profile
   scrolls as a whole to keep long names and assignments reachable at compact sizes without changing its styling.
+- `list-guardians` is a read-only query that clears the Guardian filter and requests the Guardians workspace.
+  The three-tab MainWindow reuses one Guardian list/details pair; rows show ID, name, phone and linked-student
+  count, while the profile resolves linked Students from the current aggregate.
 - Model exposes a filtered Student view while the complete register remains authoritative for lookup and saving.
   View/Search/List are read-only; successful View/Assign/Add Student results reveal a hidden target by clearing
   the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
