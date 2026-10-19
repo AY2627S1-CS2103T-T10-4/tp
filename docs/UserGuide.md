@@ -7,9 +7,9 @@ title: User Guide
 
 Mentora helps coordinators of small private tuition centres in Singapore manage student and guardian contacts through typed commands. It is designed for one coordinator working locally with approximately 30–200 active and prospective secondary-school students.
 
-Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
+Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so one saved contact can appear in every linked student's profile.
 
-> **Current build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
+> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `link-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, unlinking a guardian, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
 
 * Table of Contents
 {:toc}
@@ -26,15 +26,15 @@ For the current source build, follow [Setting up and getting started](SettingUp.
 
 ![Mentora mockup showing a student list, command box, result panel, and student profile](mockup/open-student-profile.png)
 
-The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The three tabs display students, guardians and configured groups. Student profiles show academic level and assignments; guardian profiles show contact details and linked students. The **status bar** reports local saving and loading.
+The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results or configured groups. The **student profile** shows academic level, assignments, and the linked guardian's current name and phone number. The **status bar** reports local saving and loading.
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID. Use `add-guardian n/Anita Lim p/91234567` to save a guardian contact and `list-guardians` to browse guardian IDs, phone numbers and linked students. Use `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
+Enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. Use `add-guardian n/Anita Lim p/91234567` to create a guardian, then `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` to show that contact in the student's profile. Use `find-student n/Mei`, `list-students`, and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID, `help` to open the help window, or `exit` to close Mentora.
 
 ## Understanding commands and values
 
-Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei Lin`. Do not type the placeholder itself. Square brackets mark an optional argument: `help [COMMAND]` means either `help` or, for example, `help add-student`.
+Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei Lin`. Do not type the placeholder itself.
 
 * Commands and prefixes are case-insensitive. Use the lowercase spellings shown in this guide for consistency.
 * Prefixes identify fields: `n/` for a name or query, `al/` for academic level, `p/` for phone, `sid/` for student ID, `gid/` for guardian ID, and `g/` for group code.
@@ -82,7 +82,7 @@ Format: `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL`
 
 Example: `edit-student sid/S-0007 al/Sec 3`
 
-Changes only the student's academic level, retaining the same ID, name, group assignments and all guardian records. The list and selected profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` Review class assignments separately when a student moves up a level. Guardian linking remains future work.
+Changes only the student's academic level, retaining the same ID, name, group assignments, and guardian link. The list and selected profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` Review class assignments separately when a student moves up a level.
 
 Lookup and duplicate checks use every registered student, including records hidden by a search. After a successful edit, a filter hiding the target is cleared and that student is selected. The command keeps the current tab; select Students if Groups is open. Command and prefix names ignore case, either prefix order works, and each nonempty prefix is required exactly once.
 
@@ -119,7 +119,7 @@ Format: `view-student sid/STUDENT_ID`
 
 Example: `view-student sid/S-0007`
 
-Selects the student's read-only profile and reports `Opened profile for S-0007.` The profile shows academic level and assignments with codes and labels. Guardian profile details remain future work. If a search hides the student, the filter is cleared after successful lookup. The command keeps the current tab: select Students if Groups is open. It never saves data.
+Selects the student's read-only profile and reports `Opened profile for S-0007.` The profile shows academic level, assignments with codes and labels, and the linked guardian's current name and canonical phone number, or `Guardian: none`. If a search hides the student, the filter is cleared after successful lookup. The command keeps the current tab: select Students if Groups is open. It never saves data.
 
 Use the ID shown in the student list or search results. To change information, use the relevant editing, linking, or assignment command.
 
@@ -129,9 +129,9 @@ Format: `delete-student sid/STUDENT_ID`
 
 Example: `delete-student sid/S-0007`
 
-**Deletion permanently removes the student record and that student's group assignments.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
+**Deletion permanently removes the student record, that student's group assignments, and that student's guardian link.** Check the ID and profile before using this command. It is intended for records created by mistake, not for archiving withdrawn or graduated students.
 
-The command finds the ID in the complete register, even when Search hides the student. Other students, their assignments and all guardian records are retained. Guardian linking is not yet implemented.
+The command finds the ID in the complete register, even when Search hides the student. Other students, their assignments, all guardian records, and other students' guardian links are retained. Deleting a student never deletes the linked guardian.
 
 Deleting the selected student clears the selection and profile. Deleting another student preserves the current selection. The search filter and active tab remain unchanged.
 
@@ -164,6 +164,8 @@ The result is `Listed 6 guardian(s).`, using the actual number of guardian recor
 
 ### Updating a guardian's phone: `edit-guardian`
 
+**Not implemented in the current MVP build.** The following describes the planned behavior.
+
 Format: `edit-guardian gid/GUARDIAN_ID p/PHONE`
 
 Example: `edit-guardian gid/G-0003 p/+65 98765432`
@@ -192,6 +194,8 @@ Repeating a link reports `Student S-0007 is already linked to guardian G-0003.` 
 
 ### Removing or correcting a guardian link: `unlink-guardian`
 
+**Not implemented in the current MVP build.** The following describes the planned behavior.
+
 Format: `unlink-guardian sid/STUDENT_ID`
 
 Example: `unlink-guardian sid/S-0007`
@@ -200,7 +204,7 @@ Removes the relationship while keeping both records and the guardian's links to 
 
 Example result: `Removed guardian G-0003 from student S-0007. Guardian record was retained.` If there is no existing link, it reports `Student S-0007 has no guardian to unlink.`
 
-To correct a link, first unlink the student, then run `link-guardian` with the correct guardian ID.
+Because unlinking is not yet available, a mistaken guardian link cannot currently be corrected from the command box. Restore a valid backup if necessary rather than editing the JSON data file by hand.
 
 ## Managing subjects and classes
 
@@ -273,11 +277,11 @@ Command-specific `help COMMAND`, its validation messages and the illustrated hel
 
 ### Saving and reopening
 
-The current build saves the complete Student, Guardian and assignment register after successful changes from `add-student`, `edit-student`, `delete-student`, `add-guardian` and `assign-group`. Editing to the existing academic level does not rewrite the file. Viewing, searching, listing, help and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
+The current build saves the complete Student, Guardian, guardian-link, and assignment register after successful changes from `add-student`, `edit-student`, `delete-student`, `add-guardian`, `link-guardian`, and `assign-group`. Editing to the existing academic level does not rewrite the file. Viewing, searching, listing, help, and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account, or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
 
-When Mentora reopens, it loads the complete register. Older files without guardians or assignments load with those collections empty. Explicit null collections or malformed records trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
+When Mentora reopens, it loads the complete register. Older files without guardians, guardian links, or assignments load with those collections empty. Explicit null collections, malformed records, dangling relationships, or repeated relationships trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
 
-**If saving fails**, the complete previous in-memory register, search filter, selection and workspace are retained. Add Student, Add Guardian and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.` and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.` and Delete Student reports `Could not save changes. Student S-0007 was not deleted.`, using the supplied ID. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
+**If saving fails**, the complete previous in-memory register, search filter, selection, and workspace are retained. Add Student, Add Guardian, Link Guardian, and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.`, `Could not save changes. The guardian link was not created.`, and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.` and Delete Student reports `Could not save changes. Student S-0007 was not deleted.`, using the supplied ID. A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
 
 **If loading fails**, Mentora preserves the original file, opens an empty recovery model, and disables student-data changes and saving for the session. It reports:
 
@@ -318,6 +322,7 @@ The MVP supports student records, one guardian per student, shared guardians, co
 The following are **not included in the MVP**:
 
 * Multiple guardians per student or creation of new groups through commands.
+* Editing guardian contact details, unlinking a guardian, or removing a group assignment.
 * Guardian-name search, filtering students by subject or level, and a command to jump to an edit screen.
 * Prospect-to-active conversion, active-only lists, and archiving withdrawn or graduated students.
 * Class guardian contact lists and deduplicated, copyable lists for announcements.
@@ -329,11 +334,11 @@ Mentora does not manage attendance, lesson content, grades, fees, payroll, or ac
 
 ## Frequently asked questions
 
-**Can siblings share a guardian?** Yes. Add the guardian once and link each student to the same guardian ID. Editing the guardian's phone updates the details shown for every linked student.
+**Can siblings share a guardian?** Yes. Add the guardian once and link each student to the same guardian ID. The current guardian name and phone are shown in every linked student's profile.
 
 **Does deleting a student delete their guardian?** No. It removes that student and their relationship, preserving the guardian and other students' links.
 
-**Does changing academic level move the student to a new class?** No. Use `unassign-group` and `assign-group` to update class assignments separately.
+**Does changing academic level move the student to a new class?** No. Academic level and group assignments are independent. Removing an old assignment is not yet available in the current MVP build.
 
 **Can I keep a withdrawn student's record without showing it in the main list?** Archiving and active-only lists are deferred. Deletion is permanent and is not an archive operation.
 
@@ -341,7 +346,7 @@ Mentora does not manage attendance, lesson content, grades, fees, payroll, or ac
 
 ## Command summary
 
-All commands below describe the planned MVP. Replace example IDs with IDs from your own records.
+These are the commands supported by the current MVP build. Replace example IDs with IDs from your own records.
 
 | Action | Format | Example |
 |---|---|---|
@@ -355,9 +360,7 @@ All commands below describe the planned MVP. Replace example IDs with IDs from y
 | List all guardians | `list-guardians` | `list-guardians` |
 | Update guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` | `edit-guardian gid/G-0003 p/98765432` |
 | Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
-| Unlink guardian | `unlink-guardian sid/STUDENT_ID` | `unlink-guardian sid/S-0007` |
 | View configured groups | `list-groups` | `list-groups` |
 | Assign group | `assign-group sid/STUDENT_ID g/GROUP_CODE` | `assign-group sid/S-0007 g/MAT` |
-| Remove group assignment | `unassign-group sid/STUDENT_ID g/GROUP_CODE` | `unassign-group sid/S-0007 g/MAT` |
-| Get help | `help [COMMAND]` | `help add-student` |
+| Get help | `help` | `help` |
 | Exit | `exit` | `exit` |
