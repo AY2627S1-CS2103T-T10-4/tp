@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so updating that guardian's phone number updates the contact information shown for every linked student.
 
-> **Current build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
+> **Current build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Guardian linking, assignment removal and other unavailable commands remain future work. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative.
 
 * Table of Contents
 {:toc}
@@ -26,11 +26,11 @@ For the current source build, follow [Setting up and getting started](SettingUp.
 
 ![Mentora mockup showing a student list, command box, result panel, and student profile](mockup/open-student-profile.png)
 
-The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results or configured groups. The **student profile** shows academic level and assignments; guardian linking and profile details remain future work. The **status bar** reports local saving and loading.
+The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The three tabs display students, guardians and configured groups. Student profiles show academic level and assignments; guardian profiles show contact details and linked students. The **status bar** reports local saving and loading.
 
 ### Registering your first student
 
-In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID. Use `add-guardian n/Anita Lim p/91234567` to save an unlinked guardian contact, `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
+In the current build, enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. A successful assignment opens the student's profile and saves the change locally. Use `find-student n/Mei`, `list-students` and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID. Use `add-guardian n/Anita Lim p/91234567` to save a guardian contact and `list-guardians` to browse guardian IDs, phone numbers and linked students. Use `help` to open the help window or `exit` to close Mentora. Other unavailable commands in this guide describe the planned MVP contract.
 
 ## Understanding commands and values
 
@@ -40,7 +40,7 @@ Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei 
 * Prefixes identify fields: `n/` for a name or query, `al/` for academic level, `p/` for phone, `sid/` for student ID, `gid/` for guardian ID, and `g/` for group code.
 * Prefixed fields can appear in any order, but each prefix may appear only once. All fields shown outside square brackets are required and must contain a value.
 * Unknown text, unknown prefixes, repeated prefixes, and missing required fields produce `Invalid command format. Use: FORMAT`, where `FORMAT` is the correct command syntax.
-* `list-groups` rejects extra text. The current `help` and `exit` commands still ignore extra arguments; stricter handling and command-specific help remain planned behavior.
+* `list-groups` and `list-guardians` reject extra text. The current `help` and `exit` commands still ignore extra arguments; stricter handling and command-specific help remain planned behavior.
 * Leading and trailing spaces in values are removed. Repeated spaces within names and search queries become one space. Name casing is retained for display but ignored for matching.
 * Use permanent IDs such as `S-0007` and `G-0003`, **not list positions**. Searching or sorting does not change an ID. IDs are generated by Mentora and cannot be edited; they use uppercase `S-` or `G-` followed by at least four digits.
 
@@ -150,9 +150,17 @@ Examples:
 * `add-guardian n/Anita Lim p/91234567`
 * `add-guardian p/+65 61234567 n/Raj Kumar`
 
-Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently; the current build has no guardian list/profile display or linking command.
+Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently and can be browsed with `list-guardians`; the current build has no command to search guardians by name.
 
 Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number in the MVP.
+
+### Listing guardians: `list-guardians`
+
+Format: `list-guardians`
+
+Switches to the Guardians tab, clears any guardian filter, and lists every guardian by normalized name and then guardian ID. Each row shows the guardian's ID, name, canonical phone number and linked-student count. Selecting a row shows the guardian profile and every linked student's ID and name.
+
+The result is `Listed 6 guardian(s).`, using the actual number of guardian records. An empty register reports and displays `No guardians registered.` Command casing is ignored. Extra input reports `Invalid command format. Use: list-guardians` and leaves the current tab and list unchanged. Listing guardians is read-only and does not rewrite local data.
 
 ### Updating a guardian's phone: `edit-guardian`
 
@@ -275,7 +283,7 @@ When Mentora reopens, it loads the complete register. Older files without guardi
 
 > Could not load local data. Your original data file was not changed; restore or replace it before saving.
 
-An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over it for the failure reason. Listing/searching remains available, although the recovery Student list is empty and `view-student` reports an unknown student. You can browse configured groups, open help and exit. Student/Guardian additions and assignments are rejected before changing the model or file. Read-only feedback does not remove the recovery status.
+An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over it for the failure reason. Listing/searching remains available, although the recovery Student and Guardian lists are empty and `view-student` reports an unknown student. You can browse configured groups, open help and exit. Student/Guardian additions and assignments are rejected before changing the model or file. Read-only feedback does not remove the recovery status.
 
 Close Mentora, preserve a copy of the original file, and restore a valid backup or obtain help repairing it. Restart after restoring or replacing the file; saving stays disabled for the old session even if the file changes externally. Unreadable or malformed files, null records, invalid Student/Guardian fields, duplicate IDs/identities/guardian phones or assignment pairs, unknown student/group references, repeated JSON fields and unsupported stored fields can trigger recovery. Stored text fields must be JSON strings. Existing legacy Person-file compatibility remains; no new Person-to-Student migration is provided.
 
@@ -301,7 +309,7 @@ Closes the application and reports `Closing Mentora.` Successful data-changing c
 | A group code is not configured | Run `list-groups` and use an exact listed code. |
 | `Could not save changes.` | The change did not take effect. Check that the storage location is writable and has space, then retry. |
 | A load error appears with an empty list | Follow the recovery guidance under [Saving and reopening](#saving-and-reopening); preserve the original file. |
-| A documented command is reported as unknown | Check the nine supported commands in the current-build note. Linking, edit/delete and assignment removal remain future work. |
+| A documented command is reported as unknown | Check the supported commands in the current-build note. Guardian search, guardian edit/delete and assignment removal remain future work. |
 
 ## Scope and limitations
 
@@ -344,6 +352,7 @@ All commands below describe the planned MVP. Replace example IDs with IDs from y
 | Find students by name | `find-student n/QUERY` | `find-student n/mei` |
 | Open student profile | `view-student sid/STUDENT_ID` | `view-student sid/S-0007` |
 | Add guardian | `add-guardian n/NAME p/PHONE` | `add-guardian n/Anita Lim p/91234567` |
+| List all guardians | `list-guardians` | `list-guardians` |
 | Update guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` | `edit-guardian gid/G-0003 p/98765432` |
 | Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
 | Unlink guardian | `unlink-guardian sid/STUDENT_ID` | `unlink-guardian sid/S-0007` |

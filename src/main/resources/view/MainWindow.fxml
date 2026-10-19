@@ -42,6 +42,8 @@
           <HBox alignment="CENTER" spacing="4" styleClass="header-tabs">
             <ToggleButton fx:id="studentsTab" mnemonicParsing="false" onAction="#handleStudentsTab"
                           selected="true" styleClass="nav-tab" text="Students" />
+            <ToggleButton fx:id="guardiansTab" mnemonicParsing="false" onAction="#handleGuardiansTab"
+                          styleClass="nav-tab" text="Guardians" />
             <ToggleButton fx:id="groupsTab" mnemonicParsing="false" onAction="#handleGroupsTab"
                           styleClass="nav-tab" text="Groups" />
           </HBox>
@@ -86,6 +88,24 @@
                 <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
               </VBox>
               <StackPane fx:id="studentDetailsPanelPlaceholder" minWidth="360" styleClass="details-panel" />
+            </SplitPane>
+          </StackPane>
+          <StackPane fx:id="guardianWorkspace" managed="false" visible="false">
+            <SplitPane dividerPositions="0.55" styleClass="workspace">
+              <VBox minWidth="390" styleClass="list-panel">
+                <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
+                  <Label text="Guardians" styleClass="section-title" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label fx:id="guardianCountLabel" text="0 guardians" styleClass="record-count" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
+                  <Label text="GUARDIAN ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                  <Label text="PHONE" minWidth="116" />
+                  <Label text="STUDENTS" minWidth="64" />
+                </HBox>
+                <StackPane fx:id="guardianListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+              </VBox>
+              <StackPane fx:id="guardianDetailsPanelPlaceholder" minWidth="320" styleClass="details-panel" />
             </SplitPane>
           </StackPane>
           <StackPane fx:id="groupsWorkspacePlaceholder" managed="false" visible="false" />

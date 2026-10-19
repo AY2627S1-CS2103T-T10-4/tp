@@ -30,6 +30,7 @@ public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
     private final AddressBook addressBook;
     private final FilteredList<Student> filteredStudents;
+    private final FilteredList<Guardian> filteredGuardians;
     private final UserPrefs userPrefs;
     private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
 
@@ -39,6 +40,7 @@ public class ModelManager implements Model {
         logger.fine("Initializing with student register: " + addressBook + " and user prefs " + userPrefs);
         this.addressBook = new AddressBook(addressBook);
         filteredStudents = new FilteredList<>(this.addressBook.getStudentList());
+        filteredGuardians = new FilteredList<>(this.addressBook.getGuardianList());
         this.userPrefs = new UserPrefs(userPrefs);
     }
 
@@ -134,7 +136,12 @@ public class ModelManager implements Model {
 
     @Override
     public ObservableList<Guardian> getGuardianList() {
-        return addressBook.getGuardianList();
+        return filteredGuardians;
+    }
+
+    @Override
+    public void updateFilteredGuardianList(Predicate<Guardian> predicate) {
+        filteredGuardians.setPredicate(requireNonNull(predicate));
     }
 
     @Override
@@ -155,6 +162,19 @@ public class ModelManager implements Model {
     @Override
     public void linkGuardian(String studentId, String guardianId) {
         addressBook.linkGuardian(studentId, guardianId);
+    }
+
+    @Override
+    public List<Student> getLinkedStudents(String guardianId) {
+        requireNonNull(guardianId);
+        return addressBook.getGuardianLinks().entrySet().stream()
+                .filter(entry -> entry.getValue().toString().equals(guardianId))
+                .map(entry -> addressBook.findStudent(entry.getKey()).orElseThrow())
+                .sorted((first, second) -> {
+                    int byName = first.getName().normalized().compareTo(second.getName().normalized());
+                    return byName != 0 ? byName : first.getId().compareTo(second.getId());
+                })
+                .toList();
     }
 
     @Override

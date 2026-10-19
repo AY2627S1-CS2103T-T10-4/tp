@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox id="cardPane" fx:id="cardPane" alignment="CENTER_LEFT" spacing="10"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <padding>
+    <Insets top="9" right="14" bottom="9" left="14" />
+  </padding>
+  <VBox alignment="CENTER_LEFT" spacing="3" HBox.hgrow="ALWAYS">
+    <Label fx:id="id" styleClass="student-id" />
+    <Label fx:id="name" maxWidth="Infinity" styleClass="student-name" HBox.hgrow="ALWAYS" />
+  </VBox>
+  <Label fx:id="phone" alignment="CENTER_RIGHT" minWidth="116" styleClass="guardian-phone" />
+  <Label fx:id="linkedStudentCount" alignment="CENTER_RIGHT" minWidth="54" styleClass="guardian-count" />
+</HBox>

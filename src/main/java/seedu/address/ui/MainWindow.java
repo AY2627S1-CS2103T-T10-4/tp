@@ -24,6 +24,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.guardian.Guardian;
 import seedu.address.model.student.Student;
 
 /**
@@ -46,6 +47,8 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private StudentListPanel studentListPanel;
     private StudentDetailsPanel studentDetailsPanel;
+    private GuardianListPanel guardianListPanel;
+    private GuardianDetailsPanel guardianDetailsPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -64,6 +67,15 @@ public class MainWindow extends UiPart<Stage> {
     private Label studentCountLabel;
 
     @FXML
+    private StackPane guardianListPanelPlaceholder;
+
+    @FXML
+    private StackPane guardianDetailsPanelPlaceholder;
+
+    @FXML
+    private Label guardianCountLabel;
+
+    @FXML
     private StackPane resultDisplayPlaceholder;
 
     @FXML
@@ -73,10 +85,16 @@ public class MainWindow extends UiPart<Stage> {
     private ToggleButton studentsTab;
 
     @FXML
+    private ToggleButton guardiansTab;
+
+    @FXML
     private ToggleButton groupsTab;
 
     @FXML
     private StackPane studentWorkspace;
+
+    @FXML
+    private StackPane guardianWorkspace;
 
     @FXML
     private StackPane groupsWorkspacePlaceholder;
@@ -146,6 +164,7 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         fillStudentPanels();
+        fillGuardianPanels();
         fillGroupPanel();
         fillResultDisplay();
         fillStatusBar();
@@ -169,6 +188,26 @@ public class MainWindow extends UiPart<Stage> {
         studentDetailsPanel.setStudent(selected,
                 selected == null ? List.of() : logic.getAssignedGroups(selected.getId().value),
                 selected == null ? null : logic.getLinkedGuardian(selected.getId().value).orElse(null));
+    }
+
+    private void fillGuardianPanels() {
+        guardianListPanel = new GuardianListPanel(logic.getGuardianList(), guardian ->
+                logic.getLinkedStudents(guardian.getId().toString()).size());
+        guardianListPanelPlaceholder.getChildren().add(guardianListPanel.getRoot());
+        guardianDetailsPanel = new GuardianDetailsPanel();
+        guardianDetailsPanelPlaceholder.getChildren().add(guardianDetailsPanel.getRoot());
+        guardianListPanel.selectedGuardianProperty().addListener((observable, oldGuardian, newGuardian) ->
+                refreshGuardianDetails());
+        guardianCountLabel.textProperty().bind(
+                Bindings.size(logic.getGuardianList()).asString("%d guardians"));
+        guardianListPanel.selectFirstGuardian();
+    }
+
+    private void refreshGuardianDetails() {
+        Guardian selected = guardianListPanel.selectedGuardianProperty().get();
+        guardianDetailsPanel.setGuardian(selected, selected == null
+                ? List.of() : logic.getLinkedStudents(selected.getId().toString()));
+        guardianListPanel.refresh();
     }
 
     private void restoreStudentSelection(String studentId) {
@@ -222,20 +261,31 @@ public class MainWindow extends UiPart<Stage> {
     /** Shows the populated student workspace. */
     @FXML
     private void handleStudentsTab() {
-        setActiveWorkspace(true);
+        setActiveWorkspace(CommandResult.Workspace.STUDENTS);
+    }
+
+    /** Shows the populated guardian workspace. */
+    @FXML
+    private void handleGuardiansTab() {
+        setActiveWorkspace(CommandResult.Workspace.GUARDIANS);
     }
 
     /** Shows the configured groups workspace. */
     @FXML
     private void handleGroupsTab() {
-        setActiveWorkspace(false);
+        setActiveWorkspace(CommandResult.Workspace.GROUPS);
     }
 
-    private void setActiveWorkspace(boolean isStudentWorkspaceActive) {
-        studentsTab.setSelected(isStudentWorkspaceActive);
-        groupsTab.setSelected(!isStudentWorkspaceActive);
-        setWorkspaceVisible(studentWorkspace, isStudentWorkspaceActive);
-        setWorkspaceVisible(groupsWorkspacePlaceholder, !isStudentWorkspaceActive);
+    private void setActiveWorkspace(CommandResult.Workspace workspace) {
+        boolean studentsActive = workspace == CommandResult.Workspace.STUDENTS;
+        boolean guardiansActive = workspace == CommandResult.Workspace.GUARDIANS;
+        boolean groupsActive = workspace == CommandResult.Workspace.GROUPS;
+        studentsTab.setSelected(studentsActive);
+        guardiansTab.setSelected(guardiansActive);
+        groupsTab.setSelected(groupsActive);
+        setWorkspaceVisible(studentWorkspace, studentsActive);
+        setWorkspaceVisible(guardianWorkspace, guardiansActive);
+        setWorkspaceVisible(groupsWorkspacePlaceholder, groupsActive);
     }
 
     private void setWorkspaceVisible(StackPane workspace, boolean isVisible) {
@@ -292,6 +342,16 @@ public class MainWindow extends UiPart<Stage> {
         return studentDetailsPanel;
     }
 
+    /** Returns the guardian list panel mounted in this window. */
+    GuardianListPanel getGuardianListPanel() {
+        return guardianListPanel;
+    }
+
+    /** Returns the guardian details panel mounted in this window. */
+    GuardianDetailsPanel getGuardianDetailsPanel() {
+        return guardianDetailsPanel;
+    }
+
     /** Empty compatibility panel for legacy UI tests; it is never attached to the window. */
     @Deprecated
     public PersonListPanel getPersonListPanel() {
@@ -311,6 +371,8 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
                 handleGroupsTab();
+            } else if (commandResult.getWorkspace() == CommandResult.Workspace.GUARDIANS) {
+                handleGuardiansTab();
             } else if (commandResult.getWorkspace() == CommandResult.Workspace.STUDENTS) {
                 handleStudentsTab();
             }
@@ -322,6 +384,7 @@ public class MainWindow extends UiPart<Stage> {
                 nextStudentId = null;
             }
             restoreStudentSelection(nextStudentId);
+            refreshGuardianDetails();
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

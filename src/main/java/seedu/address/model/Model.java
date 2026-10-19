@@ -26,6 +26,9 @@ public interface Model {
     /** Predicate that displays every student in the register. */
     Predicate<Student> PREDICATE_SHOW_ALL_STUDENTS = unused -> true;
 
+    /** Predicate that displays every guardian in the register. */
+    Predicate<Guardian> PREDICATE_SHOW_ALL_GUARDIANS = unused -> true;
+
     /** Compatibility view for retired Address Book commands; the student register contains no persons. */
     @Deprecated
     default ObservableList<Person> getFilteredPersonList() {
@@ -149,9 +152,14 @@ public interface Model {
         throw new UnsupportedOperationException();
     }
 
-    /** Returns an unmodifiable view of all guardians. */
+    /** Returns the current filtered Guardian view. */
     default ObservableList<Guardian> getGuardianList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+    }
+
+    /** Updates the guardians shown in the UI using the supplied predicate. */
+    default void updateFilteredGuardianList(Predicate<Guardian> predicate) {
+        throw new UnsupportedOperationException();
     }
 
     /** Returns whether a guardian with the same ID or phone exists. */
@@ -177,6 +185,11 @@ public interface Model {
     /** Returns the student's current guardian record, or empty if the student has no link. */
     default Optional<Guardian> getLinkedGuardian(String studentId) {
         return getAddressBook().getLinkedGuardian(studentId);
+    }
+
+    /** Returns the students linked to a guardian in the register's display order. */
+    default List<Student> getLinkedStudents(String guardianId) {
+        return List.of();
     }
 
     /** Links existing records, rejecting missing IDs and students who already have a guardian. */

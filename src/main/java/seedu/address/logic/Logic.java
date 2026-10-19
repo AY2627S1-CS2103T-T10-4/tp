@@ -59,6 +59,11 @@ public interface Logic {
     default ObservableList<Student> getStudentList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
+
+    /** Returns the observable Guardian view displayed by the Guardians workspace. */
+    default ObservableList<Guardian> getGuardianList() {
+        return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+    }
     /** Finds a student for profile display, including students hidden by the current search. */
     default Optional<Student> findStudent(String studentId) {
         return getStudentList().stream().filter(student -> student.getId().value.equals(studentId)).findFirst();
@@ -67,6 +72,11 @@ public interface Logic {
     /** Returns current guardian details for a student profile, or empty if there is no linked guardian. */
     default Optional<Guardian> getLinkedGuardian(String studentId) {
         return Optional.empty();
+    }
+
+    /** Returns the students currently linked to the supplied guardian. */
+    default List<Student> getLinkedStudents(String guardianId) {
+        return List.of();
     }
     /** Empty compatibility view for callers compiled against the retired Person UI. */
     @Deprecated
