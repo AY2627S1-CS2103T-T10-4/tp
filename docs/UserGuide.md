@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so one saved contact can appear in every linked student's profile.
 
-> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `link-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, unlinking a guardian, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
+> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `find-guardian`, `link-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, unlinking a guardian, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
 
 * Table of Contents
 {:toc}
@@ -150,7 +150,7 @@ Examples:
 * `add-guardian n/Anita Lim p/91234567`
 * `add-guardian p/+65 61234567 n/Raj Kumar`
 
-Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently and can be browsed with `list-guardians`; the current build has no command to search guardians by name.
+Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently. Browse them with `list-guardians` or search their names with `find-guardian`.
 
 Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number in the MVP.
 
@@ -161,6 +161,20 @@ Format: `list-guardians`
 Switches to the Guardians tab, clears any guardian filter, and lists every guardian by normalized name and then guardian ID. Each row shows the guardian's ID, name, canonical phone number and linked-student count. Selecting a row shows the guardian profile and every linked student's ID and name.
 
 The result is `Listed 6 guardian(s).`, using the actual number of guardian records. An empty register reports and displays `No guardians registered.` Command casing is ignored. Extra input reports `Invalid command format. Use: list-guardians` and leaves the current tab and list unchanged. Listing guardians is read-only and does not rewrite local data.
+
+### Searching guardians by name: `find-guardian`
+
+Format: `find-guardian n/QUERY`
+
+Examples: `find-guardian n/anita`; `find-guardian n/Anita Lim`
+
+Switches to the Guardians tab and displays names containing the query, ignoring case and normalizing whitespace. A multiword query is matched as one phrase. Results are sorted by normalized name and then guardian ID. Guardians with the same name remain separate records. Phone numbers, IDs and linked student names are not searched.
+
+Each row shows the contact details and linked-student count; selecting a row shows its linked students. The result reports, for example, `Found 2 guardian(s) matching "anita".` A search with no results shows an empty list and `No guardians match "anita"`. Run `list-guardians` to clear the search.
+
+Queries must contain 1-80 characters after whitespace normalization and follow the shared name rules. Invalid values report `Search query must be 1-80 characters and contain name characters only.` Missing or blank queries, repeated prefixes and additional parameters report `Invalid command format. Use: find-guardian n/QUERY`. Rejected searches preserve the current tab and list.
+
+Guardian search does not alter student filters or stored records and remains available during storage recovery.
 
 ### Updating a guardian's phone: `edit-guardian`
 
@@ -313,7 +327,7 @@ Closes the application and reports `Closing Mentora.` Successful data-changing c
 | A group code is not configured | Run `list-groups` and use an exact listed code. |
 | `Could not save changes.` | The change did not take effect. Check that the storage location is writable and has space, then retry. |
 | A load error appears with an empty list | Follow the recovery guidance under [Saving and reopening](#saving-and-reopening); preserve the original file. |
-| A documented command is reported as unknown | Check the supported commands in the current-build note. Guardian search, guardian edit/delete and assignment removal remain future work. |
+| A documented command is reported as unknown | Check the supported commands in the current-build note. Guardian edit/delete, unlinking and assignment removal remain future work. |
 
 ## Scope and limitations
 
@@ -358,6 +372,7 @@ These are the commands supported by the current MVP build. Replace example IDs w
 | Open student profile | `view-student sid/STUDENT_ID` | `view-student sid/S-0007` |
 | Add guardian | `add-guardian n/NAME p/PHONE` | `add-guardian n/Anita Lim p/91234567` |
 | List all guardians | `list-guardians` | `list-guardians` |
+| Find guardians by name | `find-guardian n/QUERY` | `find-guardian n/anita` |
 | Update guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` | `edit-guardian gid/G-0003 p/98765432` |
 | Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
 | View configured groups | `list-groups` | `list-groups` |
