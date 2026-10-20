@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so one saved contact can appear in every linked student's profile.
 
-> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `link-guardian`, `unlink-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
+> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `link-guardian`, `unlink-guardian`, `view-student`, `find-student`, `list-students`, `list-groups`, `assign-group`, `help`, and `exit`. Student phone can be entered during creation or updated with `edit-student`; guardian phone remains a separate contact. The five configured groups can be assigned to students and displayed in their profiles. Editing a guardian's phone, removing an assignment, and command-specific help are not yet available. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
 
 * Table of Contents
 {:toc}
@@ -26,11 +26,11 @@ For the current source build, follow [Setting up and getting started](SettingUp.
 
 ![Mentora mockup showing a student list, command box, result panel, and student profile](mockup/open-student-profile.png)
 
-The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results or configured groups. The **student profile** shows academic level, assignments, and the linked guardian's current name and phone number. The **status bar** reports local saving and loading.
+The **command box** accepts typed commands: enter one command and press **Enter**. The **result panel** explains whether it succeeded or what needs correcting. The **main list** displays students, search results or configured groups. The **student profile** shows academic level, the student's own phone (or `Phone: none`), assignments, and the linked guardian's current name and independent phone number. The **status bar** reports local saving and loading.
 
 ### Registering your first student
 
-Enter `add-student n/Mei Lin al/Sec 2` to create a student. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. Use `add-guardian n/Anita Lim p/91234567` to create a guardian, then `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` to show that contact in the student's profile. Use `find-student n/Mei`, `list-students`, and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID, `help` to open the help window, or `exit` to close Mentora.
+Enter `add-student n/Mei Lin al/Sec 2 p/91234567` to create a student with an optional direct contact number; omit `p/` when none is recorded. The result shows the generated student ID, and the list selects the new record. Use that ID in `edit-student sid/STUDENT_ID al/Sec 3` to update the academic level or `edit-student sid/STUDENT_ID p/98765432` to add or replace the student's phone. Enter `list-groups` to browse the catalogue, then `assign-group sid/STUDENT_ID g/MAT` to assign a group. Use `add-guardian n/Anita Lim p/91234567` to create a separate guardian contact, then `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` to show that contact in the student's profile. Use `find-student n/Mei`, `list-students`, and `view-student sid/STUDENT_ID` to locate and select students. Use `delete-student sid/STUDENT_ID` to permanently remove a student by ID, `help` to open the help window, or `exit` to close Mentora.
 
 ## Understanding commands and values
 
@@ -59,13 +59,14 @@ Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei 
 
 ### Adding a student: `add-student`
 
-Format: `add-student n/NAME al/ACADEMIC_LEVEL`
+Format: `add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]`
 
 Creates a student with a generated ID, no guardian, and no subject or class assignments. The list refreshes and selects the new student. If a search filter hides the new record, it is cleared after saving succeeds.
 
 Examples:
 
 * `add-student n/Mei Lin al/Sec 2`
+* `add-student n/Mei Lin al/Sec 2 p/91234567`
 * `add-student al/IP 4 n/S. Kumar`
 
 Example result: `Added student S-0007: Mei Lin (Sec 2).`
@@ -73,6 +74,8 @@ Example result: `Added student S-0007: Mei Lin (Sec 2).`
 ![Mockup of a newly added student with no assignments or guardian](mockup/add-student.png)
 
 A student with the same normalized name and academic level is rejected with, for example, `A student named Mei Lin at Sec 2 already exists.` The same name at different levels is allowed.
+
+The optional student phone uses the same Singapore number validation and canonical `+65 XXXXXXXX` display as a guardian phone. It is stored on the student record, is not required to be unique, and is separate from a linked guardian's number. Without a number the profile says `Phone: none`. Successful creation with a number reports `Added student S-0007: Mei Lin (Sec 2) with phone +65 91234567.`
 
 **MVP limitation:** This rule also rejects two different students who share both their name and academic level. The MVP does not yet provide a way to distinguish them.
 
@@ -82,11 +85,13 @@ Format: `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL`
 
 Example: `edit-student sid/S-0007 al/Sec 3`
 
-Changes only the student's academic level, retaining the same ID, name, group assignments, and guardian link. The list and selected profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` Review class assignments separately when a student moves up a level.
+Changes the student's academic level, retaining the same ID, name, student phone, group assignments, and guardian link. The list and selected profile refresh, with a result such as `Updated student S-0007: academic level is now Sec 3.` Review class assignments separately when a student moves up a level.
 
 Lookup and duplicate checks use every registered student, including records hidden by a search. After a successful edit, a filter hiding the target is cleared and that student is selected. The command keeps the current tab; select Students if Groups is open. Command and prefix names ignore case, either prefix order works, and each nonempty prefix is required exactly once.
 
-If the change would duplicate another student's name and level, it is rejected: `Cannot update S-0007: a student named Mei Lin at Sec 3 already exists.` This command only changes academic level; it does not edit names.
+If the change would duplicate another student's name and level, it is rejected: `Cannot update S-0007: a student named Mei Lin at Sec 3 already exists.` This command does not edit names.
+
+To add or replace the student's own number, use `edit-student sid/S-0007 p/98765432`. Success reports `Updated student S-0007 phone to +65 98765432.` The number is validated by the shared Singapore phone rule, may be shared with other records, and does not change the guardian phone. An unknown ID reports `Student S-0007 does not exist.`; a save failure retains the old number and reports `Could not save changes. Student S-0007 was not updated.` The level and phone prefixes may also be supplied together to update both fields in one command.
 
 ### Listing students: `list-students`
 
@@ -119,7 +124,7 @@ Format: `view-student sid/STUDENT_ID`
 
 Example: `view-student sid/S-0007`
 
-Selects the student's read-only profile and reports `Opened profile for S-0007.` The profile shows academic level, assignments with codes and labels, and the linked guardian's current name and canonical phone number, or `Guardian: none`. If a search hides the student, the filter is cleared after successful lookup. The command keeps the current tab: select Students if Groups is open. It never saves data.
+Selects the student's read-only profile and reports `Opened profile for S-0007.` The profile shows academic level, student phone (or `Phone: none`), assignments with codes and labels, and the linked guardian's current name and canonical phone number, or `Guardian: none`. The two phone numbers are independent. If a search hides the student, the filter is cleared after successful lookup. The command keeps the current tab: select Students if Groups is open. It never saves data.
 
 Use the ID shown in the student list or search results. To change information, use the relevant editing, linking, or assignment command.
 
@@ -350,8 +355,8 @@ These are the commands supported by the current MVP build. Replace example IDs w
 
 | Action | Format | Example |
 |---|---|---|
-| Add student | `add-student n/NAME al/ACADEMIC_LEVEL` | `add-student n/Mei Lin al/Sec 2` |
-| Update academic level | `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL` | `edit-student sid/S-0007 al/Sec 3` |
+| Add student | `add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]` | `add-student n/Mei Lin al/Sec 2 p/91234567` |
+| Update academic level or phone | `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL` or `edit-student sid/STUDENT_ID p/PHONE` | `edit-student sid/S-0007 p/98765432` |
 | Delete student permanently | `delete-student sid/STUDENT_ID` | `delete-student sid/S-0007` |
 | List all students | `list-students` | `list-students` |
 | Find students by name | `find-student n/QUERY` | `find-student n/mei` |

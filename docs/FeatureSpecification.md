@@ -33,11 +33,11 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ### Add student
 ![](./mockup/add-student.png)
 - **Feature:** Add student
-- **Purpose:** Creates a student record with its generated ID, name, and academic level. The new student initially has no guardian and no assignments.
-- **Command format:** `add-student n/NAME al/ACADEMIC_LEVEL`
-- **Example commands:** `add-student n/Mei Lin al/Sec 2`; `add-student al/IP 4 n/S. Kumar`
-- **Parameters:** `n/` uses `NAME`; `al/` uses `ACADEMIC_LEVEL`. The shared rules above give the accepted values, exact errors, and rationale.
-- **Outputs:** On success, the result panel says `Added student S-0007: Mei Lin (Sec 2).` The student list refreshes and selects the new record. On a malformed, missing, repeated, or unknown parameter, it shows the shared format error; invalid field values show their exact shared error.
+- **Purpose:** Creates a student record with its generated ID, name, academic level, and optional independent student contact number. The new student initially has no guardian and no assignments.
+- **Command format:** `add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]`
+- **Example commands:** `add-student n/Mei Lin al/Sec 2`; `add-student n/Mei Lin al/Sec 2 p/91234567`; `add-student al/IP 4 n/S. Kumar`
+- **Parameters:** `n/` uses `NAME`; `al/` uses `ACADEMIC_LEVEL`; optional `p/` uses `PHONE`. Student phone is independent from any guardian phone and is not required to be unique.
+- **Outputs:** Without a phone, the result panel says `Added student S-0007: Mei Lin (Sec 2).`; with a phone it says `Added student S-0007: Mei Lin (Sec 2) with phone +65 91234567.` The student list refreshes and selects the new record. On a malformed, missing, repeated, or unknown parameter, it shows the shared format error; invalid field values show their exact shared error.
 - **Duplicate handling:** A student is a duplicate when normalized, case-insensitive name *and* canonical academic level are both equal to an existing student. It is rejected with `A student named Mei Lin at Sec 2 already exists.` Students with the same name at different levels are allowed, because siblings or different people can share a name; the level avoids accidentally recording the same student twice.
 - **Possible errors:** If saving fails after validation, the in-memory change is rolled back and the result panel says `Could not save changes. No student was added.`
 
@@ -51,6 +51,16 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Outputs:** On success: `Updated student S-0007: academic level is now Sec 3.` The profile and any visible list row refresh. Format and field-value failures use the messages above.
 - **Duplicate handling:** The proposed name plus new level is checked with the same rule as Add student. A clash is rejected with `Cannot update S-0007: a student named Mei Lin at Sec 3 already exists.` This retains the no-duplicate invariant after edits.
 - **Possible errors:** An unknown ID produces the exact student-not-found message. A persistence failure rolls the change back and says `Could not save changes. Student S-0007 was not updated.`
+
+### Update student phone
+- **Feature:** Update student phone
+- **Purpose:** Adds or replaces the student's own contact number without changing their academic level, guardian, or assignments.
+- **Command format:** `edit-student sid/STUDENT_ID p/PHONE`
+- **Example commands:** `edit-student sid/S-0007 p/98765432`
+- **Parameters:** `sid/` uses `STUDENT_ID`; `p/` uses the shared `PHONE` rule. A student may share a phone number with another student or guardian.
+- **Outputs:** On success: `Updated student S-0007 phone to +65 98765432.` The selected profile refreshes. An absent phone is shown as `Phone: none`; a recorded number is shown in canonical `+65 XXXXXXXX` format.
+- **Duplicate handling:** Student phone does not participate in the duplicate student rule, which remains normalized name plus academic level.
+- **Possible errors:** Unknown IDs use the student-not-found message; invalid phone values use the shared phone error; malformed parameters show `Invalid command format. Use: edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL or edit-student sid/STUDENT_ID p/PHONE`. A save failure retains the previous record and says `Could not save changes. Student S-0007 was not updated.`
 
 ### Delete student
 ![](./mockup/delete-student.png)
@@ -173,7 +183,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ### Open student profile
 ![](./mockup/open-student-profile.png)
 - **Feature:** View student profile
-- **Purpose:** Opens a full read-only profile for one student, including academic level, every assignment (code and label), and the linked guardian's name and canonical phone number, or `Guardian: none`.
+- **Purpose:** Opens a full read-only profile for one student, including academic level, student phone or `Phone: none`, every assignment (code and label), and the linked guardian's name and canonical phone number, or `Guardian: none`. Student and guardian phone numbers are independent.
 - **Command format:** `view-student sid/STUDENT_ID`
 - **Example commands:** `view-student sid/S-0007`
 - **Parameters:** `sid/` uses `STUDENT_ID`.
@@ -211,8 +221,8 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 
 | Action | Format |
 |---|---|
-| Add student | `add-student n/NAME al/ACADEMIC_LEVEL` |
-| Edit student level | `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL` |
+| Add student | `add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]` |
+| Edit student level / phone | `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL` / `edit-student sid/STUDENT_ID p/PHONE` |
 | Delete student | `delete-student sid/STUDENT_ID` |
 | Add guardian | `add-guardian n/NAME p/PHONE` |
 | Edit guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` |
