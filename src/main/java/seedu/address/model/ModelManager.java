@@ -165,6 +165,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void updateGuardian(Guardian guardian) {
+        addressBook.updateGuardian(guardian);
+    }
+
+    @Override
     public GuardianId unlinkGuardian(String studentId) {
         GuardianId guardianId = addressBook.unlinkGuardian(studentId);
         logger.fine(() -> "Removed in-memory guardian link for student " + studentId);
