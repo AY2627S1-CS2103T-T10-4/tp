@@ -14,7 +14,7 @@ import javafx.application.Platform;
  */
 final class JavaFxTestUtils {
 
-    private static final int TIMEOUT_SECONDS = 10;
+    private static final int TIMEOUT_SECONDS = 30;
     private static final AtomicBoolean IS_TOOLKIT_STARTED = new AtomicBoolean();
 
     private JavaFxTestUtils() {}

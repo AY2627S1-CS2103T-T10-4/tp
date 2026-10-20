@@ -58,6 +58,8 @@ class StudentDetailsPanelTest {
     void setStudent_displaysStudentPhone() {
         JavaFxTestUtils.runOnFxThread(() -> {
             StudentDetailsPanel panel = new StudentDetailsPanel();
+            new Scene(panel.getRoot());
+            panel.getRoot().applyCss();
             panel.setStudent(new Student(new StudentId("S-0092"), new StudentName("Amy Tan"),
                     new AcademicLevel("IP 1"), new StudentPhone("91234567")));
             assertEquals("+65 91234567", getLabel(panel, "studentPhone").getText());

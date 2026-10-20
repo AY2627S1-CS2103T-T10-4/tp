@@ -40,7 +40,7 @@ The complete user-facing command contract, duplicate rules, and error messages a
 Focused tests cover add and edit feedback, optional add parsing and phone normalization,
 phone-only and combined student edits, invalid phone input, legacy records without the
 phone property, student phone storage conversion, and profile rendering with and without
-a phone. The full run compiled main and test sources and completed 507 tests; 506 passed
-and one existing `AssignGroupUiTest.failedEdit_restoresProfileFilterSelectionWorkspaceAndCompleteRegister`
-test timed out waiting for the JavaFX thread. Focused reruns and checkstyle could not
-start because Gradle reported `Could not determine a usable wildcard IP for this machine`.
+a phone. The full run compiled main and test sources and completed 510 tests
+successfully. The JavaFX test helper allows 30 seconds for actions on its application
+thread to avoid timing out on slower CI runners. Both `checkstyleMain` and
+`checkstyleTest` passed.
