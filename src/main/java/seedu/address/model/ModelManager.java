@@ -109,6 +109,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void removeGroupAssignment(GroupAssignment assignment) {
+        addressBook.removeGroupAssignment(assignment);
+    }
+
+    @Override
     public List<Group> getAssignedGroups(String studentId) {
         requireNonNull(studentId);
         Set<GroupCode> codes = addressBook.getGroupAssignments().stream()
