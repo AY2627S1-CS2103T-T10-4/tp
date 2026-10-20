@@ -9,6 +9,6 @@
       xmlns:fx="http://javafx.com/fxml/1">
   <Label text=">" styleClass="command-prompt" />
   <TextField fx:id="commandTextField" HBox.hgrow="ALWAYS" onAction="#handleCommandEntered"
-             promptText="e.g. add-student n/Mei Lin al/Sec 2" />
+             promptText="e.g. add-student n/Mei Lin al/Sec 2 p/91234567" />
   <Button defaultButton="true" mnemonicParsing="false" onAction="#handleCommandEntered" text="Run" />
 </HBox>
