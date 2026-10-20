@@ -12,6 +12,7 @@ import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 class EditStudentCommandParserTest {
     private final EditStudentCommandParser parser = new EditStudentCommandParser();
@@ -64,5 +65,18 @@ class EditStudentCommandParserTest {
         long nextId = Long.parseLong(StudentId.generate().value.substring(2));
         assertEquals(previousId + 1, nextId);
         assertTrue(nextId < 999999999999L);
+    }
+
+    @Test
+    void parse_phoneOnlyAndCombinedUpdate_success() throws Exception {
+        ModelManager model = new ModelManager();
+        model.addStudent(new Student(new StudentId("S-0007"), new StudentName("Mei Lin"),
+                new AcademicLevel("Sec 2")));
+        parser.parse("sid/S-0007 p/+65 91234567").execute(model);
+        assertEquals("+65 91234567", model.findStudent("S-0007").orElseThrow().getPhone().orElseThrow().toString());
+        parser.parse("al/Sec 3 sid/S-0007 p/98765432").execute(model);
+        assertEquals("Sec 3", model.findStudent("S-0007").orElseThrow().getAcademicLevel().toString());
+        assertEquals("+65 98765432", model.findStudent("S-0007").orElseThrow().getPhone().orElseThrow().toString());
+        assertParseFailure(parser, "sid/S-0007 p/71234567", StudentPhone.MESSAGE_CONSTRAINTS);
     }
 }

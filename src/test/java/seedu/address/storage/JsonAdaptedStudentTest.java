@@ -11,6 +11,7 @@ import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 class JsonAdaptedStudentTest {
     private static final String ID = "S-0088";
@@ -40,5 +41,14 @@ class JsonAdaptedStudentTest {
         assertThrows(IllegalValueException.class, () -> new JsonAdaptedStudent("G-0001", NAME, LEVEL).toModelType());
         assertThrows(IllegalValueException.class, () -> new JsonAdaptedStudent(ID, "Mei2", LEVEL).toModelType());
         assertThrows(IllegalValueException.class, () -> new JsonAdaptedStudent(ID, NAME, "Sec 6").toModelType());
+    }
+
+    @Test
+    void toModelType_studentPhoneAndLegacyMissingPhone_load() throws Exception {
+        Student withPhone = new Student(new StudentId(ID), new StudentName(NAME), new AcademicLevel(LEVEL),
+                new StudentPhone("91234567"));
+        assertEquals("+65 91234567", new JsonAdaptedStudent(withPhone).toModelType()
+                .getPhone().orElseThrow().toString());
+        assertEquals(java.util.Optional.empty(), new JsonAdaptedStudent(ID, NAME, LEVEL).toModelType().getPhone());
     }
 }
