@@ -2,8 +2,10 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.GuardianLinkTestUtil.getUnlinkedAddressBook;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -78,7 +80,11 @@ class UnassignGroupCommandParserTest {
         ModelManager model = model();
         AddressBook before = new AddressBook(model.getAddressBook());
         long previous = Long.parseLong(StudentId.generate().value.substring(2));
-        for (String studentId : new String[] {"S-0000", "S-9999", "S-10000", "S-00007", "S-" + "9".repeat(1000)}) {
+        String dynamicStudentId = "S-" + String.format(Locale.ROOT, "%04d", Math.addExact(previous, 2L));
+        String[] unknownStudentIds = {"S-0000", "S-9999", "S-10000", "S-00007", dynamicStudentId,
+            "S-" + "9".repeat(1000)};
+        for (String studentId : unknownStudentIds) {
+            assertTrue(model.findStudent(studentId).isEmpty(), "Test student ID must be absent: " + studentId);
             UnassignGroupCommand command = parser.parse("sid/" + studentId + " g/MAT");
 
             CommandException error = assertThrows(CommandException.class, () -> command.execute(model));
