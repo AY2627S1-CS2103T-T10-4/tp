@@ -40,8 +40,9 @@ for source compatibility.
   by stable ID; deleting a student removes only that student's relationships.
 - `link-guardian` validates both stable IDs, enforces one guardian per student, permits a guardian to be shared by
   siblings, and refreshes the selected student's profile after saving.
-- `assign-group` parses ID text without allocating IDs, validates before mutation and requests the Students
-  workspace only after Logic has saved successfully. `list-groups` is a read-only query and requests Groups.
+- `assign-group` and `unassign-group` parse ID text without allocating IDs and validate before mutation. Their
+  results request the Students workspace, which MainWindow applies only after Logic has saved successfully.
+  `list-groups` is a read-only query and requests Groups.
 - JSON has `students` plus optional `guardians`, `guardianLinks`, and `groupAssignments` arrays. Stored text must be
   JSON strings; malformed or dangling relationships and records fail the complete load instead of publishing partial data.
 - `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
@@ -53,12 +54,35 @@ for source compatibility.
   The three-tab MainWindow reuses one Guardian list/details pair; rows show ID, name, phone and linked-student
   count, while the profile resolves linked Students from the current aggregate.
 - Model exposes a filtered Student view while the complete register remains authoritative for lookup and saving.
-  View/Search/List are read-only; successful View/Assign/Add Student results reveal a hidden target by clearing
+  View/Search/List are read-only; successful View/Assign/Unassign/Add Student results reveal a hidden target by clearing
   the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
 
 See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for the combined catalogue, assignment and
 recovery APIs, validation, tests and integration limits. See [Link Guardian Handover](feature-handover/LinkGuardianHandover.md)
 for the guardian-relationship and profile-display contract.
+
+For `unassign-group`, `LogicManager.execute` asks `AddressBookParser` to dispatch to
+`UnassignGroupCommandParser`, which validates syntax, retains the student ID as text and creates
+`UnassignGroupCommand`. Logic checks recovery state and snapshots the complete register before executing
+the command. The command resolves the student from the full register without constructing another ID and
+resolves the canonical group through the configured catalogue. It calls `Model.removeGroupAssignment`;
+`ModelManager` delegates to `AddressBook.removeGroupAssignment`. The aggregate validates the student,
+configured group and existing membership before removing exactly that pair, including a final assignment.
+Student and guardian records, guardian links, other assignments and the catalogue are preserved.
+
+After command execution, Logic saves the changed aggregate exactly once through the existing JSON schema.
+Syntax and domain rejections do not save. A save `IOException` restores the complete in-memory snapshot and
+becomes `Could not save changes. The group assignment was not removed.`, retaining the original cause.
+Only successful saving permits Logic to reveal a hidden target and return the `CommandResult`.
+MainWindow then applies its target ID and Students workspace request and explicitly refreshes the profile,
+even when the Student object is unchanged. The profile displays `No groups assigned.` when the list is empty.
+The command performs neither persistence nor UI updates. Normal saves remain non-atomic: in-memory rollback
+does not guarantee that a file partially written before failure is unchanged.
+
+F10 coverage is in `AddressBookAssignmentTest`, `ModelManagerAssignmentTest`, `UnassignGroupCommandTest`,
+`UnassignGroupCommandParserTest`, `UnassignGroupIntegrationTest` and `UnassignGroupUiTest`. These exercise
+validation and ID safety, relationship preservation, save counts, JSON reload, recovery and failed-save
+rollback, post-save reveal, same-object profile refresh, navigation and rendered failure states.
 
 <img src="images/ArchitectureDiagram.png" width="280" />
 
