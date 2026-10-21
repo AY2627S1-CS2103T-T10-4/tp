@@ -68,7 +68,7 @@
 
         <HBox fx:id="resultSection" alignment="CENTER_LEFT" styleClass="result-section" spacing="14"
               VBox.vgrow="NEVER">
-          <Label text="RESULT" styleClass="result-label" />
+          <Label text="RESULT" styleClass="result-label" minWidth="-Infinity" />
           <StackPane fx:id="resultDisplayPlaceholder" HBox.hgrow="ALWAYS" />
         </HBox>
 

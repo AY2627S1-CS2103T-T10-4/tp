@@ -106,6 +106,18 @@ public interface Model {
     void addGroupAssignment(GroupAssignment assignment);
 
     /**
+     * Removes one existing assignment from the in-memory register, including a student's last assignment.
+     * Validates the student, configured group and membership before mutation; rejection leaves the register unchanged.
+     * Preserves all student and guardian records, guardian links, other assignments and the configured catalogue.
+     * This operation does not save data to disk.
+     *
+     * @param assignment The student/group pair to remove, using the existing student's ID.
+     * @throws IllegalArgumentException If the student or configured group is unknown, or the pair is not assigned.
+     * @throws NullPointerException If {@code assignment} is null.
+     */
+    void removeGroupAssignment(GroupAssignment assignment);
+
+    /**
      * Returns a student's assigned groups in catalogue order as an immutable snapshot.
      *
      * @param studentId The exact stable ID text to look up, without allocating an ID.

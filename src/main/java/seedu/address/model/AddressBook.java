@@ -39,6 +39,8 @@ public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_GROUP =
             "Group %s is not configured. Run list-groups to see available groups.";
     public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
+    /** Error message when an existing student has no assignment to a configured group. */
+    public static final String MESSAGE_MISSING_ASSIGNMENT = "Student %s is not assigned to %s.";
 
     private final ObservableList<Student> students = FXCollections.observableArrayList();
     private final ObservableList<Guardian> guardians = FXCollections.observableArrayList();
@@ -214,6 +216,31 @@ public class AddressBook implements ReadOnlyAddressBook {
                     assignment.getStudentId(), assignment.getGroupCode()));
         }
         groupAssignments.add(assignment);
+    }
+
+    /**
+     * Removes one existing assignment from this in-memory register, including a student's last assignment.
+     * Validates the student, configured group and membership before mutation; rejection leaves the register unchanged.
+     * Preserves all student and guardian records, guardian links, other assignments and the configured catalogue.
+     * This operation does not save data to disk.
+     *
+     * @param assignment The immutable student/group pair to remove.
+     * @throws IllegalArgumentException If the student or configured group is unknown, or the pair is not assigned.
+     * @throws NullPointerException If {@code assignment} is null.
+     */
+    public void removeGroupAssignment(GroupAssignment assignment) {
+        requireNonNull(assignment);
+        if (!hasStudentId(assignment.getStudentId())) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, assignment.getStudentId()));
+        }
+        if (ConfiguredGroups.getCatalogue().findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
+        }
+        if (!groupAssignments.contains(assignment)) {
+            throw new IllegalArgumentException(String.format(MESSAGE_MISSING_ASSIGNMENT,
+                    assignment.getStudentId(), assignment.getGroupCode()));
+        }
+        groupAssignments.remove(assignment);
     }
 
     /**
