@@ -365,6 +365,8 @@ public class MainWindow extends UiPart<Stage> {
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         String previousStudentId = studentListPanel.getSelectedStudentId();
+        Guardian previousGuardian = guardianListPanel.selectedGuardianProperty().get();
+        String previousGuardianId = previousGuardian == null ? null : previousGuardian.getId().toString();
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
@@ -398,9 +400,11 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
+            logger.fine("Command rejected: " + e.getClass().getSimpleName());
             resultDisplay.setFeedbackToUser(e.getMessage());
             restoreStudentSelection(previousStudentId);
+            guardianListPanel.selectGuardianId(previousGuardianId);
+            refreshGuardianWorkspace();
             throw e;
         }
     }
