@@ -93,9 +93,12 @@ public class EditStudentCommand extends Command {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_FORMAT, id, updated.getName(), updatedLevel),
                     e);
         }
-        String feedback = editingPhone
-                ? "Updated student " + id + " phone to " + phone + "."
-                : String.format(MESSAGE_SUCCESS_FORMAT, id, updatedLevel);
+        String feedback = level != null && editingPhone
+                ? "Updated student " + id + ": academic level is now " + updatedLevel
+                        + " and phone is now " + phone + "."
+                : editingPhone
+                        ? "Updated student " + id + " phone to " + phone + "."
+                        : String.format(MESSAGE_SUCCESS_FORMAT, id, updatedLevel);
         return new CommandResult(feedback, false, false, id);
     }
 }

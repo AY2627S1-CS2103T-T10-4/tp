@@ -70,6 +70,22 @@ class EditStudentCommandTest {
         assertEquals("Updated student S-0007 phone to +65 98765432.", result.getFeedbackToUser());
     }
 
+    @Test
+    void execute_updatesLevelAndPhoneAndReportsBoth() throws Exception {
+        ModelManager model = new ModelManager();
+        Student original = student("S-0007", "Mei Lin", "Sec 2");
+        model.addStudent(original);
+
+        CommandResult result = new EditStudentCommand("S-0007", new AcademicLevel("Sec 3"),
+                new StudentPhone("98765432"), true).execute(model);
+
+        Student updated = model.findStudent("S-0007").orElseThrow();
+        assertEquals("Sec 3", updated.getAcademicLevel().toString());
+        assertEquals("+65 98765432", updated.getPhone().orElseThrow().toString());
+        assertEquals("Updated student S-0007: academic level is now Sec 3 and phone is now +65 98765432.",
+                result.getFeedbackToUser());
+    }
+
     private static Student student(String id, String name, String level) {
         return new Student(new StudentId(id), new StudentName(name), new AcademicLevel(level));
     }
