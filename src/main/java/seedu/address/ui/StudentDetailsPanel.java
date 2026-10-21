@@ -22,6 +22,7 @@ public class StudentDetailsPanel extends UiPart<Region> {
     @FXML private Label id;
     @FXML private Label name;
     @FXML private Label academicLevel;
+    @FXML private Label studentPhone;
     @FXML private Label guardianDetails;
     @FXML private VBox assignments;
 
@@ -69,6 +70,7 @@ public class StudentDetailsPanel extends UiPart<Region> {
             id.setText(student.getId().toString());
             name.setText(student.getName().toString());
             academicLevel.setText(student.getAcademicLevel().toString());
+            studentPhone.setText(student.getPhone().map(Object::toString).orElse("Phone: none"));
             if (assignedGroups.isEmpty()) {
                 addAssignmentLabel("No groups assigned.");
             } else {

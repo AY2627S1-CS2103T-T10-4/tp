@@ -5,7 +5,7 @@ title: UI README
 
 # Mentora UI README
 
-This document maps the JavaFX interface to its implementation classes and FXML files. The main workspace displays Mentora student records with ID, name, academic level and configured-group assignments. Guardian profile content is not yet implemented.
+This document maps the JavaFX interface to its implementation classes and FXML files. The main workspace displays Mentora student records with ID, name, academic level, optional student phone and configured-group assignments.
 
 ## Screen structure
 
@@ -29,7 +29,7 @@ The window defaults to `1000 × 650` and restores larger saved dimensions. Previ
 | Student list | `StudentListPanel` | `StudentListPanel.fxml` | Owns the student list and stable-ID selection behavior. Each row uses the card component below. |
 | Student list row | `StudentCard` | `StudentListCard.fxml` | Arranges the existing student ID and name as a padded summary on the left and academic level in an aligned right column. |
 | Configured groups | `GroupListPanel` | `GroupListPanel.fxml` | Displays the fixed catalogue's code, label, kind, order, and actual count in the Groups workspace. |
-| Selected student details | `StudentDetailsPanel` | `StudentDetailsPanel.fxml` | Shows ID, name, academic level and assignments, or an empty state; the profile scrolls as one unit when space is limited. |
+| Selected student details | `StudentDetailsPanel` | `StudentDetailsPanel.fxml` | Shows ID, name, academic level, student phone (or `Phone: none`) and assignments, or an empty state; the profile scrolls as one unit when space is limited. |
 | Persistence footer | `StatusBarFooter` | `StatusBarFooter.fxml` | Shows the active JSON path and keyboard hints; during recovery it shows Saving disabled and retains the load-failure reason in a tooltip. |
 | Help window | `HelpWindow` | `HelpWindow.fxml` | Preserves the existing F1 help action and link-copy behavior. |
 | Application/UI bootstrap | `UiManager` | — | Creates `MainWindow`, supplies application dependencies, and owns fatal-error dialogs. |

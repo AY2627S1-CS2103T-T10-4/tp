@@ -7,6 +7,7 @@ import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 /** Parses add-student arguments. */
 public class AddStudentCommandParser implements Parser<AddStudentCommand> {
@@ -14,25 +15,29 @@ public class AddStudentCommandParser implements Parser<AddStudentCommand> {
 
     @Override
     public AddStudentCommand parse(String args) throws ParseException {
-        String canonical = args.replaceAll("(?i)n/", "n/").replaceAll("(?i)al/", "al/");
+        String canonical = args.replaceAll("(?i)n/", "n/").replaceAll("(?i)al/", "al/")
+                .replaceAll("(?i)p/", "p/");
         Matcher matcher = UNKNOWN_PREFIX.matcher(canonical);
         while (matcher.find()) {
-            if (!matcher.group(1).equalsIgnoreCase("n/") && !matcher.group(1).equalsIgnoreCase("al/")) {
+            if (!matcher.group(1).equalsIgnoreCase("n/") && !matcher.group(1).equalsIgnoreCase("al/")
+                    && !matcher.group(1).equalsIgnoreCase("p/")) {
                 throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
             }
         }
         ArgumentMultimap arg = ArgumentTokenizer.tokenize(" " + canonical,
-                CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL);
+                CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL, CliSyntax.PREFIX_PHONE);
         if (!arg.getPreamble().isEmpty()) {
             throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
         }
         try {
-            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL);
+            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL,
+                    CliSyntax.PREFIX_PHONE);
             String rawName = arg.getValue(CliSyntax.PREFIX_NAME)
                     .orElseThrow(() -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
             String rawLevel = arg.getValue(CliSyntax.PREFIX_ACADEMIC_LEVEL)
                     .orElseThrow(() -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
-            return new AddStudentCommand(new StudentName(rawName), new AcademicLevel(rawLevel));
+            StudentPhone phone = arg.getValue(CliSyntax.PREFIX_PHONE).map(StudentPhone::new).orElse(null);
+            return new AddStudentCommand(new StudentName(rawName), new AcademicLevel(rawLevel), phone);
         } catch (ParseException e) {
             throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
         } catch (IllegalArgumentException e) {

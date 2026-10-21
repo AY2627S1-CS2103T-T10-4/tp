@@ -9,6 +9,7 @@ import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 class AddStudentCommandParserTest {
     private final AddStudentCommandParser parser = new AddStudentCommandParser();
@@ -30,6 +31,8 @@ class AddStudentCommandParserTest {
     void parse_missingRepeatedOrUnknownPrefix_failure() {
         assertParseFailure(parser, "n/Mei Lin", AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/Mei Lin al/Sec 2 al/Sec 3", AddStudentCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Mei Lin al/Sec 2 p/91234567 p/98765432",
+                AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/Mei Lin al/Sec 2 x/value", AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "unexpected n/Mei Lin al/Sec 2", AddStudentCommand.MESSAGE_USAGE);
     }
@@ -38,5 +41,13 @@ class AddStudentCommandParserTest {
     void parse_invalidNameOrLevel_failure() {
         assertParseFailure(parser, "n/Mei2 Lin al/Sec 2", StudentName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "n/Mei Lin al/Sec 6", AcademicLevel.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    void parse_optionalPhoneCanonicalizesAndRejectsInvalidPhone() throws Exception {
+        ModelManager model = new ModelManager();
+        parser.parse("n/Mei Lin al/Sec 2 p/91234567").execute(model);
+        assertEquals("+65 91234567", model.getStudentList().get(0).getPhone().orElseThrow().toString());
+        assertParseFailure(parser, "n/Mei Lin al/Sec 2 p/71234567", StudentPhone.MESSAGE_CONSTRAINTS);
     }
 }

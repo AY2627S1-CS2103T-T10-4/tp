@@ -14,6 +14,7 @@ import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 class StudentDetailsPanelTest {
     @BeforeAll
@@ -33,6 +34,7 @@ class StudentDetailsPanelTest {
             assertEquals("S-0090", getLabel(panel, "id").getText());
             assertEquals("Mei Lin", getLabel(panel, "name").getText());
             assertEquals("Sec 2", getLabel(panel, "academicLevel").getText());
+            assertEquals("Phone: none", getLabel(panel, "studentPhone").getText());
             assertFalse(getPane(panel, "emptyState").isVisible());
             assertTrue(getPane(panel, "detailsContent").isVisible());
         });
@@ -49,6 +51,18 @@ class StudentDetailsPanelTest {
             assertTrue(getPane(panel, "emptyState").isManaged());
             assertFalse(getPane(panel, "detailsContent").isVisible());
             assertFalse(getPane(panel, "detailsContent").isManaged());
+        });
+    }
+
+    @Test
+    void setStudent_displaysStudentPhone() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            StudentDetailsPanel panel = new StudentDetailsPanel();
+            new Scene(panel.getRoot());
+            panel.getRoot().applyCss();
+            panel.setStudent(new Student(new StudentId("S-0092"), new StudentName("Amy Tan"),
+                    new AcademicLevel("IP 1"), new StudentPhone("91234567")));
+            assertEquals("+65 91234567", getLabel(panel, "studentPhone").getText());
         });
     }
 

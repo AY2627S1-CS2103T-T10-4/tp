@@ -12,6 +12,7 @@ import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
 import seedu.address.model.student.StudentName;
+import seedu.address.model.student.StudentPhone;
 
 class EditStudentCommandParserTest {
     private final EditStudentCommandParser parser = new EditStudentCommandParser();
@@ -38,7 +39,9 @@ class EditStudentCommandParserTest {
         String[] invalid = {"", "al/Sec 2", "sid/ al/Sec 2", "sid/S-0007 al/", "sid/ al/",
             "sid/s-0007 al/Sec 2", "sid/S-007 al/Sec 2", "sid/S-0007 extra al/Sec 2",
             "SID/S-0007 sid/S-0008 al/Sec 2", "sid/S-0007 AL/Sec 2 al/Sec 3",
-            "sid/S-0007 al/Sec 2 X/value", "x/value sid/S-0007 al/Sec 2"};
+            "sid/S-0007 al/Sec 2 X/value", "x/value sid/S-0007 al/Sec 2",
+            "sid/S-0007 p/91234567 p/98765432",
+            "sid/S-0007 al/Sec 3 p/", "sid/S-0007 al/ p/98765432"};
         for (String args : invalid) {
             assertParseFailure(parser, args, EditStudentCommand.MESSAGE_USAGE);
         }
@@ -64,5 +67,19 @@ class EditStudentCommandParserTest {
         long nextId = Long.parseLong(StudentId.generate().value.substring(2));
         assertEquals(previousId + 1, nextId);
         assertTrue(nextId < 999999999999L);
+    }
+
+    @Test
+    void parse_phoneOnlyAndCombinedUpdate_success() throws Exception {
+        ModelManager model = new ModelManager();
+        model.addStudent(new Student(new StudentId("S-0007"), new StudentName("Mei Lin"),
+                new AcademicLevel("Sec 2")));
+        parser.parse("sid/S-0007 p/+65 91234567").execute(model);
+        assertEquals("+65 91234567", model.findStudent("S-0007").orElseThrow().getPhone().orElseThrow().toString());
+        parser.parse("al/Sec 3 sid/S-0007 p/98765432").execute(model);
+        assertEquals("Sec 3", model.findStudent("S-0007").orElseThrow().getAcademicLevel().toString());
+        assertEquals("+65 98765432", model.findStudent("S-0007").orElseThrow().getPhone().orElseThrow().toString());
+        assertParseFailure(parser, "sid/S-0007 p/71234567", StudentPhone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "sid/S-0007 p/+65  91234567", StudentPhone.MESSAGE_CONSTRAINTS);
     }
 }
