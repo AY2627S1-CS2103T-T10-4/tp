@@ -4,57 +4,68 @@ skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
 
-package UI <<Rectangle>>{
+package UI <<Rectangle>> {
 Class "<<interface>>\nUi" as Ui
 Class "{abstract}\nUiPart" as UiPart
 Class UiManager
 Class MainWindow
 Class HelpWindow
-Class ResultDisplay
-Class PersonListPanel
-Class PersonCard
-Class StatusBarFooter
 Class CommandBox
-}
+Class ResultDisplay
+Class StatusBarFooter
+Class StudentListPanel
+Class StudentDetailsPanel
+Class StudentCard
+Class GuardianListPanel
+Class GuardianDetailsPanel
+Class GuardianCard
+Class GroupListPanel
 
-package Model <<Rectangle>> {
-Class HiddenModel #FFFFFF
+package "Legacy compatibility" <<Rectangle>> {
+Class PersonListPanel
+Class PersonDetailsPanel
+Class PersonCard
+}
 }
 
 package Logic <<Rectangle>> {
 Class HiddenLogic #FFFFFF
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Ui
-
 UiManager .left.|> Ui
-UiManager -down-> "1" MainWindow
-MainWindow *-down->  "1" CommandBox
-MainWindow *-down-> "1" ResultDisplay
-MainWindow *-down-> "1" PersonListPanel
-MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
-
-PersonListPanel -down-> "*" PersonCard
+UiManager *-down-> "1" MainWindow
+UiManager -right-> Logic
 
 MainWindow -left-|> UiPart
-
-ResultDisplay --|> UiPart
-CommandBox --|> UiPart
-PersonListPanel --|> UiPart
-PersonCard --|> UiPart
-StatusBarFooter --|> UiPart
-HelpWindow --|> UiPart
-
-PersonCard ..> Model
-UiManager -right-> Logic
 MainWindow -left-> Logic
+MainWindow *-down-> "1" HelpWindow
+MainWindow *-down-> "1" CommandBox
+MainWindow *-down-> "1" ResultDisplay
+MainWindow *-down-> "1" StatusBarFooter
+MainWindow *-down-> "1" StudentListPanel
+MainWindow *-down-> "1" StudentDetailsPanel
+MainWindow *-down-> "1" GuardianListPanel
+MainWindow *-down-> "1" GuardianDetailsPanel
+MainWindow *-down-> "1" GroupListPanel
 
-PersonListPanel -[hidden]left- HelpWindow
-HelpWindow -[hidden]left- CommandBox
-CommandBox -[hidden]left- ResultDisplay
-ResultDisplay -[hidden]left- StatusBarFooter
+HelpWindow --|> UiPart
+CommandBox --|> UiPart
+ResultDisplay --|> UiPart
+StatusBarFooter --|> UiPart
+StudentListPanel --|> UiPart
+StudentDetailsPanel --|> UiPart
+StudentCard --|> UiPart
+GuardianListPanel --|> UiPart
+GuardianDetailsPanel --|> UiPart
+GuardianCard --|> UiPart
+GroupListPanel --|> UiPart
+PersonListPanel --|> UiPart
+PersonDetailsPanel --|> UiPart
+PersonCard --|> UiPart
+
+StudentListPanel -down-> "*" StudentCard
+GuardianListPanel -down-> "*" GuardianCard
+PersonListPanel -down-> "*" PersonCard
 
 MainWindow -[hidden]-|> UiPart
 @enduml
