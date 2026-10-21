@@ -39,7 +39,8 @@ public class EditStudentCommandParser implements Parser<EditStudentCommand> {
         ArgumentMultimap arg = ArgumentTokenizer.tokenize(" " + canonical,
                 CliSyntax.PREFIX_STUDENT_ID, CliSyntax.PREFIX_ACADEMIC_LEVEL, CliSyntax.PREFIX_PHONE);
         try {
-            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_STUDENT_ID, CliSyntax.PREFIX_ACADEMIC_LEVEL);
+            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_STUDENT_ID, CliSyntax.PREFIX_ACADEMIC_LEVEL,
+                    CliSyntax.PREFIX_PHONE);
         } catch (ParseException e) {
             throw new ParseException(EditStudentCommand.MESSAGE_USAGE);
         }

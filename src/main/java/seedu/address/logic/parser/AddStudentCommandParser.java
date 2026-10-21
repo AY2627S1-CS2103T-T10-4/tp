@@ -30,7 +30,8 @@ public class AddStudentCommandParser implements Parser<AddStudentCommand> {
             throw new ParseException(AddStudentCommand.MESSAGE_USAGE);
         }
         try {
-            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL);
+            arg.verifyNoDuplicatePrefixesFor(CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_ACADEMIC_LEVEL,
+                    CliSyntax.PREFIX_PHONE);
             String rawName = arg.getValue(CliSyntax.PREFIX_NAME)
                     .orElseThrow(() -> new IllegalArgumentException(AddStudentCommand.MESSAGE_USAGE));
             String rawLevel = arg.getValue(CliSyntax.PREFIX_ACADEMIC_LEVEL)

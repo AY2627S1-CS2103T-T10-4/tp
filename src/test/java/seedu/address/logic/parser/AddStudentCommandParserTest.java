@@ -31,6 +31,8 @@ class AddStudentCommandParserTest {
     void parse_missingRepeatedOrUnknownPrefix_failure() {
         assertParseFailure(parser, "n/Mei Lin", AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/Mei Lin al/Sec 2 al/Sec 3", AddStudentCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Mei Lin al/Sec 2 p/91234567 p/98765432",
+                AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/Mei Lin al/Sec 2 x/value", AddStudentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "unexpected n/Mei Lin al/Sec 2", AddStudentCommand.MESSAGE_USAGE);
     }
