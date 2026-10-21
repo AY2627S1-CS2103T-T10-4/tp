@@ -47,7 +47,10 @@ public class EditStudentCommandParser implements Parser<EditStudentCommand> {
         String rawId = arg.getValue(CliSyntax.PREFIX_STUDENT_ID).orElse("");
         String rawLevel = arg.getValue(CliSyntax.PREFIX_ACADEMIC_LEVEL).orElse("");
         String rawPhone = arg.getValue(CliSyntax.PREFIX_PHONE).orElse("");
+        boolean hasLevel = !arg.getAllValues(CliSyntax.PREFIX_ACADEMIC_LEVEL).isEmpty();
+        boolean hasPhone = !arg.getAllValues(CliSyntax.PREFIX_PHONE).isEmpty();
         if (!arg.getPreamble().isEmpty() || !rawId.matches("S-[0-9]{4,}")
+                || (hasLevel && rawLevel.isBlank()) || (hasPhone && rawPhone.isBlank())
                 || (rawLevel.isBlank() && rawPhone.isBlank())) {
             throw new ParseException(EditStudentCommand.MESSAGE_USAGE);
         }

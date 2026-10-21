@@ -40,7 +40,8 @@ class EditStudentCommandParserTest {
             "sid/s-0007 al/Sec 2", "sid/S-007 al/Sec 2", "sid/S-0007 extra al/Sec 2",
             "SID/S-0007 sid/S-0008 al/Sec 2", "sid/S-0007 AL/Sec 2 al/Sec 3",
             "sid/S-0007 al/Sec 2 X/value", "x/value sid/S-0007 al/Sec 2",
-            "sid/S-0007 p/91234567 p/98765432"};
+            "sid/S-0007 p/91234567 p/98765432",
+            "sid/S-0007 al/Sec 3 p/", "sid/S-0007 al/ p/98765432"};
         for (String args : invalid) {
             assertParseFailure(parser, args, EditStudentCommand.MESSAGE_USAGE);
         }
