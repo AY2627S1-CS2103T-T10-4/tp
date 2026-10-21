@@ -190,6 +190,11 @@ public interface Model {
         throw new UnsupportedOperationException();
     }
 
+    /** Replaces a guardian by stable ID while retaining all student links. */
+    default void updateGuardian(Guardian guardian) {
+        throw new UnsupportedOperationException();
+    }
+
     /** Looks up a guardian in the full register without allocating an ID. */
     default Optional<Guardian> findGuardian(String guardianId) {
         return getAddressBook().findGuardian(guardianId);
