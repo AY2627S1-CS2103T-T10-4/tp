@@ -80,5 +80,6 @@ class EditStudentCommandParserTest {
         assertEquals("Sec 3", model.findStudent("S-0007").orElseThrow().getAcademicLevel().toString());
         assertEquals("+65 98765432", model.findStudent("S-0007").orElseThrow().getPhone().orElseThrow().toString());
         assertParseFailure(parser, "sid/S-0007 p/71234567", StudentPhone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "sid/S-0007 p/+65  91234567", StudentPhone.MESSAGE_CONSTRAINTS);
     }
 }

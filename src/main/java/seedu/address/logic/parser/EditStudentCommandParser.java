@@ -26,7 +26,7 @@ public class EditStudentCommandParser implements Parser<EditStudentCommand> {
     @Override
     public EditStudentCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String canonical = args.strip().replaceAll("\\s+", " ")
+        String canonical = args.strip().replaceAll("[\\t\\n\\x0B\\f\\r]", " ")
                 .replaceAll("(?i)(^|\\s)sid/", "$1sid/").replaceAll("(?i)(^|\\s)al/", "$1al/")
                 .replaceAll("(?i)(^|\\s)p/", "$1p/");
         Matcher matcher = UNKNOWN_PREFIX.matcher(canonical);
