@@ -84,6 +84,8 @@ F10 coverage is in `AddressBookAssignmentTest`, `ModelManagerAssignmentTest`, `U
 validation and ID safety, relationship preservation, save counts, JSON reload, recovery and failed-save
 rollback, post-save reveal, same-object profile refresh, navigation and rendered failure states.
 
+See [Unassign Group Handover](feature-handover/UnassignGroupHandover.md) for the F10 command contract, implementation boundaries, regression commands and follow-up risks.
+
 <img src="images/ArchitectureDiagram.png" width="280" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
