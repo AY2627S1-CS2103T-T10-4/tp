@@ -46,6 +46,22 @@ public class GuardianListPanel extends UiPart<Region> {
         guardianListView.getSelectionModel().selectFirst();
     }
 
+    /**
+     * Selects the current visible guardian matching the stable ID, or clears selection if it is absent.
+     * Leaves the list filter and empty-list feedback unchanged.
+     *
+     * @param guardianId The stable ID to select, or null to clear selection.
+     */
+    public void selectGuardianId(String guardianId) {
+        for (int index = 0; index < guardianListView.getItems().size(); index++) {
+            if (guardianListView.getItems().get(index).getId().toString().equals(guardianId)) {
+                guardianListView.getSelectionModel().select(index);
+                return;
+            }
+        }
+        guardianListView.getSelectionModel().clearSelection();
+    }
+
     /** Rebuilds visible cards after relationship-only changes. */
     public void refresh() {
         guardianListView.refresh();

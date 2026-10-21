@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -69,6 +70,8 @@ public class LogicManager implements Logic {
             storage.saveAddressBook(model.getAddressBook());
         } catch (IOException e) {
             model.setAddressBook(beforeCommand);
+            logger.log(Level.WARNING, "Save failed for " + command.getClass().getSimpleName()
+                    + "; in-memory rollback completed.", e);
             throw new CommandException(getSaveError(command, e), e);
         }
         return revealRequestedStudent(result);
