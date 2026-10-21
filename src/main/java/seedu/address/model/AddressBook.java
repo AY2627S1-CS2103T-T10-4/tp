@@ -31,6 +31,7 @@ import seedu.address.model.student.StudentId;
 public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student %s does not exist.";
     public static final String MESSAGE_UNKNOWN_GUARDIAN = "Guardian %s does not exist.";
+    public static final String MESSAGE_NO_GUARDIAN = "Student %s has no guardian to unlink.";
     public static final String MESSAGE_DUPLICATE_LINK = "Student %s is already linked to guardian %s.";
     public static final String MESSAGE_EXISTING_GUARDIAN =
             "Student %s already has guardian %s. Unlink it before linking another guardian.";
@@ -138,6 +139,25 @@ public class AddressBook implements ReadOnlyAddressBook {
             throw new IllegalArgumentException(String.format(message, studentId, existingGuardianId));
         }
         guardianLinks.put(student.getId(), guardian.getId());
+    }
+
+    /**
+     * Removes only the student's guardian relationship, retaining both records and other links.
+     *
+     * @param studentId The existing student's ID text, independent of the displayed filter.
+     * @return The removed guardian ID, without allocating a new ID.
+     * @throws IllegalArgumentException If the student is unknown or has no guardian.
+     * @throws NullPointerException If studentId is null.
+     */
+    public GuardianId unlinkGuardian(String studentId) {
+        Student student = findStudent(studentId).orElseThrow(() ->
+                new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, studentId)));
+        GuardianId guardianId = guardianLinks.get(student.getId());
+        if (guardianId == null) {
+            throw new IllegalArgumentException(String.format(MESSAGE_NO_GUARDIAN, studentId));
+        }
+        guardianLinks.remove(student.getId());
+        return guardianId;
     }
 
     /** Returns whether a student with the same ID or normalized name and level exists. */
