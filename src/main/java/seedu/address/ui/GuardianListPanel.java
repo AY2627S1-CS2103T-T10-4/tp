@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.function.ToIntFunction;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -27,6 +29,11 @@ public class GuardianListPanel extends UiPart<Region> {
         guardianListView.setItems(guardians);
         guardianListView.setPlaceholder(new Label("No guardians registered."));
         guardianListView.setCellFactory(unused -> new GuardianListViewCell());
+    }
+
+    /** Sets the empty-list feedback for the most recent successful guardian query. */
+    public void setEmptyMessage(String message) {
+        guardianListView.setPlaceholder(new Label(requireNonNull(message)));
     }
 
     /** Returns the guardian currently selected in the list. */

@@ -372,6 +372,8 @@ public class MainWindow extends UiPart<Stage> {
             if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
                 handleGroupsTab();
             } else if (commandResult.getWorkspace() == CommandResult.Workspace.GUARDIANS) {
+                guardianListPanel.setEmptyMessage(logic.getGuardianList().isEmpty()
+                        ? commandResult.getFeedbackToUser() : "No guardians to display.");
                 handleGuardiansTab();
             } else if (commandResult.getWorkspace() == CommandResult.Workspace.STUDENTS) {
                 handleStudentsTab();
