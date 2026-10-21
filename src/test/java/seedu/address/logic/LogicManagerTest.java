@@ -21,6 +21,10 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
+import seedu.address.model.guardian.GuardianName;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -136,6 +140,49 @@ class LogicManagerTest {
         assertEquals("A guardian with phone +65 61234567 already exists (" + guardianId
                 + "). Link that guardian instead.", duplicate.getMessage());
         assertEquals(1, model.getGuardianList().size());
+    }
+
+    @Test
+    void execute_editGuardianPhone_persistsSharedNumberForLinkedProfiles() throws Exception {
+        Path file = temporaryFolder.resolve("edit-guardian.json");
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(file);
+        Guardian guardian = new Guardian(new GuardianId("G-0003"), new GuardianName("Anita Lim"),
+                new GuardianPhone("91234567"));
+        model.addGuardian(guardian);
+        model.addStudent(new Student(new StudentId("S-0001"), new StudentName("Mei Lin"),
+                new AcademicLevel("Sec 2")));
+        model.linkGuardian("S-0001", "G-0003");
+        logic = createLogic(addressBookStorage);
+
+        CommandResult result = logic.execute("edit-guardian gid/G-0003 p/+65 98765432");
+
+        assertEquals("Updated guardian G-0003 phone to +65 98765432. Updated contact will appear in 1 linked "
+                + "student profile(s).", result.getFeedbackToUser());
+        assertEquals(new GuardianPhone("98765432"), model.getLinkedGuardian("S-0001").orElseThrow().getPhone());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+        ModelManager reloaded = new ModelManager(addressBookStorage.readAddressBook().orElseThrow(),
+                model.getUserPrefs());
+        assertEquals(new GuardianPhone("98765432"), reloaded.getLinkedGuardian("S-0001").orElseThrow().getPhone());
+    }
+
+    @Test
+    void execute_editGuardianSaveFailure_restoresOldPhone() {
+        Guardian guardian = new Guardian(new GuardianId("G-0003"), new GuardianName("Anita Lim"),
+                new GuardianPhone("91234567"));
+        model.addGuardian(guardian);
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("disk unavailable");
+            }
+        };
+        logic = createLogic(failingStorage);
+
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("edit-guardian gid/G-0003 p/98765432"));
+
+        assertEquals("Could not save changes. Guardian G-0003 was not updated.", error.getMessage());
+        assertEquals(new GuardianPhone("91234567"), model.findGuardian("G-0003").orElseThrow().getPhone());
     }
 
     @Test

@@ -281,6 +281,25 @@ public class AddressBook implements ReadOnlyAddressBook {
         sortGuardians();
     }
 
+    /** Replaces a guardian while preserving its stable ID and linked student relationships. */
+    public void updateGuardian(Guardian guardian) {
+        requireNonNull(guardian);
+        int index = -1;
+        for (int i = 0; i < guardians.size(); i++) {
+            Guardian existing = guardians.get(i);
+            if (existing.getId().equals(guardian.getId())) {
+                index = i;
+            } else if (existing.getPhone().equals(guardian.getPhone())) {
+                throw new IllegalArgumentException("Duplicate guardian phone number.");
+            }
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Guardian ID does not exist.");
+        }
+        guardians.set(index, guardian);
+        sortGuardians();
+    }
+
     /**
      * Removes a student and only that student's assignments, preserving the configured catalogue.
      * Does nothing if the ID is not registered.
