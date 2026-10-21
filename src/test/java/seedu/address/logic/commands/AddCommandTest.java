@@ -103,6 +103,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public void removeGroupAssignment(GroupAssignment assignment) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public List<Group> getAssignedGroups(String studentId) {
             throw new AssertionError("This method should not be called.");
         }

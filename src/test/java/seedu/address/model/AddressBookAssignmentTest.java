@@ -2,12 +2,15 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.GuardianLinkTestUtil.getUnlinkedAddressBook;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCode;
 import seedu.address.model.student.AcademicLevel;
@@ -53,6 +57,113 @@ class AddressBookAssignmentTest {
         assertThrows(IllegalArgumentException.class, () -> register.addGroupAssignment(assignment(MEI, "UNKNOWN")));
         assertThrows(NullPointerException.class, () -> register.addGroupAssignment(null));
         assertEquals(before, register);
+    }
+
+    @Test
+    void removeGroupAssignment_subjectInMixedRegister_removesOnlySpecifiedPair() {
+        AddressBook register = registerWithAssignmentsAndGuardianLinks();
+        Student mei = register.findStudent("S-0007").orElseThrow();
+        Student amy = register.findStudent("S-0008").orElseThrow();
+        AddressBook before = new AddressBook(register);
+        List<Group> catalogueBefore = List.copyOf(ConfiguredGroups.getCatalogue().getGroups());
+        Set<GroupAssignment> assignmentsView = register.getGroupAssignments();
+
+        register.removeGroupAssignment(assignment(mei, " mat "));
+
+        Set<GroupAssignment> expected = Set.of(assignment(mei, "S2-MAT-A"), assignment(amy, "MAT"));
+        assertEquals(expected, assignmentsView);
+        assertEquals(expected, register.getGroupAssignments());
+        assertEquals(before.getStudentList(), register.getStudentList());
+        assertEquals(before.getGuardianList(), register.getGuardianList());
+        assertEquals(before.getGuardianLinks(), register.getGuardianLinks());
+        assertSame(mei, register.findStudent("S-0007").orElseThrow());
+        assertSame(amy, register.findStudent("S-0008").orElseThrow());
+        assertEquals(catalogueBefore, ConfiguredGroups.getCatalogue().getGroups());
+        assertThrows(UnsupportedOperationException.class, () -> assignmentsView.remove(assignment(amy, "MAT")));
+        assertThrows(UnsupportedOperationException.class, assignmentsView::clear);
+        assertEquals(expected, register.getGroupAssignments());
+    }
+
+    @Test
+    void removeGroupAssignment_finalClassAssignment_preservesStudentAndOtherAssignments() {
+        AddressBook register = register();
+        register.addGroupAssignment(assignment(MEI, "S2-MAT-A"));
+        register.addGroupAssignment(assignment(AMY, "MAT"));
+
+        register.removeGroupAssignment(assignment(MEI, "s2-mat-a"));
+
+        assertEquals(Set.of(assignment(AMY, "MAT")), register.getGroupAssignments());
+        assertSame(MEI, register.findStudent(MEI.getId()).orElseThrow());
+        assertSame(AMY, register.findStudent(AMY.getId()).orElseThrow());
+    }
+
+    @Test
+    void removeGroupAssignment_null_preservesRegister() {
+        AddressBook register = registerWithAssignmentsAndGuardianLinks();
+        AddressBook before = new AddressBook(register);
+
+        assertThrows(NullPointerException.class, () -> register.removeGroupAssignment(null));
+
+        assertEquals(before, register);
+    }
+
+    @Test
+    void removeGroupAssignment_invalidOrAbsentPair_preservesRegister() {
+        AddressBook register = registerWithAssignmentsAndGuardianLinks();
+        Student mei = register.findStudent("S-0007").orElseThrow();
+        AddressBook before = new AddressBook(register);
+        Map<GroupAssignment, String> invalidAssignments = Map.of(
+                new GroupAssignment(new StudentId("S-0999"), new GroupCode("MAT")),
+                "Student S-0999 does not exist.",
+                assignment(mei, "unknown"),
+                "Group UNKNOWN is not configured. Run list-groups to see available groups.",
+                assignment(mei, "sci"),
+                "Student S-0007 is not assigned to SCI.");
+
+        for (Map.Entry<GroupAssignment, String> entry : invalidAssignments.entrySet()) {
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () ->
+                    register.removeGroupAssignment(entry.getKey()));
+            assertEquals(entry.getValue(), error.getMessage());
+            assertEquals(before, register);
+        }
+    }
+
+    @Test
+    void removeGroupAssignment_repeatedRemoval_preservesEmptyAssignments() {
+        AddressBook register = register();
+        register.addGroupAssignment(assignment(MEI, "S2-MAT-A"));
+
+        register.removeGroupAssignment(assignment(MEI, "S2-MAT-A"));
+
+        assertTrue(register.getGroupAssignments().isEmpty());
+        assertSame(MEI, register.findStudent(MEI.getId()).orElseThrow());
+        AddressBook before = new AddressBook(register);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () ->
+                register.removeGroupAssignment(assignment(MEI, "s2-mat-a")));
+        assertEquals("Student S-0601 is not assigned to S2-MAT-A.", error.getMessage());
+        assertEquals(before, register);
+    }
+
+    @Test
+    void removeGroupAssignment_copyAndReset_preserveIndependentSnapshots() {
+        AddressBook register = registerWithAssignmentsAndGuardianLinks();
+        Student mei = register.findStudent("S-0007").orElseThrow();
+        Student amy = register.findStudent("S-0008").orElseThrow();
+        AddressBook snapshot = new AddressBook(register);
+        Set<GroupAssignment> originalAssignments = Set.copyOf(register.getGroupAssignments());
+        int originalHash = snapshot.hashCode();
+
+        register.removeGroupAssignment(assignment(mei, "MAT"));
+
+        assertNotEquals(snapshot, register);
+        assertEquals(originalAssignments, snapshot.getGroupAssignments());
+        assertEquals(originalHash, snapshot.hashCode());
+        register.resetData(snapshot);
+        assertEquals(snapshot, register);
+        assertEquals(snapshot.hashCode(), register.hashCode());
+        snapshot.removeGroupAssignment(assignment(amy, "MAT"));
+        assertEquals(originalAssignments, register.getGroupAssignments());
+        assertNotEquals(snapshot, register);
     }
 
     @Test
@@ -156,6 +267,18 @@ class AddressBookAssignmentTest {
         AddressBook register = new AddressBook();
         register.addStudent(MEI);
         register.addStudent(AMY);
+        return register;
+    }
+
+    private static AddressBook registerWithAssignmentsAndGuardianLinks() {
+        AddressBook register = getUnlinkedAddressBook();
+        Student mei = register.findStudent("S-0007").orElseThrow();
+        Student amy = register.findStudent("S-0008").orElseThrow();
+        register.linkGuardian("S-0007", "G-0003");
+        register.linkGuardian("S-0008", "G-0003");
+        register.addGroupAssignment(assignment(mei, "MAT"));
+        register.addGroupAssignment(assignment(mei, "S2-MAT-A"));
+        register.addGroupAssignment(assignment(amy, "MAT"));
         return register;
     }
 

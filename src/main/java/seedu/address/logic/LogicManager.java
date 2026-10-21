@@ -16,8 +16,11 @@ import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteStudentCommand;
+import seedu.address.logic.commands.EditGuardianCommand;
 import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.LinkGuardianCommand;
+import seedu.address.logic.commands.UnassignGroupCommand;
+import seedu.address.logic.commands.UnlinkGuardianCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -82,11 +85,17 @@ public class LogicManager implements Logic {
     }
 
     private String getSaveError(Command command, IOException cause) {
+        if (command instanceof UnlinkGuardianCommand) {
+            return UnlinkGuardianCommand.MESSAGE_SAVE_FAILURE;
+        }
         if (command instanceof LinkGuardianCommand) {
             return LinkGuardianCommand.MESSAGE_SAVE_FAILURE;
         }
         if (command instanceof AssignGroupCommand) {
             return AssignGroupCommand.MESSAGE_SAVE_FAILURE;
+        }
+        if (command instanceof UnassignGroupCommand) {
+            return UnassignGroupCommand.MESSAGE_SAVE_FAILURE;
         }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";
@@ -96,6 +105,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof EditStudentCommand edit) {
             return "Could not save changes. Student " + edit.getStudentId() + " was not updated.";
+        }
+        if (command instanceof EditGuardianCommand edit) {
+            return String.format(EditGuardianCommand.MESSAGE_SAVE_FAILURE_FORMAT, edit.getGuardianId());
         }
         if (command instanceof AddGuardianCommand) {
             return "Could not save changes. No guardian was added.";

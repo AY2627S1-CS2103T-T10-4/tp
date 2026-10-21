@@ -22,6 +22,7 @@ import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.group.GroupCode;
 import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -109,6 +110,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void removeGroupAssignment(GroupAssignment assignment) {
+        addressBook.removeGroupAssignment(assignment);
+    }
+
+    @Override
     public List<Group> getAssignedGroups(String studentId) {
         requireNonNull(studentId);
         Set<GroupCode> codes = addressBook.getGroupAssignments().stream()
@@ -161,6 +167,18 @@ public class ModelManager implements Model {
     @Override
     public void addGuardian(Guardian guardian) {
         addressBook.addGuardian(guardian);
+    }
+
+    @Override
+    public void updateGuardian(Guardian guardian) {
+        addressBook.updateGuardian(guardian);
+    }
+
+    @Override
+    public GuardianId unlinkGuardian(String studentId) {
+        GuardianId guardianId = addressBook.unlinkGuardian(studentId);
+        logger.fine(() -> "Removed in-memory guardian link for student " + studentId);
+        return guardianId;
     }
 
     @Override

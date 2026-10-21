@@ -41,19 +41,22 @@ All paths above are relative to `src/main/java/seedu/address/ui/` for Java class
 
 `MainWindow` creates the student list and details panel and passes the selected student to the details view. The first student is selected at startup. After `add-student`, the command result carries the generated ID and the list selects that student after the observable collection refreshes.
 
-`MainWindow.refreshStudentDetails()` supplies the selected Student and `Logic#getAssignedGroups(String)` to
-`StudentDetailsPanel.setStudent(Student, List<Group>)`. The projection resolves current catalogue labels and uses
-catalogue order. An empty list displays `No groups assigned.` Selection changes and successful command results
-both trigger this renderer: assigning another group does not replace the Student object, so reselection alone
-is not a reliable notification.
+`MainWindow.refreshStudentDetails()` supplies the selected Student, `Logic#getAssignedGroups(String)` and the
+linked Guardian to `StudentDetailsPanel.setStudent(Student, List<Group>, Guardian)`. The group projection resolves
+current catalogue labels in catalogue order. An empty list displays `No groups assigned.`, including after removal
+of the final assignment; this remains a selected student profile, not the empty-selection state.
+Selection changes and successful command results both trigger this renderer: assigning or removing a group
+retains the same Student object, so reselection alone is not a reliable notification.
 
-Successful `assign-group` results request `Workspace.STUDENTS` plus the target ID, after persistence succeeds.
+Successful `assign-group` and `unassign-group` results request `Workspace.STUDENTS` plus the target ID.
+MainWindow applies these requests after persistence succeeds, including when Groups or Guardians was active.
 Before execution, MainWindow remembers the current selected ID. A failed command restores that selection (including
-an empty selection) and rerenders the final model after rollback. The workspace does not change on failure.
+an empty selection) and rerenders the final model after any save rollback. The filter and workspace do not change
+on failure, and the previous assignments and guardian details remain displayed.
 Panels/listeners are constructed once. StudentListPanel's `clearSelection()` supports this restoration.
 
 The Student list uses the filtered view from `Logic#getStudentList()`. Stable-ID lookup and persistence use the
-complete AddressBook, which stores students, guardians and assignments. After a successful result requests a
+complete AddressBook, which stores students, guardians, guardian links and assignments. After a successful result requests a
 hidden student, `LogicManager.revealRequestedStudent()` clears the filter before MainWindow applies selection.
 This runs after any required save, preserving the previous filter on failure. Visible targets retain the filter.
 View/Search/List keep the active workspace; View Student still requires selecting the Students tab when Groups is open.
@@ -83,7 +86,7 @@ For stable-ID student deletion, assignment cleanup and conditional selection cle
 For student academic-level updates and stable-ID profile refresh, see
 [Edit Student Handover](feature-handover/EditStudentHandover.md).
 
-`ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together.
+`ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together. The `RESULT` heading retains its preferred width while long feedback, including unassignment errors, wraps beside it.
 
 On a failed data load, `Logic#getDataRecoveryReason()` exposes the storage session's recovery state. `MainWindow`
 shows the exact recovery explanation in the initial result strip and constructs a write-disabled footer. Read-only
@@ -107,7 +110,7 @@ The Groups workspace remains managed while active so it occupies the workspace a
 
 `MainWindow.fillGroupPanel()` constructs the panel once using `Logic#getGroupCatalogue()`. The model owns access to the shared immutable configuration supplied by `ConfiguredGroups`; the panel renders its rows using the current theme. The catalogue is separate from persisted student data.
 
-`list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` requests `STUDENTS` and a stable student ID. `MainWindow` switches tabs after successful execution, without interpreting feedback text or replacing the Student panels. Earlier commands retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
+`list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` and `unassign-group` request `STUDENTS` and a stable student ID. `MainWindow` switches tabs after successful execution and any required save, without interpreting feedback text or replacing the Student panels. Earlier commands retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
 
 See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for catalogue, assignment, persistence and refresh contracts. The Student UI change is limited to the Assignments section and the selection/refresh hooks above.
 

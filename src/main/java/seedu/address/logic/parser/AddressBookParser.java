@@ -13,6 +13,7 @@ import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteStudentCommand;
+import seedu.address.logic.commands.EditGuardianCommand;
 import seedu.address.logic.commands.EditStudentCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindGuardianCommand;
@@ -22,6 +23,8 @@ import seedu.address.logic.commands.LinkGuardianCommand;
 import seedu.address.logic.commands.ListGroupsCommand;
 import seedu.address.logic.commands.ListGuardiansCommand;
 import seedu.address.logic.commands.ListStudentsCommand;
+import seedu.address.logic.commands.UnassignGroupCommand;
+import seedu.address.logic.commands.UnlinkGuardianCommand;
 import seedu.address.logic.commands.ViewStudentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -62,15 +65,18 @@ public class AddressBookParser {
             case AddGuardianCommand.COMMAND_WORD -> new AddGuardianCommandParser().parse(arguments);
             case AddStudentCommand.COMMAND_WORD -> new AddStudentCommandParser().parse(arguments);
             case AssignGroupCommand.COMMAND_WORD -> new AssignGroupCommandParser().parse(arguments);
+            case UnassignGroupCommand.COMMAND_WORD -> new UnassignGroupCommandParser().parse(arguments);
             case ListGroupsCommand.COMMAND_WORD -> new ListGroupsCommandParser().parse(arguments);
             case ListGuardiansCommand.COMMAND_WORD -> new ListGuardiansCommandParser().parse(arguments);
             case DeleteStudentCommand.COMMAND_WORD -> new DeleteStudentCommandParser().parse(arguments);
             case EditStudentCommand.COMMAND_WORD -> new EditStudentCommandParser().parse(arguments);
+            case EditGuardianCommand.COMMAND_WORD -> new EditGuardianCommandParser().parse(arguments);
             case FindStudentCommand.COMMAND_WORD -> new FindStudentCommandParser().parse(arguments);
             case FindGuardianCommand.COMMAND_WORD -> new FindGuardianCommandParser().parse(arguments);
             case LinkGuardianCommand.COMMAND_WORD -> new LinkGuardianCommandParser().parse(arguments);
             case ListStudentsCommand.COMMAND_WORD -> new ListStudentsCommandParser().parse(arguments);
             case ViewStudentCommand.COMMAND_WORD -> new ViewStudentCommandParser().parse(arguments);
+            case UnlinkGuardianCommand.COMMAND_WORD -> new UnlinkGuardianCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {

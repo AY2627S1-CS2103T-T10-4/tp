@@ -31,6 +31,7 @@ import seedu.address.model.student.StudentId;
 public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_STUDENT = "Student %s does not exist.";
     public static final String MESSAGE_UNKNOWN_GUARDIAN = "Guardian %s does not exist.";
+    public static final String MESSAGE_NO_GUARDIAN = "Student %s has no guardian to unlink.";
     public static final String MESSAGE_DUPLICATE_LINK = "Student %s is already linked to guardian %s.";
     public static final String MESSAGE_EXISTING_GUARDIAN =
             "Student %s already has guardian %s. Unlink it before linking another guardian.";
@@ -38,6 +39,8 @@ public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_GROUP =
             "Group %s is not configured. Run list-groups to see available groups.";
     public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
+    /** Error message when an existing student has no assignment to a configured group. */
+    public static final String MESSAGE_MISSING_ASSIGNMENT = "Student %s is not assigned to %s.";
 
     private final ObservableList<Student> students = FXCollections.observableArrayList();
     private final ObservableList<Guardian> guardians = FXCollections.observableArrayList();
@@ -138,6 +141,25 @@ public class AddressBook implements ReadOnlyAddressBook {
         guardianLinks.put(student.getId(), guardian.getId());
     }
 
+    /**
+     * Removes only the student's guardian relationship, retaining both records and other links.
+     *
+     * @param studentId The existing student's ID text, independent of the displayed filter.
+     * @return The removed guardian ID, without allocating a new ID.
+     * @throws IllegalArgumentException If the student is unknown or has no guardian.
+     * @throws NullPointerException If studentId is null.
+     */
+    public GuardianId unlinkGuardian(String studentId) {
+        Student student = findStudent(studentId).orElseThrow(() ->
+                new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, studentId)));
+        GuardianId guardianId = guardianLinks.get(student.getId());
+        if (guardianId == null) {
+            throw new IllegalArgumentException(String.format(MESSAGE_NO_GUARDIAN, studentId));
+        }
+        guardianLinks.remove(student.getId());
+        return guardianId;
+    }
+
     /** Returns whether a student with the same ID or normalized name and level exists. */
     public boolean hasStudent(Student student) {
         return students.stream().anyMatch(existing -> existing.getId().equals(student.getId())
@@ -194,6 +216,31 @@ public class AddressBook implements ReadOnlyAddressBook {
                     assignment.getStudentId(), assignment.getGroupCode()));
         }
         groupAssignments.add(assignment);
+    }
+
+    /**
+     * Removes one existing assignment from this in-memory register, including a student's last assignment.
+     * Validates the student, configured group and membership before mutation; rejection leaves the register unchanged.
+     * Preserves all student and guardian records, guardian links, other assignments and the configured catalogue.
+     * This operation does not save data to disk.
+     *
+     * @param assignment The immutable student/group pair to remove.
+     * @throws IllegalArgumentException If the student or configured group is unknown, or the pair is not assigned.
+     * @throws NullPointerException If {@code assignment} is null.
+     */
+    public void removeGroupAssignment(GroupAssignment assignment) {
+        requireNonNull(assignment);
+        if (!hasStudentId(assignment.getStudentId())) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, assignment.getStudentId()));
+        }
+        if (ConfiguredGroups.getCatalogue().findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+            throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
+        }
+        if (!groupAssignments.contains(assignment)) {
+            throw new IllegalArgumentException(String.format(MESSAGE_MISSING_ASSIGNMENT,
+                    assignment.getStudentId(), assignment.getGroupCode()));
+        }
+        groupAssignments.remove(assignment);
     }
 
     /**
@@ -258,6 +305,25 @@ public class AddressBook implements ReadOnlyAddressBook {
             throw new IllegalArgumentException("Duplicate guardian ID or phone number.");
         }
         guardians.add(guardian);
+        sortGuardians();
+    }
+
+    /** Replaces a guardian while preserving its stable ID and linked student relationships. */
+    public void updateGuardian(Guardian guardian) {
+        requireNonNull(guardian);
+        int index = -1;
+        for (int i = 0; i < guardians.size(); i++) {
+            Guardian existing = guardians.get(i);
+            if (existing.getId().equals(guardian.getId())) {
+                index = i;
+            } else if (existing.getPhone().equals(guardian.getPhone())) {
+                throw new IllegalArgumentException("Duplicate guardian phone number.");
+            }
+        }
+        if (index < 0) {
+            throw new IllegalArgumentException("Guardian ID does not exist.");
+        }
+        guardians.set(index, guardian);
         sortGuardians();
     }
 

@@ -11,6 +11,7 @@ import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.person.Person;
 import seedu.address.model.student.Student;
@@ -105,6 +106,18 @@ public interface Model {
     void addGroupAssignment(GroupAssignment assignment);
 
     /**
+     * Removes one existing assignment from the in-memory register, including a student's last assignment.
+     * Validates the student, configured group and membership before mutation; rejection leaves the register unchanged.
+     * Preserves all student and guardian records, guardian links, other assignments and the configured catalogue.
+     * This operation does not save data to disk.
+     *
+     * @param assignment The student/group pair to remove, using the existing student's ID.
+     * @throws IllegalArgumentException If the student or configured group is unknown, or the pair is not assigned.
+     * @throws NullPointerException If {@code assignment} is null.
+     */
+    void removeGroupAssignment(GroupAssignment assignment);
+
+    /**
      * Returns a student's assigned groups in catalogue order as an immutable snapshot.
      *
      * @param studentId The exact stable ID text to look up, without allocating an ID.
@@ -177,6 +190,11 @@ public interface Model {
         throw new UnsupportedOperationException();
     }
 
+    /** Replaces a guardian by stable ID while retaining all student links. */
+    default void updateGuardian(Guardian guardian) {
+        throw new UnsupportedOperationException();
+    }
+
     /** Looks up a guardian in the full register without allocating an ID. */
     default Optional<Guardian> findGuardian(String guardianId) {
         return getAddressBook().findGuardian(guardianId);
@@ -190,6 +208,14 @@ public interface Model {
     /** Returns the students linked to a guardian in the register's display order. */
     default List<Student> getLinkedStudents(String guardianId) {
         return List.of();
+    }
+
+    /**
+     * Removes a student's guardian link and returns the former guardian ID.
+     * Rejects unknown or unlinked students without changing the register.
+     */
+    default GuardianId unlinkGuardian(String studentId) {
+        throw new UnsupportedOperationException();
     }
 
     /** Links existing records, rejecting missing IDs and students who already have a guardian. */
