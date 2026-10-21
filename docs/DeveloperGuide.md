@@ -173,23 +173,17 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="450" />
+<img src="images/ModelClassDiagram.png" width="850" />
 
+`ModelManager` implements the `Model` API and owns the in-memory `AddressBook`, user preferences and shared configured group catalogue. `AddressBook` is the complete register: it owns Student and Guardian records, student-to-guardian links and group assignments. It implements `ReadOnlyAddressBook` for callers that need to inspect the register without mutating it.
 
-The `Model` component,
+Students and Guardians are immutable records composed from their stable IDs and validated value types. A student may link to at most one guardian, while a guardian may be shared by multiple students. `AddressBook` stores these links by `StudentId` and `GuardianId`, so contact details stay on the Guardian record and are resolved when a profile is displayed.
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+`GroupAssignment` pairs a `StudentId` with a configured `GroupCode`. `AddressBook` validates that the student exists, the group is configured, and the pair is unique. `ConfiguredGroups` supplies the immutable `GroupCatalogue`; the catalogue contains the available Groups and is separate from persisted student data.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<img src="images/BetterModelClassDiagram.png" width="450" />
-
-</div>
+`ModelManager` exposes filtered Student and Guardian views for the UI while keeping the full `AddressBook` available for authoritative lookup and saving. The diagram omits the retired Person classes, which remain only for source compatibility.
 
 
 ### Storage component
