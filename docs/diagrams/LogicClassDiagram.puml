@@ -3,45 +3,79 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam genericDisplay old
+skinparam ArrowFontStyle plain
+skinparam nodesep 30
+skinparam ranksep 40
+skinparam linetype polyline
+show members
+hide empty members
+
+title Logic component (partial)
+scale 740 width
 
 package Logic as LogicPackage {
-
-package "Parser Classes" as ParserClasses{
+    interface Logic <<interface>> {
+        +execute(String): CommandResult
+    }
+    class LogicManager {
+        +execute(String): CommandResult
+    }
+    class AddressBookParser {
+        +parseCommand(String): Command
+    }
+    interface "Parser<T>" as Parser <<interface>> {
+        +parse(String): T
+    }
+    class AssignGroupCommandParser
+    class UnassignGroupCommandParser
+    abstract class Command {
+        {abstract} +execute(Model): CommandResult
+        +isReadOnly(): boolean
+    }
+    class AssignGroupCommand
+    class UnassignGroupCommand
+    class CommandResult {
+        -feedbackToUser: String
+        -selectedStudentId: String
+        -workspace: Workspace
+    }
 }
-Class XYZCommand
-Class CommandResult
-Class "{abstract}\nCommand" as Command
 
+interface Model <<interface>> MODEL_COLOR
+interface Storage <<interface>> STORAGE_COLOR_T2
 
-Class "<<interface>>\nLogic" as Logic
-Class LogicManager
-}
+LogicManager .up.|> Logic
+LogicManager -down-> "1" AddressBookParser : -parser
+LogicManager -down-> Model : -model
+LogicManager -up-> Storage : -storage
+LogicManager ..> Command : execute / isReadOnly
 
-package Model {
-Class HiddenModel #FFFFFF
-}
+AddressBookParser .down.> AssignGroupCommandParser : <<create>>
+AddressBookParser .down.> UnassignGroupCommandParser : <<create>>
+AssignGroupCommandParser .up.|> Parser
+UnassignGroupCommandParser .up.|> Parser
+AssignGroupCommandParser .down.> AssignGroupCommand : <<create>>
+UnassignGroupCommandParser .down.> UnassignGroupCommand : <<create>>
 
-package Storage {
-}
+AssignGroupCommand -up-|> Command
+UnassignGroupCommand -up-|> Command
+Command ..> Model : parameter
+AssignGroupCommand ..> CommandResult : <<create>>
+UnassignGroupCommand ..> CommandResult : <<create>>
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Logic
+' Layout only: separate abstractions and keep Model below the Logic boundary.
+' These hidden links have no UML meaning.
+LogicManager -[hidden]down-> Parser
+Parser -[hidden]down-> AddressBookParser
+AssignGroupCommandParser -[hidden]down-> Command
+UnassignGroupCommandParser -[hidden]down-> Command
+CommandResult -[hidden]down-> Model
 
-LogicManager .right.|> Logic
-LogicManager -right->"1" ParserClasses
-ParserClasses ..> XYZCommand : <<create>>
-
-XYZCommand -up-|> Command
-LogicManager .left.> Command : <<call>>
-
-LogicManager --> Model
-LogicManager --> Storage
-Storage --[hidden] Model
-Command .[hidden]up.> Storage
-Command .right.> Model
-note right of XYZCommand: XYZCommand = AddCommand, \nFindCommand, etc
-
-Logic ..> CommandResult
-LogicManager .down.> CommandResult
-Command .up.> CommandResult : <<create>>
+caption
+Other commands, supporting types and members are omitted.
+Parser<T>: T extends Command; each shown parser binds T to its matching command.
+end caption
 @enduml
