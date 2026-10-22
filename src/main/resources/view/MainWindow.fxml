@@ -81,6 +81,8 @@
                   <Region HBox.hgrow="ALWAYS" />
                   <Label fx:id="studentCountLabel" text="0 students" styleClass="record-count" />
                 </HBox>
+                <Label fx:id="studentFilterSummaryLabel" managed="false" visible="false"
+                       styleClass="helper-label" wrapText="true" />
                 <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
                   <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
                   <Label text="LEVEL" minWidth="94" />

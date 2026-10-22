@@ -38,6 +38,7 @@ public class ModelManager implements Model {
     private final FilteredList<Guardian> filteredGuardians;
     private final UserPrefs userPrefs;
     private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
+    private String studentFilterSummary = "";
 
     /** Creates a model manager with the supplied student data and user preferences. */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
@@ -71,7 +72,13 @@ public class ModelManager implements Model {
 
     @Override
     public void setAddressBook(ReadOnlyAddressBook data) {
+        requireNonNull(data);
+        boolean assignmentsChanged = !addressBook.getGroupAssignments().equals(data.getGroupAssignments());
         addressBook.resetData(data);
+        // Assignment-only resets do not emit student-list changes, including during save rollback.
+        if (assignmentsChanged) {
+            refreshFilteredStudents();
+        }
     }
 
     @Override
@@ -87,6 +94,19 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredStudentList(Predicate<Student> predicate) {
         filteredStudents.setPredicate(requireNonNull(predicate));
+        studentFilterSummary = "";
+    }
+
+    @Override
+    public void updateFilteredStudentList(Predicate<Student> predicate, String filterSummary) {
+        String checkedSummary = requireNonNull(filterSummary);
+        filteredStudents.setPredicate(requireNonNull(predicate));
+        studentFilterSummary = checkedSummary;
+    }
+
+    @Override
+    public String getStudentFilterSummary() {
+        return studentFilterSummary;
     }
 
     @Override
@@ -107,11 +127,13 @@ public class ModelManager implements Model {
     @Override
     public void addGroupAssignment(GroupAssignment assignment) {
         addressBook.addGroupAssignment(assignment);
+        refreshFilteredStudents();
     }
 
     @Override
     public void removeGroupAssignment(GroupAssignment assignment) {
         addressBook.removeGroupAssignment(assignment);
+        refreshFilteredStudents();
     }
 
     @Override
@@ -194,6 +216,13 @@ public class ModelManager implements Model {
                 .map(entry -> addressBook.findStudent(entry.getKey()).orElseThrow())
                 .sorted(STUDENT_DISPLAY_ORDER)
                 .toList();
+    }
+
+    private void refreshFilteredStudents() {
+        Predicate<? super Student> predicate = filteredStudents.getPredicate();
+        if (predicate != null) {
+            filteredStudents.setPredicate(predicate::test);
+        }
     }
 
     @Override

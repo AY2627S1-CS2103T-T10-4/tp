@@ -127,6 +127,11 @@ public class LogicManager implements Logic {
     }
 
     @Override
+    public String getStudentFilterSummary() {
+        return model.getStudentFilterSummary();
+    }
+
+    @Override
     public ObservableList<Guardian> getGuardianList() {
         return model.getGuardianList();
     }

@@ -8,6 +8,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.ModelManager;
+import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCode;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -15,18 +17,20 @@ import seedu.address.model.student.StudentName;
 
 public class ListStudentsCommandTest {
     @Test
-    public void execute_afterSearch_restoresCompleteList() {
+    public void execute_afterSearch_restoresCompleteList() throws Exception {
         ModelManager model = new ModelManager();
         Student amy = student("S-1201", "Amy Tan");
         Student mei = student("S-1202", "Mei Lin");
         model.addStudent(amy);
         model.addStudent(mei);
-        new FindStudentCommand(new StudentName("Mei")).execute(model);
+        model.addGroupAssignment(new GroupAssignment(mei.getId(), new GroupCode("MAT")));
+        new FilterStudentsCommand(new GroupCode("MAT")).execute(model);
 
         CommandResult result = new ListStudentsCommand().execute(model);
 
         assertEquals("Listed 2 student(s).", result.getFeedbackToUser());
         assertEquals(List.of(amy, mei), model.getStudentList());
+        assertEquals("", model.getStudentFilterSummary());
     }
 
     @Test
