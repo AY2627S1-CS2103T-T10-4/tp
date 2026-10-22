@@ -95,6 +95,12 @@ Mutating commands are rejected before execution. See [Recovery and write protect
 
 ## Student workspace layout
 
+Features 18/19 add `studentFilterSummaryLabel` above the student list. Successful `filter-students g/CODE`
+or `filter-students al/LEVEL` requests the Students workspace and shows the active group/level summary.
+`list-students` clears the predicate and hides/unmanages the summary, retaining its existing tab behavior.
+Assignment-only rollback refreshes group-filter membership as well as restoring relationships; see
+[Filter Students Handover](feature-handover/FilterStudentsHandover.md) for the API, regression tests and review fixes.
+
 The student workspace follows the established Mentora contact-screen composition while retaining student terminology and fields. List entries are full-width cards with consistent padding, dividers, selection highlighting, and aligned summary columns. The profile pane keeps its inset content area, title hierarchy, separator and grouped field spacing, with the added Assignments section. One `profileScrollPane` contains all profile fields so long valid names cannot push assignments or the footer offscreen. There are no nested scrolling regions in the profile.
 
 ## Header navigation and Groups handover

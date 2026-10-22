@@ -60,6 +60,11 @@ public interface Logic {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
     }
 
+    /** Returns the summary displayed above the Student list for the active filter. */
+    default String getStudentFilterSummary() {
+        return "";
+    }
+
     /** Returns the observable Guardian view displayed by the Guardians workspace. */
     default ObservableList<Guardian> getGuardianList() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());

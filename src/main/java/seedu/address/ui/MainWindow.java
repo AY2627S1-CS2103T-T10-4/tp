@@ -67,6 +67,9 @@ public class MainWindow extends UiPart<Stage> {
     private Label studentCountLabel;
 
     @FXML
+    private Label studentFilterSummaryLabel;
+
+    @FXML
     private StackPane guardianListPanelPlaceholder;
 
     @FXML
@@ -180,7 +183,16 @@ public class MainWindow extends UiPart<Stage> {
                 refreshStudentDetails());
         studentCountLabel.textProperty().bind(
                 Bindings.size(logic.getStudentList()).asString("%d students"));
+        refreshStudentFilterSummary();
         studentListPanel.selectFirstStudent();
+    }
+
+    private void refreshStudentFilterSummary() {
+        String summary = logic.getStudentFilterSummary();
+        boolean hasFilter = !summary.isBlank();
+        studentFilterSummaryLabel.setText(summary);
+        studentFilterSummaryLabel.setVisible(hasFilter);
+        studentFilterSummaryLabel.setManaged(hasFilter);
     }
 
     private void refreshStudentDetails() {
@@ -337,6 +349,11 @@ public class MainWindow extends UiPart<Stage> {
         return studentListPanel;
     }
 
+    /** Returns the label that describes the active student filter. */
+    Label getStudentFilterSummaryLabel() {
+        return studentFilterSummaryLabel;
+    }
+
     /** Returns the student details panel mounted in this window. */
     StudentDetailsPanel getStudentDetailsPanel() {
         return studentDetailsPanel;
@@ -371,6 +388,7 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            refreshStudentFilterSummary();
             if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
                 handleGroupsTab();
             } else if (commandResult.getWorkspace() == CommandResult.Workspace.GUARDIANS) {

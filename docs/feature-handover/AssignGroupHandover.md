@@ -5,6 +5,11 @@ title: Assign Group Handover
 
 # Feature 9: Assign configured groups
 
+Current filter integration (22 October 2026): [Filter Students Handover](FilterStudentsHandover.md)
+documents Features 18/19. Assignment mutations refresh active group-filter membership; save rollback must
+refresh it again after restoring assignments. This is covered by `FilterStudentsUiTest`, including a failed
+assignment that must not leave the target incorrectly visible. The checkpoint details below remain historical.
+
 Owner: **Gabriel Chan (HIIMHEY)** · [Issue #58](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/58) · v1.3.
 Packages **A** (catalogue/display), **R** (load-failure recovery) and **B** (assignment/persistence/profile) are implemented.
 The current 15 October integration reconciles checkpoint `6327f8eaf6bdc5649a587d5c8821ec7c160af50b` with team master

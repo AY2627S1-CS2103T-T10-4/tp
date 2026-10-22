@@ -141,6 +141,16 @@ public interface Model {
         throw new UnsupportedOperationException();
     }
 
+    /** Updates the visible students and records a human-readable summary of the active filter. */
+    default void updateFilteredStudentList(Predicate<Student> predicate, String filterSummary) {
+        updateFilteredStudentList(predicate);
+    }
+
+    /** Returns the summary of the active student filter, or an empty string when none is active. */
+    default String getStudentFilterSummary() {
+        return "";
+    }
+
     default boolean hasStudent(Student student) {
         return false;
     }
