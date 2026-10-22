@@ -10,6 +10,22 @@ import org.junit.jupiter.api.Test;
 
 class CommandResultTest {
     @Test
+    void helpTopic_preservesDefaultsAndParticipatesInValueContracts() {
+        CommandResult result = CommandResult.forHelp("Help", "add-student");
+        CommandResult copy = CommandResult.forHelp("Help", "add-student");
+        assertEquals(result, copy);
+        assertEquals(result.hashCode(), copy.hashCode());
+        assertNotEquals(result, CommandResult.forHelp("Help", "exit"));
+        assertNotEquals(result, CommandResult.forHelp("Help", null));
+        assertEquals("add-student", result.getHelpCommand());
+        assertTrue(result.isShowHelp());
+        assertFalse(result.isExit());
+        assertNull(result.getSelectedStudentId());
+        assertEquals(CommandResult.Workspace.UNCHANGED, result.getWorkspace());
+        assertTrue(result.toString().contains("helpCommand=add-student"));
+    }
+
+    @Test
     void workspaceRequest_preservesExistingDefaultsAndParticipatesInEquality() {
         CommandResult groups = new CommandResult("Listed groups", CommandResult.Workspace.GROUPS);
         CommandResult copy = new CommandResult("Listed groups", CommandResult.Workspace.GROUPS);
