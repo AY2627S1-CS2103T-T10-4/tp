@@ -322,6 +322,11 @@ public class MainWindow extends UiPart<Stage> {
      */
     @FXML
     public void handleHelp() {
+        showHelp(null);
+    }
+
+    private void showHelp(String command) {
+        helpWindow.setCommand(command);
         if (!helpWindow.isShowing()) {
             helpWindow.show();
         } else {
@@ -409,7 +414,7 @@ public class MainWindow extends UiPart<Stage> {
             refreshGuardianWorkspace();
 
             if (commandResult.isShowHelp()) {
-                handleHelp();
+                showHelp(commandResult.getHelpCommand());
             }
 
             if (commandResult.isExit()) {

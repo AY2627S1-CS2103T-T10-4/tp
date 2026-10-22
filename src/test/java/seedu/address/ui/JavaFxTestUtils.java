@@ -31,6 +31,8 @@ final class JavaFxTestUtils {
             startupLatch.countDown();
         }
         await(startupLatch);
+        // Closing the last test window must not terminate the toolkit for later tests.
+        Platform.setImplicitExit(false);
     }
 
     static void runOnFxThread(ThrowingRunnable action) {
