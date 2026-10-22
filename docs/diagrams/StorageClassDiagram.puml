@@ -3,34 +3,42 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam ArrowFontStyle plain
+skinparam nodesep 30
+skinparam ranksep 40
+
+title Storage component (partial)
 
 package Storage as StoragePackage {
+    interface Storage <<interface>>
+    class StorageManager
 
-Class "<<interface>>\nStorage" as Storage
-Class StorageManager
+    package "User preferences storage" #F4F6F6 {
+        class JsonUserPrefsStorage
+    }
 
-package "UserPrefs Storage" #F4F6F6{
-Class JsonUserPrefsStorage
+    package "Register storage" #F4F6F6 {
+        class JsonAddressBookStorage
+        class JsonSerializableAddressBook
+        class JsonAdaptedStudent
+        class JsonAdaptedGuardian
+        class JsonAdaptedGuardianLink
+        class JsonAdaptedGroupAssignment
+    }
 }
-
-package "AddressBook Storage" #F4F6F6{
-Class JsonAddressBookStorage
-Class JsonSerializableAddressBook
-Class JsonAdaptedPerson
-Class JsonAdaptedTag
-}
-
-}
-
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Storage
 
 StorageManager .up.|> Storage
-StorageManager -down-> "1" JsonUserPrefsStorage
-StorageManager -down-> "1" JsonAddressBookStorage
+StorageManager -down-> "1" JsonUserPrefsStorage : userPrefsStorage
+StorageManager -down-> "1" JsonAddressBookStorage : addressBookStorage
 
-JsonAddressBookStorage ..> JsonSerializableAddressBook
-JsonSerializableAddressBook --> "*" JsonAdaptedPerson
-JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonAddressBookStorage .down.> JsonSerializableAddressBook : reads / creates for saving
+JsonSerializableAddressBook -down-> "0..*" JsonAdaptedStudent : students
+JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGuardian : guardians
+JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGuardianLink : guardianLinks
+JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGroupAssignment : groupAssignments
 
+caption
+Model types, JSON utilities and legacy compatibility classes are omitted.
+Relationship adapters store IDs/codes, not references to other adapters.
+end caption
 @enduml

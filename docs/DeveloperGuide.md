@@ -204,14 +204,35 @@ Students and Guardians are immutable records composed from their stable IDs and 
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<img src="images/StorageClassDiagram.png" width="550" />
+<img src="images/StorageClassDiagram.png" width="850" alt="Storage classes and the four persisted Mentora record collections" />
 
-The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+`StorageManager` implements `Storage` and delegates register and user-preference file access to
+`JsonAddressBookStorage` and `JsonUserPrefsStorage`, respectively. These collaborators are supplied through its
+constructor. User preferences are stored separately from the student and guardian register.
+
+`JsonAddressBookStorage` reads and writes JSON through `JsonUtil`. It creates a `JsonSerializableAddressBook`
+from the complete `ReadOnlyAddressBook` when saving and calls `toModelType()` on the loaded wrapper when reading.
+The wrapper holds four collections:
+
+* `JsonAdaptedStudent` stores student IDs, names, academic levels and optional student phones.
+* `JsonAdaptedGuardian` stores guardian IDs, names and phone numbers.
+* `JsonAdaptedGuardianLink` stores a student ID and guardian ID for each relationship.
+* `JsonAdaptedGroupAssignment` stores a student ID and group code for each assignment.
+
+The relationship adapters store IDs and codes rather than references to other adapters. Loading reconstructs
+students and guardians first, then validates group assignments and guardian links against the reconstructed
+register and configured group catalogue. A conversion failure prevents a partially validated register from
+being returned. The group catalogue itself is application configuration and is not saved in the register file.
+
+When a register load fails, `StorageManager` retains the failure and blocks subsequent register saves for that
+storage session. User-preference storage remains independent. Normal register writes are not atomic; the
+in-memory rollback performed by Logic after a save failure does not guarantee restoration of disk contents.
+
+The partial diagram omits model types, JSON utilities and deserialization helpers for readability. The retired
+`JsonAdaptedPerson` and `JsonAdaptedTag` classes remain for compatibility but are not part of the current
+persisted record collections.
 
 ### Common classes
 
