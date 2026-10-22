@@ -143,34 +143,50 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+The partial class diagram below uses `assign-group` and `unassign-group` as current Mentora examples.
+`Model` and `Storage` are external interfaces; their implementations and other command families are omitted.
 
-<img src="images/LogicClassDiagram.png" width="550"/>
+<img src="images/LogicClassDiagram.png" width="740"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+`LogicManager` implements `Logic` and retains the injected `Model` and `Storage` references. It constructs and
+retains one `AddressBookParser`. That router does not implement `Parser<T>`: it creates a matching concrete
+parser when routing input. `AssignGroupCommandParser` implements `Parser<AssignGroupCommand>`, and
+`UnassignGroupCommandParser` implements `Parser<UnassignGroupCommand>`, where `T` is bounded by `Command`.
+
+For these group commands, the execution path is:
+
+1. `LogicManager.execute` passes the input to `AddressBookParser.parseCommand`. The router selects the concrete
+   parser, which validates the arguments and creates the corresponding `Command` subclass. The group parsers
+   retain the student ID as text and canonicalize the group code without allocating a `StudentId`.
+1. Before executing a mutating command, `LogicManager` checks the storage recovery state and snapshots the
+   complete in-memory register. `Command.isReadOnly()` defaults to `false`; both group commands inherit that
+   classification. Read-only commands bypass saving, while recovery blocks mutations before execution.
+1. The command executes against `Model`, resolving the student from the full register and the group from the
+   configured catalogue. It calls `addGroupAssignment` or `removeGroupAssignment`; domain validation and
+   mutation remain in the model. The command does not write to Storage or control the UI.
+1. If execution changes the register, `LogicManager` saves it once through `Storage` before returning success.
+   Parsing and domain rejections, read-only commands and unchanged data do not trigger a save. A save
+   `IOException` restores the complete in-memory snapshot and becomes command-specific error feedback.
+   Normal file writes are not atomic, so this rollback does not guarantee preservation of partially written disk data.
+1. After execution and any required save succeed, Logic reveals a requested student hidden by the current filter
+   and returns the `CommandResult`. The result carries feedback and optional student-ID selection and workspace
+   requests. The UI applies these requests and refreshes the profile; `CommandResult` performs no UI actions.
+
+**Historical AB3 illustrations:** The following unchanged diagrams explain inherited parsing and execution
+patterns. Their `delete 1`, Person and Add/Delete command examples do not describe current Mentora command routes.
+
+The sequence diagram illustrates the former `execute("delete 1")` flow:
 
 ![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
-How the `Logic` component works:
-
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
-
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The inherited parser diagram also shows supporting utilities omitted from the current partial class diagram:
 
 <img src="images/ParserClasses.png" width="600"/>
-
-How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
