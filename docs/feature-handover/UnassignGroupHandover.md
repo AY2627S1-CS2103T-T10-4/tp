@@ -5,6 +5,12 @@ title: Unassign Group Handover
 
 # Feature 10: Remove a group assignment
 
+Current filter integration (22 October 2026): [Filter Students Handover](FilterStudentsHandover.md)
+documents Features 18/19. Removing an assignment refreshes group-filter membership. If saving fails,
+`ModelManager.setAddressBook()` restores membership and refreshes the filtered rows, even when no Student
+object changes. `FilterStudentsUiTest` covers restoration of rows, selection, summary and workspace.
+The checkpoint details below describe the original Feature 10 implementation.
+
 Owner: **Gabriel Chan (HIIMHEY)** · [Issue #72](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/72) · [PR #73](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/73) · v1.4 Alpha.
 
 This handover describes source checkpoint `2a725351`, which includes unlink-guardian from [PR #70](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/70). See the [User Guide](../UserGuide.md) and [feature specification](../FeatureSpecification.md) for the user-facing contract.
