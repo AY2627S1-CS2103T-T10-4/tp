@@ -33,11 +33,26 @@ public class GroupListPanel extends UiPart<Region> {
     public GroupListPanel(GroupCatalogue catalogue) {
         super(FXML);
         requireNonNull(catalogue);
+        groupListView.setPlaceholder(new Label("No configured groups."));
+        groupListView.setCellFactory(unused -> new GroupListViewCell());
+        refresh(catalogue);
+    }
+
+    /** Replaces the rendered catalogue after a successful group mutation or rollback. */
+    public void refresh(GroupCatalogue catalogue) {
+        requireNonNull(catalogue);
         groupCountLabel.setText(catalogue.size() + " groups");
         groupListView.setItems(FXCollections.unmodifiableObservableList(
                 FXCollections.observableArrayList(catalogue.getGroups())));
-        groupListView.setPlaceholder(new Label("No configured groups."));
-        groupListView.setCellFactory(unused -> new GroupListViewCell());
+    }
+
+    /** Selects a group by canonical code when present. */
+    public void selectGroupCode(String code) {
+        if (code == null) {
+            return;
+        }
+        groupListView.getItems().stream().filter(group -> group.getCode().getValue().equals(code)).findFirst()
+                .ifPresent(group -> groupListView.getSelectionModel().select(group));
     }
 
     /** Renders each immutable group using the existing theme's text styles. */
@@ -62,10 +77,7 @@ public class GroupListPanel extends UiPart<Region> {
             label.setWrapText(true);
             label.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(label, Priority.ALWAYS);
-            String kindText = switch (group.getKind()) {
-                case SUBJECT -> "Subject";
-                case CLASS -> "Class";
-            };
+            String kindText = group.getKind().toDisplayString();
             Label kind = new Label(kindText);
             kind.setId("groupKind");
             kind.getStyleClass().add("helper-label");

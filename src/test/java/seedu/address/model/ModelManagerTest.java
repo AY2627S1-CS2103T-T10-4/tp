@@ -1,7 +1,6 @@
 package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,14 +16,14 @@ import seedu.address.model.student.StudentName;
 
 class ModelManagerTest {
     @Test
-    void getGroupCatalogue_studentDataReset_preservesReadOnlyConfiguration() {
+    void getGroupCatalogue_registerReset_preservesSavedCatalogue() {
         ModelManager model = new ModelManager();
         GroupCatalogue catalogue = model.getGroupCatalogue();
 
         model.setAddressBook(new AddressBook());
 
-        assertSame(ConfiguredGroups.getCatalogue(), catalogue);
-        assertSame(catalogue, model.getGroupCatalogue());
+        assertEquals(ConfiguredGroups.getCatalogue(), catalogue);
+        assertEquals(catalogue, model.getGroupCatalogue());
         assertThrows(UnsupportedOperationException.class, () -> catalogue.getGroups().clear());
     }
 

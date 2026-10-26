@@ -120,7 +120,7 @@ class UnassignGroupIntegrationTest {
         JsonNode json = new ObjectMapper().readTree(Files.readString(realData.getAddressBookFilePath()));
         Set<String> properties = new HashSet<>();
         json.fieldNames().forEachRemaining(properties::add);
-        assertEquals(Set.of("students", "guardians", "guardianLinks", "groupAssignments"), properties);
+        assertEquals(Set.of("students", "guardians", "groups", "guardianLinks", "groupAssignments"), properties);
         properties.forEach(property -> assertTrue(json.get(property).isArray(), property));
     }
 

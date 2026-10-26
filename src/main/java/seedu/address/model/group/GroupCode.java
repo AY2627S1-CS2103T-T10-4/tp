@@ -13,6 +13,10 @@ public final class GroupCode {
 
     /** Error message for blank group codes. */
     public static final String MESSAGE_CONSTRAINTS = "Group codes must not be blank.";
+    public static final String MESSAGE_NEW_CODE_CONSTRAINTS =
+            "Group code must be 2-20 letters, digits, or hyphens, start with a letter, and end with a letter or digit.";
+
+    private static final String NEW_CODE_VALIDATION_REGEX = "[A-Za-z][A-Za-z0-9-]{0,18}[A-Za-z0-9]";
 
     private final String value;
 
@@ -37,6 +41,12 @@ public final class GroupCode {
      */
     public String getValue() {
         return value;
+    }
+
+    /** Returns whether text is suitable for a newly configured group code. */
+    public static boolean isValidNewCode(String code) {
+        requireNonNull(code);
+        return code.strip().matches(NEW_CODE_VALIDATION_REGEX);
     }
 
     /**

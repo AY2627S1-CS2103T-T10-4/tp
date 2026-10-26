@@ -11,11 +11,13 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.logic.commands.AddGroupCommand;
 import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeleteGroupCommand;
 import seedu.address.logic.commands.DeleteStudentCommand;
 import seedu.address.logic.commands.EditGuardianCommand;
 import seedu.address.logic.commands.EditStudentCommand;
@@ -99,6 +101,12 @@ public class LogicManager implements Logic {
         }
         if (command instanceof UnassignGroupCommand) {
             return UnassignGroupCommand.MESSAGE_SAVE_FAILURE;
+        }
+        if (command instanceof AddGroupCommand) {
+            return AddGroupCommand.MESSAGE_SAVE_FAILURE;
+        }
+        if (command instanceof DeleteGroupCommand deleteGroupCommand) {
+            return String.format(DeleteGroupCommand.MESSAGE_SAVE_FAILURE, deleteGroupCommand.getGroupCode());
         }
         if (command instanceof AddStudentCommand) {
             return "Could not save changes. No student was added.";

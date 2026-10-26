@@ -16,7 +16,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
@@ -37,7 +36,6 @@ public class ModelManager implements Model {
     private final FilteredList<Student> filteredStudents;
     private final FilteredList<Guardian> filteredGuardians;
     private final UserPrefs userPrefs;
-    private final GroupCatalogue groupCatalogue = ConfiguredGroups.getCatalogue();
     private String studentFilterSummary = "";
 
     /** Creates a model manager with the supplied student data and user preferences. */
@@ -111,7 +109,17 @@ public class ModelManager implements Model {
 
     @Override
     public GroupCatalogue getGroupCatalogue() {
-        return groupCatalogue;
+        return addressBook.getGroupCatalogue();
+    }
+
+    @Override
+    public void addGroup(Group group) {
+        addressBook.addGroup(group);
+    }
+
+    @Override
+    public void deleteGroup(GroupCode code) {
+        addressBook.deleteGroup(code);
     }
 
     @Override
@@ -143,7 +151,7 @@ public class ModelManager implements Model {
                 .filter(assignment -> assignment.getStudentId().value.equals(studentId))
                 .map(GroupAssignment::getGroupCode)
                 .collect(Collectors.toSet());
-        return groupCatalogue.getGroups().stream().filter(group -> codes.contains(group.getCode())).toList();
+        return getGroupCatalogue().getGroups().stream().filter(group -> codes.contains(group.getCode())).toList();
     }
 
     @Override

@@ -49,6 +49,7 @@ public class MainWindow extends UiPart<Stage> {
     private StudentDetailsPanel studentDetailsPanel;
     private GuardianListPanel guardianListPanel;
     private GuardianDetailsPanel guardianDetailsPanel;
+    private GroupListPanel groupListPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -233,7 +234,7 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void fillGroupPanel() {
-        GroupListPanel groupListPanel = new GroupListPanel(logic.getGroupCatalogue());
+        groupListPanel = new GroupListPanel(logic.getGroupCatalogue());
         groupsWorkspacePlaceholder.getChildren().add(groupListPanel.getRoot());
     }
 
@@ -393,6 +394,8 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            groupListPanel.refresh(logic.getGroupCatalogue());
+            groupListPanel.selectGroupCode(commandResult.getSelectedGroupCode());
             refreshStudentFilterSummary();
             if (commandResult.getWorkspace() == CommandResult.Workspace.GROUPS) {
                 handleGroupsTab();

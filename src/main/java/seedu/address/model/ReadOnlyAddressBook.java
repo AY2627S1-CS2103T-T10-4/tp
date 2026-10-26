@@ -8,7 +8,9 @@ import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.guardian.Guardian;
 import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.person.Person;
@@ -32,6 +34,11 @@ public interface ReadOnlyAddressBook {
      * @return The current assignments; subsequent aggregate changes are reflected in this view.
      */
     Set<GroupAssignment> getGroupAssignments();
+
+    /** Returns the configured subject and class groups in display order. */
+    default GroupCatalogue getGroupCatalogue() {
+        return ConfiguredGroups.getCatalogue();
+    }
 
     /** Returns an unmodifiable view of all guardians. */
     default ObservableList<Guardian> getGuardianList() {

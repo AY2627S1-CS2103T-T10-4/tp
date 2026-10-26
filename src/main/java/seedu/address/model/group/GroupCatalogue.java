@@ -5,6 +5,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,5 +65,15 @@ public final class GroupCatalogue {
         return groups.stream()
                 .filter(group -> group.getCode().equals(groupCode))
                 .findFirst();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this || other instanceof GroupCatalogue catalogue && groups.equals(catalogue.groups);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(groups);
     }
 }

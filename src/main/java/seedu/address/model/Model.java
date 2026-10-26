@@ -10,6 +10,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.group.GroupCode;
 import seedu.address.model.guardian.Guardian;
 import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.guardian.GuardianPhone;
@@ -74,6 +75,16 @@ public interface Model {
      * @return The shared catalogue in configured display order.
      */
     GroupCatalogue getGroupCatalogue();
+
+    /** Adds a new configured group. */
+    default void addGroup(Group group) {
+        throw new UnsupportedOperationException();
+    }
+
+    /** Deletes an existing unassigned group. */
+    default void deleteGroup(GroupCode code) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Resolves exact ID text against the authoritative register without allocating or reserving an ID.
