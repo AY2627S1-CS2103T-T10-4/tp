@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -36,5 +37,20 @@ class AddGroupCommandTest {
 
         assertEquals("Group MAT is already configured.", error.getMessage());
         assertEquals(before, model.getGroupCatalogue().size());
+    }
+
+    @Test
+    void equalsAndHashCode_useGroupValue() {
+        AddGroupCommand command = new AddGroupCommand(PHYSICS);
+        AddGroupCommand equivalent = new AddGroupCommand(
+                new Group(new GroupCode("phy"), "Physics", GroupKind.SUBJECT));
+        AddGroupCommand different = new AddGroupCommand(
+                new Group(new GroupCode("CHEM"), "Chemistry", GroupKind.SUBJECT));
+
+        assertEquals(command, command);
+        assertEquals(command, equivalent);
+        assertEquals(command.hashCode(), equivalent.hashCode());
+        assertNotEquals(command, different);
+        assertNotEquals(command, null);
     }
 }

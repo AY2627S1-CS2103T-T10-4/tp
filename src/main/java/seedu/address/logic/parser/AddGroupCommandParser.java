@@ -23,18 +23,34 @@ public class AddGroupCommandParser implements Parser<AddGroupCommand> {
     @Override
     public AddGroupCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String canonical = args.strip().replaceAll("(?i)(^|\\s)g/", "$1g/")
+        String canonicalArguments = canonicalizePrefixes(args);
+        verifyNoUnknownPrefixes(canonicalArguments);
+        ArgumentMultimap arguments = tokenizeArguments(canonicalArguments);
+        verifyArgumentStructure(arguments);
+        return createCommand(arguments);
+    }
+
+    private static String canonicalizePrefixes(String arguments) {
+        return arguments.strip().replaceAll("(?i)(^|\\s)g/", "$1g/")
                 .replaceAll("(?i)(^|\\s)l/", "$1l/")
                 .replaceAll("(?i)(^|\\s)k/", "$1k/");
-        Matcher prefixes = PREFIX.matcher(canonical);
+    }
+
+    private static void verifyNoUnknownPrefixes(String arguments) throws ParseException {
+        Matcher prefixes = PREFIX.matcher(arguments);
         while (prefixes.find()) {
             String prefix = prefixes.group(1);
             if (!prefix.equals("g/") && !prefix.equals("l/") && !prefix.equals("k/")) {
                 throw new ParseException(AddGroupCommand.MESSAGE_USAGE);
             }
         }
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + canonical,
-                PREFIX_GROUP, PREFIX_GROUP_LABEL, PREFIX_GROUP_KIND);
+    }
+
+    private static ArgumentMultimap tokenizeArguments(String arguments) {
+        return ArgumentTokenizer.tokenize(" " + arguments, PREFIX_GROUP, PREFIX_GROUP_LABEL, PREFIX_GROUP_KIND);
+    }
+
+    private static void verifyArgumentStructure(ArgumentMultimap arguments) throws ParseException {
         if (!arguments.getPreamble().isEmpty()) {
             throw new ParseException(AddGroupCommand.MESSAGE_USAGE);
         }
@@ -43,6 +59,9 @@ public class AddGroupCommandParser implements Parser<AddGroupCommand> {
         } catch (ParseException e) {
             throw new ParseException(AddGroupCommand.MESSAGE_USAGE);
         }
+    }
+
+    private static AddGroupCommand createCommand(ArgumentMultimap arguments) throws ParseException {
         String code = arguments.getValue(PREFIX_GROUP).orElse("").strip();
         String label = arguments.getValue(PREFIX_GROUP_LABEL).orElse("").strip().replaceAll("\\s+", " ");
         String kind = arguments.getValue(PREFIX_GROUP_KIND).orElse("").strip();
@@ -55,11 +74,14 @@ public class AddGroupCommandParser implements Parser<AddGroupCommand> {
         if (!Group.isValidNewLabel(label)) {
             throw new ParseException(Group.MESSAGE_LABEL_CONSTRAINTS);
         }
-        GroupKind groupKind = switch (kind.toLowerCase(Locale.ROOT)) {
+        return new AddGroupCommand(new Group(new GroupCode(code), label, parseKind(kind)));
+    }
+
+    private static GroupKind parseKind(String kind) throws ParseException {
+        return switch (kind.toLowerCase(Locale.ROOT)) {
             case "subject" -> GroupKind.SUBJECT;
             case "class" -> GroupKind.CLASS;
             default -> throw new ParseException(MESSAGE_KIND_CONSTRAINTS);
         };
-        return new AddGroupCommand(new Group(new GroupCode(code), label, groupKind));
     }
 }

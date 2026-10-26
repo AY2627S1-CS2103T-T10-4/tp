@@ -33,7 +33,7 @@ class AddGroupCommandParserTest {
     void parse_missingRepeatedUnknownOrPreamble_reportsUsage() {
         for (String input : new String[] {" g/PHY l/Physics", " g/PHY g/SCI l/Physics k/Subject",
             " g/PHY l/Physics k/Subject x/value", "unexpected g/PHY l/Physics k/Subject",
-            " g/PHY l/Physics k/"}) {
+            " g/PHY l/Physics k/", " g/ l/Physics k/Subject", " g/PHY l/ k/Subject"}) {
             assertError(input, AddGroupCommand.MESSAGE_USAGE);
         }
     }

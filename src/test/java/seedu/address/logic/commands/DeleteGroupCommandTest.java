@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -52,5 +53,18 @@ class DeleteGroupCommandTest {
                 new DeleteGroupCommand(new GroupCode("PHY")).execute(new ModelManager()));
 
         assertEquals("Group PHY is not configured. Run list-groups to see available groups.", error.getMessage());
+    }
+
+    @Test
+    void equalsAndHashCode_useCanonicalGroupCode() {
+        DeleteGroupCommand command = new DeleteGroupCommand(new GroupCode("PHY"));
+        DeleteGroupCommand equivalent = new DeleteGroupCommand(new GroupCode("phy"));
+        DeleteGroupCommand different = new DeleteGroupCommand(new GroupCode("CHEM"));
+
+        assertEquals(command, command);
+        assertEquals(command, equivalent);
+        assertEquals(command.hashCode(), equivalent.hashCode());
+        assertNotEquals(command, different);
+        assertNotEquals(command, null);
     }
 }

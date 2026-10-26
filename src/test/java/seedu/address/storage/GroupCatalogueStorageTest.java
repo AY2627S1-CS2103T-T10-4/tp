@@ -52,6 +52,10 @@ class GroupCatalogueStorageTest {
             "[{\"code\":\"P\",\"label\":\"Physics\",\"kind\":\"Subject\"}]",
             "[{\"code\":\"PHY\",\"label\":\"\",\"kind\":\"Subject\"}]",
             "[{\"code\":\"PHY\",\"label\":\"Physics\",\"kind\":\"Tutorial\"}]",
+            "[{\"label\":\"Physics\",\"kind\":\"Subject\"}]",
+            "[{\"code\":\"PHY\",\"kind\":\"Subject\"}]",
+            "[{\"code\":\"PHY\",\"label\":\"Physics\"}]",
+            "[{\"code\":\"PHY\",\"label\":\"Physics\",\"kind\":\"Subject\",\"extra\":true}]",
             "null", "[null]"
         };
         for (int i = 0; i < groups.length; i++) {

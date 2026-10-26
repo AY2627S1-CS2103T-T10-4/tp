@@ -17,14 +17,31 @@ public class DeleteGroupCommandParser implements Parser<DeleteGroupCommand> {
     @Override
     public DeleteGroupCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String canonical = args.strip().replaceAll("(?i)(^|\\s)g/", "$1g/");
-        Matcher prefixes = PREFIX.matcher(canonical);
+        String canonicalArguments = canonicalizePrefix(args);
+        verifyNoUnknownPrefixes(canonicalArguments);
+        ArgumentMultimap arguments = tokenizeArguments(canonicalArguments);
+        verifyArgumentStructure(arguments);
+        return createCommand(arguments);
+    }
+
+    private static String canonicalizePrefix(String arguments) {
+        return arguments.strip().replaceAll("(?i)(^|\\s)g/", "$1g/");
+    }
+
+    private static void verifyNoUnknownPrefixes(String arguments) throws ParseException {
+        Matcher prefixes = PREFIX.matcher(arguments);
         while (prefixes.find()) {
             if (!prefixes.group(1).equals("g/")) {
                 throw new ParseException(DeleteGroupCommand.MESSAGE_USAGE);
             }
         }
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + canonical, PREFIX_GROUP);
+    }
+
+    private static ArgumentMultimap tokenizeArguments(String arguments) {
+        return ArgumentTokenizer.tokenize(" " + arguments, PREFIX_GROUP);
+    }
+
+    private static void verifyArgumentStructure(ArgumentMultimap arguments) throws ParseException {
         if (!arguments.getPreamble().isEmpty()) {
             throw new ParseException(DeleteGroupCommand.MESSAGE_USAGE);
         }
@@ -33,6 +50,9 @@ public class DeleteGroupCommandParser implements Parser<DeleteGroupCommand> {
         } catch (ParseException e) {
             throw new ParseException(DeleteGroupCommand.MESSAGE_USAGE);
         }
+    }
+
+    private static DeleteGroupCommand createCommand(ArgumentMultimap arguments) throws ParseException {
         String code = arguments.getValue(PREFIX_GROUP).orElse("").strip();
         if (code.isEmpty() || code.codePoints().anyMatch(Character::isWhitespace)) {
             throw new ParseException(DeleteGroupCommand.MESSAGE_USAGE);
