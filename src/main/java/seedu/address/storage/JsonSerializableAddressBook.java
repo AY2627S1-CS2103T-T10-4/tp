@@ -28,6 +28,7 @@ class JsonSerializableAddressBook {
     private final List<JsonAdaptedGuardian> guardians = new ArrayList<>();
     private final List<JsonAdaptedGuardianLink> guardianLinks = new ArrayList<>();
     private final List<JsonAdaptedGroupAssignment> groupAssignments = new ArrayList<>();
+    private List<JsonAdaptedGroup> groups;
 
     @JsonCreator
     private JsonSerializableAddressBook() { }
@@ -64,6 +65,7 @@ class JsonSerializableAddressBook {
         guardians.addAll(source.getGuardianList().stream().map(JsonAdaptedGuardian::new).toList());
         source.getGuardianLinks().forEach((studentId, guardianId) ->
                 guardianLinks.add(new JsonAdaptedGuardianLink(studentId.toString(), guardianId.toString())));
+        groups = source.getGroupCatalogue().getGroups().stream().map(JsonAdaptedGroup::new).toList();
         groupAssignments.addAll(source.getGroupAssignments().stream().map(JsonAdaptedGroupAssignment::new).toList());
     }
 
@@ -97,6 +99,15 @@ class JsonSerializableAddressBook {
         groupAssignments.addAll(records);
     }
 
+    /** Accepts an absent legacy catalogue but rejects an explicitly null group array. */
+    @JsonSetter("groups")
+    private void setGroups(List<JsonAdaptedGroup> records) {
+        if (records == null) {
+            throw new IllegalArgumentException("Groups must be a JSON array, not null.");
+        }
+        groups = List.copyOf(records);
+    }
+
     /** Distinguishes an absent legacy list from an explicitly invalid null list in JSON. */
     @JsonSetter("students")
     private void setStudents(List<JsonAdaptedStudent> records) {
@@ -122,6 +133,20 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook register = new AddressBook();
+        if (groups != null) {
+            List<seedu.address.model.group.Group> convertedGroups = new ArrayList<>();
+            for (JsonAdaptedGroup group : groups) {
+                if (group == null) {
+                    throw new IllegalValueException("Groups list contains a null record.");
+                }
+                convertedGroups.add(group.toModelType());
+            }
+            try {
+                register.setGroups(convertedGroups);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalValueException(e.getMessage());
+            }
+        }
         for (JsonAdaptedStudent adaptedStudent : students) {
             if (adaptedStudent == null) {
                 throw new IllegalValueException("Students list contains a null record.");

@@ -12,6 +12,7 @@ public final class Group {
 
     /** Error message for blank group labels. */
     public static final String MESSAGE_CONSTRAINTS = "Group labels must not be blank.";
+    public static final String MESSAGE_LABEL_CONSTRAINTS = "Group label must be 1-80 characters.";
 
     private final GroupCode code;
     private final String label;
@@ -59,6 +60,11 @@ public final class Group {
      */
     public GroupKind getKind() {
         return kind;
+    }
+
+    /** Returns whether the normalized label is suitable for a newly configured group. */
+    public static boolean isValidNewLabel(String label) {
+        return label != null && !label.isBlank() && label.length() <= 80;
     }
 
     /**

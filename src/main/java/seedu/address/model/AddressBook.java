@@ -16,7 +16,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.group.GroupCode;
 import seedu.address.model.guardian.Guardian;
 import seedu.address.model.guardian.GuardianId;
 import seedu.address.model.guardian.GuardianPhone;
@@ -39,6 +42,9 @@ public class AddressBook implements ReadOnlyAddressBook {
     public static final String MESSAGE_UNKNOWN_GROUP =
             "Group %s is not configured. Run list-groups to see available groups.";
     public static final String MESSAGE_DUPLICATE_ASSIGNMENT = "Student %s is already assigned to %s.";
+    public static final String MESSAGE_DUPLICATE_GROUP = "Group %s is already configured.";
+    public static final String MESSAGE_ASSIGNED_GROUP =
+            "Group %s is assigned to %d student(s). Remove those assignments before deleting it.";
     /** Error message when an existing student has no assignment to a configured group. */
     public static final String MESSAGE_MISSING_ASSIGNMENT = "Student %s is not assigned to %s.";
 
@@ -46,6 +52,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     private final ObservableList<Guardian> guardians = FXCollections.observableArrayList();
     private final Map<StudentId, GuardianId> guardianLinks = new LinkedHashMap<>();
     private final Set<GroupAssignment> groupAssignments = new LinkedHashSet<>();
+    private GroupCatalogue groupCatalogue = new GroupCatalogue(ConfiguredGroups.getCatalogue().getGroups());
 
     public AddressBook() { }
 
@@ -71,6 +78,7 @@ public class AddressBook implements ReadOnlyAddressBook {
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
         AddressBook replacement = new AddressBook();
+        replacement.setGroups(newData.getGroupCatalogue().getGroups());
         List.copyOf(newData.getStudentList()).forEach(replacement::addStudent);
         List.copyOf(newData.getGuardianList()).forEach(replacement::addGuardian);
         newData.getGroupAssignments().forEach(replacement::addGroupAssignment);
@@ -80,6 +88,7 @@ public class AddressBook implements ReadOnlyAddressBook {
         guardianLinks.putAll(replacement.guardianLinks);
         groupAssignments.clear();
         groupAssignments.addAll(replacement.groupAssignments);
+        groupCatalogue = replacement.groupCatalogue;
         if (!guardians.equals(replacement.guardians)) {
             guardians.setAll(replacement.guardians);
         }
@@ -208,7 +217,7 @@ public class AddressBook implements ReadOnlyAddressBook {
         if (!hasStudentId(assignment.getStudentId())) {
             throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, assignment.getStudentId()));
         }
-        if (ConfiguredGroups.getCatalogue().findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+        if (groupCatalogue.findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
             throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
         }
         if (groupAssignments.contains(assignment)) {
@@ -233,7 +242,7 @@ public class AddressBook implements ReadOnlyAddressBook {
         if (!hasStudentId(assignment.getStudentId())) {
             throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_STUDENT, assignment.getStudentId()));
         }
-        if (ConfiguredGroups.getCatalogue().findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+        if (groupCatalogue.findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
             throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
         }
         if (!groupAssignments.contains(assignment)) {
@@ -241,6 +250,42 @@ public class AddressBook implements ReadOnlyAddressBook {
                     assignment.getStudentId(), assignment.getGroupCode()));
         }
         groupAssignments.remove(assignment);
+    }
+
+    /** Replaces the group catalogue after validating code uniqueness and assignment references. */
+    public void setGroups(List<Group> groups) {
+        GroupCatalogue replacement = new GroupCatalogue(List.copyOf(groups));
+        for (GroupAssignment assignment : groupAssignments) {
+            if (replacement.findByCode(assignment.getGroupCode().getValue()).isEmpty()) {
+                throw new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, assignment.getGroupCode()));
+            }
+        }
+        groupCatalogue = replacement;
+    }
+
+    /** Adds one group while preserving catalogue order. */
+    public void addGroup(Group group) {
+        requireNonNull(group);
+        if (groupCatalogue.findByCode(group.getCode().getValue()).isPresent()) {
+            throw new IllegalArgumentException(String.format(MESSAGE_DUPLICATE_GROUP, group.getCode()));
+        }
+        List<Group> replacement = new java.util.ArrayList<>(groupCatalogue.getGroups());
+        replacement.add(group);
+        groupCatalogue = new GroupCatalogue(replacement);
+    }
+
+    /** Deletes an unassigned group and rejects any operation that would discard assignments. */
+    public void deleteGroup(GroupCode code) {
+        requireNonNull(code);
+        Group existing = groupCatalogue.findByCode(code.getValue()).orElseThrow(() ->
+                new IllegalArgumentException(String.format(MESSAGE_UNKNOWN_GROUP, code)));
+        long assignmentCount = groupAssignments.stream()
+                .filter(assignment -> assignment.getGroupCode().equals(existing.getCode())).count();
+        if (assignmentCount > 0) {
+            throw new IllegalArgumentException(String.format(MESSAGE_ASSIGNED_GROUP, code, assignmentCount));
+        }
+        groupCatalogue = new GroupCatalogue(groupCatalogue.getGroups().stream()
+                .filter(group -> !group.getCode().equals(code)).toList());
     }
 
     /**
@@ -393,6 +438,11 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     @Override
+    public GroupCatalogue getGroupCatalogue() {
+        return groupCatalogue;
+    }
+
+    @Override
     public ObservableList<Guardian> getGuardianList() {
         return FXCollections.unmodifiableObservableList(guardians);
     }
@@ -400,18 +450,20 @@ public class AddressBook implements ReadOnlyAddressBook {
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("students", students).add("guardians", guardians)
-                .add("guardianLinks", guardianLinks).add("groupAssignments", groupAssignments).toString();
+                .add("groups", groupCatalogue.getGroups()).add("guardianLinks", guardianLinks)
+                .add("groupAssignments", groupAssignments).toString();
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof AddressBook addressBook && students.equals(addressBook.students)
                 && guardians.equals(addressBook.guardians) && guardianLinks.equals(addressBook.guardianLinks)
-                && groupAssignments.equals(addressBook.groupAssignments);
+                && groupAssignments.equals(addressBook.groupAssignments)
+                && groupCatalogue.equals(addressBook.groupCatalogue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(students, guardians, guardianLinks, groupAssignments);
+        return Objects.hash(students, guardians, guardianLinks, groupAssignments, groupCatalogue);
     }
 }

@@ -25,7 +25,7 @@ class HelpCommandParserTest {
         Set<String> commands = Set.of("add-student", "edit-student", "delete-student", "list-students",
                 "find-student", "view-student", "add-guardian", "edit-guardian", "list-guardians",
                 "find-guardian", "link-guardian", "unlink-guardian", "list-groups", "assign-group",
-                "unassign-group", "filter-students", "help", "exit");
+                "unassign-group", "add-group", "delete-group", "filter-students", "help", "exit");
         assertEquals(commands, Set.copyOf(HelpContent.getCommands()));
         ModelManager model = new ModelManager();
         for (String command : commands) {

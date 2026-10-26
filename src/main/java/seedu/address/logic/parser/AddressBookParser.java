@@ -8,10 +8,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddGroupCommand;
 import seedu.address.logic.commands.AddGuardianCommand;
 import seedu.address.logic.commands.AddStudentCommand;
 import seedu.address.logic.commands.AssignGroupCommand;
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.DeleteGroupCommand;
 import seedu.address.logic.commands.DeleteStudentCommand;
 import seedu.address.logic.commands.EditGuardianCommand;
 import seedu.address.logic.commands.EditStudentCommand;
@@ -64,12 +66,14 @@ public class AddressBookParser {
 
         return switch (commandWord.toLowerCase(java.util.Locale.ROOT)) {
             case AddGuardianCommand.COMMAND_WORD -> new AddGuardianCommandParser().parse(arguments);
+            case AddGroupCommand.COMMAND_WORD -> new AddGroupCommandParser().parse(arguments);
             case AddStudentCommand.COMMAND_WORD -> new AddStudentCommandParser().parse(arguments);
             case AssignGroupCommand.COMMAND_WORD -> new AssignGroupCommandParser().parse(arguments);
             case UnassignGroupCommand.COMMAND_WORD -> new UnassignGroupCommandParser().parse(arguments);
             case ListGroupsCommand.COMMAND_WORD -> new ListGroupsCommandParser().parse(arguments);
             case ListGuardiansCommand.COMMAND_WORD -> new ListGuardiansCommandParser().parse(arguments);
             case DeleteStudentCommand.COMMAND_WORD -> new DeleteStudentCommandParser().parse(arguments);
+            case DeleteGroupCommand.COMMAND_WORD -> new DeleteGroupCommandParser().parse(arguments);
             case EditStudentCommand.COMMAND_WORD -> new EditStudentCommandParser().parse(arguments);
             case EditGuardianCommand.COMMAND_WORD -> new EditGuardianCommandParser().parse(arguments);
             case FilterStudentsCommand.COMMAND_WORD -> new FilterStudentsCommandParser().parse(arguments);

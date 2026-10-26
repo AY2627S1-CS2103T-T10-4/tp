@@ -16,7 +16,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import seedu.address.model.group.ConfiguredGroups;
+import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupCatalogue;
+import seedu.address.model.group.GroupCode;
+import seedu.address.model.group.GroupKind;
 
 class GroupListPanelTest {
     @BeforeAll
@@ -61,6 +64,23 @@ class GroupListPanelTest {
             assertTrue(list.getItems().isEmpty());
             assertEquals("No configured groups.", ((Label) list.getPlaceholder()).getText());
             assertEquals("0 groups", ((Label) panel.getRoot().lookup("#groupCountLabel")).getText());
+        });
+    }
+
+    @Test
+    void refreshAndSelectGroupCode_updatesRenderedCatalogueAndSelection() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            GroupListPanel panel = new GroupListPanel(ConfiguredGroups.getCatalogue());
+            Group physics = new Group(new GroupCode("PHY"), "Physics", GroupKind.SUBJECT);
+            GroupCatalogue updated = new GroupCatalogue(List.of(physics));
+
+            panel.refresh(updated);
+            panel.selectGroupCode("PHY");
+
+            ListView<?> list = (ListView<?>) panel.getRoot().lookup("#groupListView");
+            assertEquals(List.of(physics), list.getItems());
+            assertEquals(physics, list.getSelectionModel().getSelectedItem());
+            assertEquals("1 groups", ((Label) panel.getRoot().lookup("#groupCountLabel")).getText());
         });
     }
 
