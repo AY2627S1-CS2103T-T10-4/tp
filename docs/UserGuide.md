@@ -9,7 +9,7 @@ Mentora helps coordinators of small private tuition centres in Singapore manage 
 
 Use Mentora to keep student details, subject or class assignments, and guardian contact information together. Siblings can share a guardian record, so one saved contact can appear in every linked student's profile.
 
-> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `find-guardian`, `edit-guardian`, `link-guardian`, `unlink-guardian`, `view-student`, `find-student`, `filter-students`, `list-students`, `list-groups`, `assign-group`, `unassign-group`, `help`, and `exit`. Student phone can be entered during creation or updated with `edit-student`; guardian phone remains a separate contact. The five configured groups can be assigned to students, removed from their assignments, and displayed in their profiles. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
+> **Current MVP build:** Supported commands are `add-student`, `edit-student`, `delete-student`, `add-guardian`, `list-guardians`, `find-guardian`, `edit-guardian`, `link-guardian`, `unlink-guardian`, `view-student`, `find-student`, `filter-students`, `list-students`, `list-groups`, `add-group`, `delete-group`, `assign-group`, `unassign-group`, `help`, and `exit`. Student phone can be entered during creation or updated with `edit-student`; guardian phone remains a separate contact. Subject and class groups can be created, deleted when unused, assigned to students, removed from assignments, and displayed in profiles. Legacy Address Book commands are no longer accepted. Interface images are mockups, and example IDs and counts are illustrative. See the [MVP Release Notes](ReleaseNotes.md) for a concise shipped-feature summary.
 
 * Table of Contents
 {:toc}
@@ -37,7 +37,7 @@ Enter `add-student n/Mei Lin al/Sec 2 p/91234567` to create a student with an op
 Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei Lin`. Do not type the placeholder itself.
 
 * Commands and prefixes are case-insensitive. Use the lowercase spellings shown in this guide for consistency.
-* Prefixes identify fields: `n/` for a name or query, `al/` for academic level, `p/` for phone, `sid/` for student ID, `gid/` for guardian ID, and `g/` for group code.
+* Prefixes identify fields: `n/` for a name or query, `al/` for academic level, `p/` for phone, `sid/` for student ID, `gid/` for guardian ID, `g/` for group code, `l/` for group label, and `k/` for group kind.
 * Prefixed fields can appear in any order, but each prefix may appear only once. All fields shown outside square brackets are required and must contain a value.
 * Unknown text, unknown prefixes, repeated prefixes, and missing required fields produce `Invalid command format. Use: FORMAT`, where `FORMAT` is the correct command syntax.
 * `list-groups` and `list-guardians` reject extra text. `help` accepts at most one command name. The current `exit` command still ignores extra arguments; stricter handling remains planned behavior.
@@ -52,7 +52,9 @@ Words in `UPPER_CASE` are placeholders: replace `NAME` with a name such as `Mei 
 | Academic level | `Sec 1` through `Sec 5`, or `IP 1` through `IP 6`, case-insensitive. | `Sec 2`, `ip 4` (displayed as `IP 4`) |
 | Phone | Eight digits starting with `3`, `6`, `8`, or `9`, optionally preceded by `+65` and a single space. No hyphens, brackets, or extensions. | `91234567`, `+6591234567`, `+65 91234567` all display as `+65 91234567` |
 | Student or guardian ID | An existing generated ID of the correct type. | `sid/S-0007`, `gid/G-0003` |
-| Group code | An exact code in `list-groups`, case-insensitive. Codes display in uppercase. | `MAT`, `S2-MAT-A` |
+| Group code | For a new group, 2–20 ASCII letters, digits, or hyphens; starts with a letter and ends with a letter or digit. Existing-group commands require an exact code from `list-groups`. Codes are case-insensitive and display in uppercase. | `MAT`, `S2-MAT-A` |
+| Group label | 1–80 characters after leading, trailing, and repeated internal whitespace are normalized. | `Physics`, `Secondary 3 Physics B` |
+| Group kind | `Subject` or `Class`, case-insensitive. | `Subject`, `class` (displayed as `Class`) |
 | Search query | 1–80 characters after spaces are normalized, following the name character rules. Can be a whole or partial name. | `mei`, `Mei Lin` |
 
 ## Managing students
@@ -278,13 +280,50 @@ Switches to the Groups tab and shows the configured groups in this order:
 | CHI | Chinese | Subject |
 | S2-MAT-A | Secondary 2 Mathematics A | Class |
 
-This is the reduced five-group catalogue included in this increment. You can also open it by selecting the Groups tab. Select Students to return to the existing student list and selection.
+These five groups are the default catalogue. Groups created with `add-group` appear after the existing entries and remain available after Mentora restarts. You can also open the catalogue by selecting the Groups tab. Select Students to return to the existing student list and selection.
 
 ![Mockup of the configured subject and class catalogue](mockup/view-configured-groups.png)
 
 The result is `Listed 5 configured group(s).` The count comes from the configured catalogue. Command casing is ignored, so `LIST-GROUPS` also works. Extra input, such as `list-groups MAT`, reports `Invalid command format. Use: list-groups`.
 
-Browsing groups does not change students or save student data. The catalogue is fixed application configuration. Group creation/editing is not available.
+Browsing groups does not change or save data. Use `add-group` to extend the catalogue and `delete-group` to remove an unused group.
+
+### Creating a group: `add-group`
+
+Format: `add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND`
+
+Examples:
+
+* `add-group g/PHY l/Physics k/Subject`
+* `add-group k/Class g/S3-PHY-B l/Secondary 3 Physics B`
+
+Creates a reusable Subject or Class group without assigning any students. Prefixes may appear in any order and are case-insensitive. The code is stored in uppercase, the label's whitespace is normalized, and the kind is displayed as `Subject` or `Class`.
+
+Example result: `Created group PHY (Physics, Subject).` After saving succeeds, Mentora opens the Groups tab, refreshes the catalogue, and selects the new group. The group is immediately available to `assign-group` and subject groups are available to `filter-students`.
+
+Codes must be unique case-insensitively. Reusing a code reports `Group PHY is already configured.` Invalid values report `Group code must be 2-20 letters, digits, or hyphens, start with a letter, and end with a letter or digit.`, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.`
+
+Missing, empty, repeated, or unknown parameters show:
+
+> Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND<br>
+> GROUP_KIND must be Subject or Class.<br>
+> Example: add-group g/PHY l/Physics k/Subject
+
+If saving fails, the group is removed from memory again and the result says `Could not save changes. No group was created.` Group creation is unavailable during storage recovery.
+
+### Deleting a group: `delete-group`
+
+Format: `delete-group g/GROUP_CODE`
+
+Example: `delete-group g/S3-PHY-B`
+
+Permanently removes one existing group without deleting students or guardians. To prevent accidental assignment loss, Mentora deletes only groups with no assigned students. Use `unassign-group` for each student before deleting an assigned group.
+
+Example result: `Deleted group S3-PHY-B: Secondary 3 Physics B (Class).` After saving succeeds, Mentora opens the Groups tab and refreshes the catalogue. The deleted code is no longer available to assignment or filtering commands.
+
+An assigned group is retained and reports `Group S3-PHY-B is assigned to 4 student(s). Remove those assignments before deleting it.` An unknown code uses the normal group-not-configured message. Missing, empty, repeated, or unknown parameters report `Invalid command format. Use: delete-group g/GROUP_CODE`.
+
+If saving fails, the group is restored and the result says `Could not save changes. Group S3-PHY-B was not deleted.` Successful deletion is permanent and has no undo command. Group deletion is unavailable during storage recovery.
 
 ### Assigning a group: `assign-group`
 
@@ -295,7 +334,7 @@ Examples:
 * `assign-group sid/S-0007 g/MAT`
 * `assign-group g/S2-MAT-A sid/S-0007`
 
-Adds one of the five configured groups to an existing student's profile. A student may have multiple distinct assignments. `MAT` and `S2-MAT-A` are separate assignments; add both if needed. The command does not restrict class assignments based on academic level.
+Adds one configured group to an existing student's profile. A student may have multiple distinct assignments. `MAT` and `S2-MAT-A` are separate assignments; add both if needed. The command does not restrict class assignments based on academic level.
 
 Example result: `Assigned group S2-MAT-A (Secondary 2 Mathematics A) to student S-0007.` The application opens Students, selects the target and refreshes Assignments, including when that student was already selected. A search filter hiding the target is cleared only after saving succeeds. Selecting another student shows their assignments. Scroll the profile when a long name or several assignments exceed the available space; an unassigned student shows `No groups assigned.`
 
@@ -349,17 +388,17 @@ Help is read-only: `help exit`, for example, describes `exit` without closing Me
 
 ### Saving and reopening
 
-The current build saves the complete Student, Guardian, guardian-link, and assignment register after successful changes from `add-student`, `edit-student`, `delete-student`, `add-guardian`, `edit-guardian`, `link-guardian`, `unlink-guardian`, `assign-group`, and `unassign-group`. Editing to the existing academic level or the guardian's existing phone number does not rewrite the file. Viewing, searching, listing, help, and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account, or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
+The current build saves the complete Student, Guardian, group-catalogue, guardian-link, and assignment register after successful changes from `add-student`, `edit-student`, `delete-student`, `add-guardian`, `edit-guardian`, `link-guardian`, `unlink-guardian`, `add-group`, `delete-group`, `assign-group`, and `unassign-group`. Editing to the existing academic level or the guardian's existing phone number does not rewrite the file. Viewing, searching, listing, help, and exit do not rewrite data. Saving while filtered retains every registered student. There is no manual save command, account, or network connection required. The file is `data/addressbook.json` relative to the folder from which you launched Mentora; its location appears in the status bar.
 
-When Mentora reopens, it loads the complete register. Older files without guardians, guardian links, or assignments load with those collections empty. Explicit null collections, malformed records, dangling relationships, or repeated relationships trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
+When Mentora reopens, it loads the complete register. Older files without guardians, guardian links, or assignments load with those collections empty; an older file without a `groups` property receives the five default groups. Once a saved `groups` array exists, including an empty one, it is authoritative. Explicit null collections, malformed records, dangling relationships, duplicate group codes, or repeated relationships trigger recovery. A missing data file is normal for a fresh installation and starts with sample students. A valid empty file opens an empty student list. Neither case disables saving.
 
-**If saving fails**, the complete previous in-memory register, student search filter and selection, and workspace are retained. Add Student, Add Guardian, Link Guardian, and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.`, `Could not save changes. The guardian link was not created.`, and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.` and Delete Student reports `Could not save changes. Student S-0007 was not deleted.`, using the supplied ID. Edit Guardian reports `Could not save changes. Guardian G-0003 was not updated.`, using the supplied ID. Unlink Guardian reports `Could not save changes. The guardian link was not removed.` Unassign Group reports `Could not save changes. The group assignment was not removed.` A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
+**If saving fails**, the complete previous in-memory register, student search filter and selection, and workspace are retained. Add Student, Add Guardian, Link Guardian, Add Group, and Assign Group report `Could not save changes. No student was added.`, `Could not save changes. No guardian was added.`, `Could not save changes. The guardian link was not created.`, `Could not save changes. No group was created.`, and `Could not save changes. The group was not assigned.` respectively. Edit Student reports `Could not save changes. Student S-0007 was not updated.` and Delete Student reports `Could not save changes. Student S-0007 was not deleted.`, using the supplied ID. Edit Guardian reports `Could not save changes. Guardian G-0003 was not updated.`, using the supplied ID. Delete Group reports `Could not save changes. Group S3-PHY-B was not deleted.`, using the supplied code. Unlink Guardian reports `Could not save changes. The guardian link was not removed.` Unassign Group reports `Could not save changes. The group assignment was not removed.` A failure partway through a normal save can still leave a partially written file; keep backups. Load-failure recovery does not make normal file replacement atomic.
 
 **If loading fails**, Mentora preserves the original file, opens an empty recovery model, and disables student-data changes and saving for the session. It reports:
 
 > Could not load local data. Your original data file was not changed; restore or replace it before saving.
 
-An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over it for the failure reason. Listing/searching remains available, although the recovery Student and Guardian lists are empty and `view-student` reports an unknown student. You can browse configured groups, open help and exit. Mutating commands, including Student/Guardian additions and edits, guardian linking and unlinking, assignments and assignment removals, are rejected before changing the model or file. Read-only feedback does not remove the recovery status.
+An empty list in recovery does not mean your original records have been deleted. The footer says `Saving disabled`; hover over it for the failure reason. Listing/searching remains available, although the recovery Student and Guardian lists are empty and `view-student` reports an unknown student. You can browse configured groups, open help and exit. Mutating commands, including Student/Guardian additions and edits, group creation and deletion, guardian linking and unlinking, assignments and assignment removals, are rejected before changing the model or file. Read-only feedback does not remove the recovery status.
 
 Close Mentora, preserve a copy of the original file, and restore a valid backup or obtain help repairing it. Restart after restoring or replacing the file; saving stays disabled for the old session even if the file changes externally. Unreadable or malformed files, null records, invalid Student/Guardian fields, duplicate IDs/identities/guardian phones or assignment pairs, unknown student/group references, repeated JSON fields and unsupported stored fields can trigger recovery. Stored text fields must be JSON strings. Existing legacy Person-file compatibility remains; no new Person-to-Student migration is provided.
 
@@ -383,17 +422,18 @@ Closes the application and reports `Closing Mentora.` Successful data-changing c
 | No students match a query | Try a shorter part of the name or run `list-students`. Search does not cover guardian names, levels, or groups. |
 | A duplicate student or phone number is rejected | Check whether the record already exists. Reuse a shared guardian's ID for siblings. See the duplicate restrictions in the adding sections. |
 | A group code is not configured | Run `list-groups` and use an exact listed code. |
+| A group cannot be deleted | Run `unassign-group` for every assigned student, then retry `delete-group`. |
 | `Could not save changes.` | The change did not take effect. Check that the storage location is writable and has space, then retry. |
 | A load error appears with an empty list | Follow the recovery guidance under [Saving and reopening](#saving-and-reopening); preserve the original file. |
 | A documented command is reported as unknown | Check the supported commands in the current-build note. Guardian-name editing and guardian deletion remain future work. |
 
 ## Scope and limitations
 
-The MVP supports student records, one guardian per student, shared guardians, configured group assignments, student-name and guardian-name search, subject/level filtering, profiles, command help, and local storage for one coordinator at a time.
+The MVP supports student records, one guardian per student, shared guardians, creation and safe deletion of subject/class groups, group assignments, student-name and guardian-name search, subject/level filtering, profiles, command help, and local storage for one coordinator at a time.
 
 The following are **not included in the MVP**:
 
-* Multiple guardians per student or creation of new groups through commands.
+* Multiple guardians per student or editing an existing group's code, label, or kind.
 * Editing guardian names or deleting guardian records.
 * A command to jump to an edit screen.
 * Prospect-to-active conversion, active-only lists, and archiving withdrawn or graduated students.
@@ -411,6 +451,8 @@ Mentora does not manage attendance, lesson content, grades, fees, payroll, or ac
 **Does deleting a student delete their guardian?** No. It removes that student and their relationship, preserving the guardian and other students' links.
 
 **Does changing academic level move the student to a new class?** No. Academic level and group assignments are independent. Use `unassign-group` to remove the old assignment and `assign-group` to add the new class.
+
+**Why can I not delete a group?** Mentora prevents deletion while any student is assigned to the group. Remove each assignment with `unassign-group`, then run `delete-group` again.
 
 **Can I keep a withdrawn student's record without showing it in the main list?** Archiving and active-only lists are deferred. Deletion is permanent and is not an archive operation.
 
@@ -437,6 +479,8 @@ These are the commands supported by the current MVP build. Replace example IDs w
 | Link guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` | `link-guardian sid/S-0007 gid/G-0003` |
 | Unlink guardian | `unlink-guardian sid/STUDENT_ID` | `unlink-guardian sid/S-0007` |
 | View configured groups | `list-groups` | `list-groups` |
+| Create group | `add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND` | `add-group g/PHY l/Physics k/Subject` |
+| Delete unused group | `delete-group g/GROUP_CODE` | `delete-group g/PHY` |
 | Assign group | `assign-group sid/STUDENT_ID g/GROUP_CODE` | `assign-group sid/S-0007 g/MAT` |
 | Remove group assignment | `unassign-group sid/STUDENT_ID g/GROUP_CODE` | `unassign-group sid/S-0007 g/MAT` |
 | Get help | `help [COMMAND]` | `help add-student` |
