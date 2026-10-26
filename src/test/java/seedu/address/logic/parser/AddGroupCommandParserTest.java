@@ -38,6 +38,15 @@ class AddGroupCommandParserTest {
         }
     }
 
+    @Test
+    void parse_invalidFormat_usageExplainsKindAndProvidesExample() {
+        ParseException error = assertThrows(ParseException.class, () -> parser.parse(" g/PHY l/Physics"));
+
+        assertEquals("Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND\n"
+                + "GROUP_KIND must be Subject or Class.\n"
+                + "Example: add-group g/PHY l/Physics k/Subject", error.getMessage());
+    }
+
     private void assertError(String input, String message) {
         ParseException error = assertThrows(ParseException.class, () -> parser.parse(input));
         assertEquals(message, error.getMessage());
