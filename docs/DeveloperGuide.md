@@ -34,17 +34,20 @@ The inherited AB3 diagrams and Person-command examples below are historical refe
 runtime stores Students, Guardians, student-guardian links, and group assignments; retired Person APIs remain only
 for source compatibility.
 
-- `ConfiguredGroups` supplies one immutable five-entry catalogue through Model and Logic.
-- `AddressBook` owns immutable `GroupAssignment` pairs and student-to-guardian links. It validates references and
-  uniqueness and includes the complete aggregate in copy/reset/equality/hash. Student replacement keeps relationships
-  by stable ID; deleting a student removes only that student's relationships.
+- `ConfiguredGroups` supplies the five-entry default catalogue for new and legacy data files. `AddressBook` owns the
+  current ordered `GroupCatalogue`, immutable `GroupAssignment` pairs, and student-to-guardian links. It validates
+  references and uniqueness and includes the complete aggregate in copy/reset/equality/hash. Student replacement keeps
+  relationships by stable ID; deleting a student removes only that student's relationships.
 - `link-guardian` validates both stable IDs, enforces one guardian per student, permits a guardian to be shared by
   siblings, and refreshes the selected student's profile after saving.
 - `assign-group` and `unassign-group` parse ID text without allocating IDs and validate before mutation. Their
   results request the Students workspace, which MainWindow applies only after Logic has saved successfully.
   `list-groups` is a read-only query and requests Groups.
-- JSON has `students` plus optional `guardians`, `guardianLinks`, and `groupAssignments` arrays. Stored text must be
-  JSON strings; malformed or dangling relationships and records fail the complete load instead of publishing partial data.
+- `add-group` creates a validated Subject or Class group. `delete-group` removes only an unassigned group; the domain
+  rejects deletion while any student references its code. Both request Groups and use the normal save/rollback boundary.
+- JSON has `students` plus optional `guardians`, `groups`, `guardianLinks`, and `groupAssignments` arrays. Stored text
+  must be JSON strings; malformed or dangling relationships and records fail the complete load instead of publishing
+  partial data. An absent legacy `groups` property loads the five defaults; a present array is authoritative.
 - `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
   writes independently. Read-only commands remain available. Save failure restores the in-memory aggregate;
   direct normal writes are not atomic and can still partially damage a file.
@@ -57,9 +60,11 @@ for source compatibility.
   View/Search/List are read-only; successful View/Assign/Unassign/Add Student results reveal a hidden target by clearing
   the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
 
-See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for the combined catalogue, assignment and
-recovery APIs, validation, tests and integration limits. See [Link Guardian Handover](feature-handover/LinkGuardianHandover.md)
-for the guardian-relationship and profile-display contract.
+See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for assignment behavior,
+[Add Group Handover](feature-handover/AddGroupHandover.md) and
+[Delete Group Handover](feature-handover/DeleteGroupHandover.md) for catalogue mutation, and
+[Link Guardian Handover](feature-handover/LinkGuardianHandover.md) for the guardian-relationship and profile-display
+contract.
 
 For `unassign-group`, `LogicManager.execute` asks `AddressBookParser` to dispatch to
 `UnassignGroupCommandParser`, which validates syntax, retains the student ID as text and creates
@@ -145,7 +150,7 @@ The `UI` component,
 
 **API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-The partial class diagram below uses `assign-group` and `unassign-group` as current Mentora examples.
+The partial class diagram below uses `assign-group` and `unassign-group` as Mentora examples.
 `Model` and `Storage` are external interfaces; their implementations and other command families are omitted.
 
 <img src="images/LogicClassDiagram.png" width="740"/>
@@ -174,6 +179,11 @@ For these group commands, the execution path is:
    and returns the `CommandResult`. The result carries feedback and optional student-ID selection and workspace
    requests. The UI applies these requests and refreshes the profile; `CommandResult` performs no UI actions.
 
+`add-group` and `delete-group` use the same router, recovery guard, snapshot and save boundary. Their parsers validate
+group-specific prefixes and construct canonical `Group`/`GroupCode` values without touching student IDs. The commands
+call `Model.addGroup` or `Model.deleteGroup`; `AddressBook` enforces code uniqueness and the no-assigned-students deletion
+rule. `CommandResult` can request a canonical group-code selection, which `MainWindow` applies only after saving succeeds.
+
 **Historical AB3 illustrations:** The following unchanged diagrams explain inherited parsing and execution
 patterns. Their `delete 1`, Person and Add/Delete command examples do not describe current Mentora command routes.
 
@@ -193,11 +203,15 @@ The inherited parser diagram also shows supporting utilities omitted from the cu
 
 <img src="images/ModelClassDiagram.png" width="850" />
 
-`ModelManager` implements the `Model` API and owns the in-memory `AddressBook`, user preferences and shared configured group catalogue. `AddressBook` is the complete register: it owns Student and Guardian records, student-to-guardian links and group assignments. It implements `ReadOnlyAddressBook` for callers that need to inspect the register without mutating it.
+`ModelManager` implements the `Model` API and owns the in-memory `AddressBook` and user preferences. `AddressBook` is the complete register: it owns Student and Guardian records, the ordered group catalogue, student-to-guardian links and group assignments. It implements `ReadOnlyAddressBook` for callers that need to inspect the register without mutating it.
 
 Students and Guardians are immutable records composed from their stable IDs and validated value types. A student may link to at most one guardian, while a guardian may be shared by multiple students. `AddressBook` stores these links by `StudentId` and `GuardianId`, so contact details stay on the Guardian record and are resolved when a profile is displayed.
 
-`GroupAssignment` pairs a `StudentId` with a configured `GroupCode`. `AddressBook` validates that the student exists, the group is configured, and the pair is unique. `ConfiguredGroups` supplies the immutable `GroupCatalogue`; the catalogue contains the available Groups and is separate from persisted student data.
+`GroupAssignment` pairs a `StudentId` with a configured `GroupCode`. `AddressBook` validates that the student exists,
+the group is configured, and the pair is unique. It replaces the immutable `GroupCatalogue` value when adding or
+deleting a group, preserving insertion order. `ConfiguredGroups` supplies only the default five groups. `setGroups`
+rejects a replacement catalogue that would leave an assignment pointing to a missing group, and `deleteGroup` rejects
+an assigned group rather than cascading relationship deletion.
 
 `ModelManager` exposes filtered Student and Guardian views for the UI while keeping the full `AddressBook` available for authoritative lookup and saving. The diagram omits the retired Person classes, which remain only for source compatibility.
 
@@ -206,7 +220,7 @@ Students and Guardians are immutable records composed from their stable IDs and 
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<img src="images/StorageClassDiagram.png" width="850" alt="Storage classes and the four persisted Mentora record collections" />
+<img src="images/StorageClassDiagram.png" width="850" alt="Storage classes and the persisted Mentora record collections" />
 
 `StorageManager` implements `Storage` and delegates register and user-preference file access to
 `JsonAddressBookStorage` and `JsonUserPrefsStorage`, respectively. These collaborators are supplied through its
@@ -214,17 +228,19 @@ constructor. User preferences are stored separately from the student and guardia
 
 `JsonAddressBookStorage` reads and writes JSON through `JsonUtil`. It creates a `JsonSerializableAddressBook`
 from the complete `ReadOnlyAddressBook` when saving and calls `toModelType()` on the loaded wrapper when reading.
-The wrapper holds four collections:
+The wrapper holds five collections:
 
 * `JsonAdaptedStudent` stores student IDs, names, academic levels and optional student phones.
 * `JsonAdaptedGuardian` stores guardian IDs, names and phone numbers.
+* `JsonAdaptedGroup` stores each group's canonical code, normalized label and Subject/Class kind.
 * `JsonAdaptedGuardianLink` stores a student ID and guardian ID for each relationship.
 * `JsonAdaptedGroupAssignment` stores a student ID and group code for each assignment.
 
-The relationship adapters store IDs and codes rather than references to other adapters. Loading reconstructs
-students and guardians first, then validates group assignments and guardian links against the reconstructed
-register and configured group catalogue. A conversion failure prevents a partially validated register from
-being returned. The group catalogue itself is application configuration and is not saved in the register file.
+The relationship adapters store IDs and codes rather than references to other adapters. Loading reconstructs the
+catalogue before group assignments, so saved custom codes can be resolved, and reconstructs students and guardians
+before validating assignment and guardian-link references. A conversion failure prevents a partially validated
+register from being returned. For backward compatibility, an absent `groups` property uses `ConfiguredGroups`; an
+explicit array, including an empty one, is saved and loaded as the authoritative catalogue.
 
 When a register load fails, `StorageManager` retains the failure and blocks subsequent register saves for that
 storage session. User-preference storage remains independent. Normal register writes are not atomic; the
@@ -412,7 +428,7 @@ Priorities: High (must have) - `* * *`, Medium (should have) - `* *`, Low (possi
 | US28 | `*` | coordinator | filter contacts by class or enrolment status | retrieve other useful contact groups quickly |
 | US29 | `*` | coordinator | detect incomplete or duplicate records | correct inconsistent data before it causes administrative mistakes |
 | US30 | `*` | coordinator | import and export contact lists | move existing spreadsheet data into or out of Mentora efficiently |
-| US31 | `*` | coordinator | create and update subject or class groups using commands | adapt Mentora when the centre's class structure changes |
+| US31 | `*` | coordinator | create and safely delete subject or class groups using commands | adapt Mentora when the centre's class structure changes |
 
 ### Use cases
 
