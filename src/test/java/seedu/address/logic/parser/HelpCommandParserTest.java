@@ -55,6 +55,11 @@ class HelpCommandParserTest {
     }
 
     @Test
+    void exitTopic_documentsRejectedExtraArguments() {
+        assertTrue(HelpContent.getTopic("exit").contains("Extra arguments are rejected."));
+    }
+
+    @Test
     void parse_unknownAndMultipleArguments_reportsSpecifiedErrors() {
         ParseException unknown = assertThrows(ParseException.class, () -> parser.parseCommand("help UNKNOWN"));
         assertEquals("No help is available for \"UNKNOWN\". Run help to see all commands.", unknown.getMessage());

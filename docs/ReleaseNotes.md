@@ -53,7 +53,7 @@ An invalid data file is preserved and puts Mentora into recovery mode with savin
   Subject filtering rejects Class groups; academic-level filtering is independent of assignments.
 - Normal saves are not atomic. A failed save restores the in-memory register but may leave a partially written
   disk file. Keep backups.
-- `exit` currently ignores extra arguments. User Guide illustrations remain mockups.
+- User Guide illustrations remain mockups.
 - Repeated assignment changes without replacing an active filter can accumulate predicate wrappers; an extreme
   long-session stress test can cause a stack overflow. Reapply the filter or run `list-students` to reset it.
 - Mentora is a single-user application. Attendance, grades, fees, accounting, messaging, imports and exports
