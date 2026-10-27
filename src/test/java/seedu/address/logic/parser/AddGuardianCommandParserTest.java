@@ -27,6 +27,16 @@ class AddGuardianCommandParserTest {
     }
 
     @Test
+    void parse_supplementaryUnicodeNameBelowLimit_success() throws Exception {
+        String name = "𐐀".repeat(41);
+        ModelManager model = new ModelManager();
+
+        parser.parse("n/" + name + " p/60000000").execute(model);
+
+        assertEquals(name, model.getGuardianList().getFirst().getName().toString());
+    }
+
+    @Test
     void parse_missingRepeatedEmptyUnknownOrStrayArgument_failure() {
         assertParseFailure(parser, "n/Anita Lim", AddGuardianCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "p/91234567", AddGuardianCommand.MESSAGE_USAGE);
