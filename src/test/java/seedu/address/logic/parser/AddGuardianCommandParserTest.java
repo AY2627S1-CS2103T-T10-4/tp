@@ -49,6 +49,11 @@ class AddGuardianCommandParserTest {
     }
 
     @Test
+    void parse_validPhoneWithTrailingText_failure() {
+        assertParseFailure(parser, "n/Ann p/61239999 extra", AddGuardianCommand.MESSAGE_USAGE);
+    }
+
+    @Test
     void parse_invalidNameOrPhone_failure() {
         assertParseFailure(parser, "n/Anita2 Lim p/91234567", GuardianName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "n/Anita Lim p/51234567", GuardianPhone.MESSAGE_CONSTRAINTS);
