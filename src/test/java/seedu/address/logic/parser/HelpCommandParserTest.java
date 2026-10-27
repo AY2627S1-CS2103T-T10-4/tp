@@ -60,6 +60,11 @@ class HelpCommandParserTest {
     }
 
     @Test
+    void addGroupTopic_documentsAsciiCodeRestriction() {
+        assertTrue(HelpContent.getTopic("add-group").contains("ASCII letters (A-Z or a-z)"));
+    }
+
+    @Test
     void parse_unknownAndMultipleArguments_reportsSpecifiedErrors() {
         ParseException unknown = assertThrows(ParseException.class, () -> parser.parseCommand("help UNKNOWN"));
         assertEquals("No help is available for \"UNKNOWN\". Run help to see all commands.", unknown.getMessage());

@@ -28,7 +28,7 @@ once with a nonempty value.
 | --- | --- |
 | Success | `Created group PHY (Physics, Subject).` |
 | Duplicate code | `Group PHY is already configured.` |
-| Invalid code | `Group code must be 2-20 letters, digits, or hyphens, start with a letter, and end with a letter or digit.` |
+| Invalid code | `Group code must be 2-20 ASCII letters (A-Z or a-z), digits, or hyphens, start with a letter, and end with a letter or digit.` |
 | Invalid label | `Group label must be 1-80 characters.` |
 | Invalid kind | `Group kind must be Subject or Class.` |
 | Invalid syntax | `Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND`<br>`GROUP_KIND must be Subject or Class.`<br>`Example: add-group g/PHY l/Physics k/Subject` |
