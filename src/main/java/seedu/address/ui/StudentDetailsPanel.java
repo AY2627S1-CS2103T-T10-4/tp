@@ -68,7 +68,7 @@ public class StudentDetailsPanel extends UiPart<Region> {
         assignments.getChildren().clear();
         if (selected) {
             id.setText(student.getId().toString());
-            name.setText(student.getName().toString());
+            name.setText(student.getId() + " - " + student.getName());
             academicLevel.setText(student.getAcademicLevel().toString());
             studentPhone.setText(student.getPhone().map(Object::toString).orElse("Phone: none"));
             if (assignedGroups.isEmpty()) {

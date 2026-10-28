@@ -171,7 +171,7 @@ public class MainWindowTest {
             submit(input);
 
             assertEquals(first, mainWindow.getStudentListPanel().selectedStudentProperty().get());
-            assertEquals(first.getName().toString(), getDetailsLabel(stage, "#name").getText());
+            assertEquals("S-0201 - Amy Tan", getDetailsLabel(stage, "#name").getText());
             assertEquals("Opened profile", getLabel(stage, "#resultDisplay").getText());
 
             logic.commandResult = new CommandResult("Command completed");
@@ -183,7 +183,7 @@ public class MainWindowTest {
             input.setText("invalid");
             submit(input);
             assertEquals(first, mainWindow.getStudentListPanel().selectedStudentProperty().get());
-            assertEquals(first.getName().toString(), getDetailsLabel(stage, "#name").getText());
+            assertEquals("S-0201 - Amy Tan", getDetailsLabel(stage, "#name").getText());
             stage.close();
         });
     }

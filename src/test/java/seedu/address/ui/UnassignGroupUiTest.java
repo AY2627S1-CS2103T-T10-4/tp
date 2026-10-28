@@ -345,7 +345,7 @@ class UnassignGroupUiTest {
 
     private void assertTargetProfile() {
         assertEquals("S-0007", profileLabel("id"));
-        assertEquals("Mei Lin", profileLabel("name"));
+        assertEquals("S-0007 - Mei Lin", profileLabel("name"));
         assertEquals("Sec 2", profileLabel("academicLevel"));
         assertEquals("Anita Lim\n+65 91234567", profileLabel("guardianDetails"));
         assertTrue(profile().lookup("#detailsContent").isVisible());
