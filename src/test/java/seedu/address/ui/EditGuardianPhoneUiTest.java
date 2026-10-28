@@ -227,7 +227,7 @@ class EditGuardianPhoneUiTest {
                 submit(stage, "find-guardian n/Nobody");
                 window.getStudentListPanel().clearSelection();
                 Node placeholder = guardianList(stage).getPlaceholder();
-                assertEquals("No guardians match \"Nobody\"", ((Label) placeholder).getText());
+                assertEquals("No guardians match \"Nobody\".", ((Label) placeholder).getText());
                 Predicate<?> guardianFilter = ((FilteredList<?>) model.getGuardianList()).getPredicate();
                 AddressBook before = new AddressBook(model.getAddressBook());
                 storage.failure = new IOException("Injected failure before writing");
@@ -235,7 +235,7 @@ class EditGuardianPhoneUiTest {
                 submit(stage, "edit-guardian gid/G-0003 p/98765432");
 
                 assertSame(placeholder, guardianList(stage).getPlaceholder());
-                assertEquals("No guardians match \"Nobody\"", ((Label) placeholder).getText());
+                assertEquals("No guardians match \"Nobody\".", ((Label) placeholder).getText());
                 assertSame(guardianFilter, ((FilteredList<?>) model.getGuardianList()).getPredicate());
                 assertTrue(model.getGuardianList().isEmpty());
                 assertNull(window.getGuardianListPanel().selectedGuardianProperty().get());

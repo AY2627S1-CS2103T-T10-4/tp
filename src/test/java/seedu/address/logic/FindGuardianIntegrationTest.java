@@ -106,7 +106,7 @@ class FindGuardianIntegrationTest {
         assertThrows(ParseException.class, () -> logic.execute("find-guardian n/91234567"));
         assertEquals(List.of("G-0004"), visibleIds());
         CommandResult result = logic.execute("find-guardian n/Mei");
-        assertEquals("No guardians match \"Mei\"", result.getFeedbackToUser());
+        assertEquals("No guardians match \"Mei\".", result.getFeedbackToUser());
         assertEquals(CommandResult.Workspace.GUARDIANS, result.getWorkspace());
         assertTrue(visibleIds().isEmpty());
         assertEquals(3, model.getAddressBook().getGuardianList().size());
@@ -118,7 +118,7 @@ class FindGuardianIntegrationTest {
         assertThrows(DataLoadingException.class, storage::readAddressBook);
         model.setAddressBook(new AddressBook());
         CommandResult result = logic.execute("find-guardian n/Anita");
-        assertEquals("No guardians match \"Anita\"", result.getFeedbackToUser());
+        assertEquals("No guardians match \"Anita\".", result.getFeedbackToUser());
         assertTrue(new FindGuardianCommand(new GuardianName("Anita")).isReadOnly());
         assertEquals("{invalid}", Files.readString(dataPath));
         assertTrue(logic.getDataRecoveryReason().isPresent());
