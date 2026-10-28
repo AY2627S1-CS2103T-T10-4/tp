@@ -20,7 +20,7 @@ Use Mentora to keep student details, subject or class assignments, and guardian 
 
 The project currently targets Java `25`. Release packages will be distributed through the [Mentora project releases](https://github.com/AY2627S1-CS2103T-T10-4/tp/releases). Use the package and launch instructions supplied with a release that supports the Mentora commands.
 
-For the current source build, follow [Setting up and getting started](SettingUp.md). Its generated JAR is named `addressbook.jar` and can be launched from its folder with `java -jar addressbook.jar`. The supported commands are listed in the current-build note above.
+For the current source build, follow [Setting up and getting started](SettingUp.md). The Shadow JAR build generates `build/libs/mentora.jar`; launch it from the folder containing the JAR with `java -jar "mentora.jar"`. Historical release assets may use a different filename or capitalization, such as `Mentora.jar`; when running a downloaded release, use its actual filename. The supported commands are listed in the current-build note above.
 
 ### Finding your way around
 
