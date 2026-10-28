@@ -176,7 +176,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Command format:** `find-student n/QUERY`
 - **Example commands:** `find-student n/mei`; `find-student n/Mei Lin`
 - **Parameters:** `n/` uses `QUERY`. A query may match part of a name: `mei` matches `Mei Lin`; it does not search guardian names, levels, or assignments.
-- **Outputs:** The main panel displays matching rows and says `Found 2 students matching "mei".` A valid search with no results says `No students match "mei".`
+- **Outputs:** The main panel displays matching rows. One result reports `Found 1 student matching "mei".` Multiple results report `Found N students matching "mei".`, where `N` is the number of matches. A valid search with no results says `No students match "mei".`
 - **Duplicate handling:** Not applicable: every matching student is displayed.
 - **Possible errors:** An invalid or omitted query reports its exact shared error or the format error.
 
