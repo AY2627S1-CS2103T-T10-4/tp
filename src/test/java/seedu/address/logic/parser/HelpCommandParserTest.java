@@ -65,6 +65,29 @@ class HelpCommandParserTest {
     }
 
     @Test
+    void topics_includeOnlyApplicableInputRules() {
+        Set<String> commandsWithoutPhones = Set.of("delete-student", "list-students", "find-student",
+                "view-student", "list-guardians", "find-guardian", "link-guardian", "unlink-guardian",
+                "list-groups", "add-group", "delete-group", "assign-group", "unassign-group",
+                "filter-students", "help", "exit");
+        Set<String> commandsWithoutIds = Set.of("add-student", "list-students", "find-student",
+                "add-guardian", "list-guardians", "find-guardian", "list-groups", "add-group", "delete-group",
+                "filter-students", "help", "exit");
+        Set<String> commandsWithoutPrefixes = Set.of("list-students", "list-guardians", "list-groups", "help",
+                "exit");
+
+        commandsWithoutPhones.forEach(command ->
+                assertFalse(HelpContent.getTopic(command).contains("Singapore phones:")));
+        commandsWithoutIds.forEach(command ->
+                assertFalse(HelpContent.getTopic(command).contains("IDs are uppercase")));
+        commandsWithoutPrefixes.forEach(command ->
+                assertFalse(HelpContent.getTopic(command).contains("Each supplied prefix")));
+        assertTrue(HelpContent.getTopic("add-student").contains("Singapore phones:"));
+        assertTrue(HelpContent.getTopic("link-guardian").contains("IDs are uppercase"));
+        assertTrue(HelpContent.getTopic("add-group").contains("Each supplied prefix"));
+    }
+
+    @Test
     void parse_unknownAndMultipleArguments_reportsSpecifiedErrors() {
         ParseException unknown = assertThrows(ParseException.class, () -> parser.parseCommand("help UNKNOWN"));
         assertEquals("No help is available for \"UNKNOWN\". Run help to see all commands.", unknown.getMessage());
