@@ -29,6 +29,7 @@ and `ViewStudentCommand`. The parser rejects missing, malformed, repeated, and e
 arguments. The command verifies that the ID exists before requesting selection;
 lookup does not construct a `StudentId`, because its constructor advances the ID generator.
 
+The profile heading uses `STUDENT_ID - NAME`, for example `S-0007 - Mei Lin`.
 The UI displays ID, name, academic level, configured-group assignments, and the
 current guardian name and phone (or `Guardian: none`). Successful profile requests
 explicitly refresh details even when the row is already selected. Workspace changes
