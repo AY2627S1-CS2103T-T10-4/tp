@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -66,6 +67,34 @@ class GroupListPanelTest {
             assertTrue(list.getItems().isEmpty());
             assertEquals("No configured groups.", ((Label) list.getPlaceholder()).getText());
             assertEquals("0 groups", ((Label) panel.getRoot().lookup("#groupCountLabel")).getText());
+        });
+    }
+
+    @Test
+    void constructor_longValidLabel_keepsKindInsideListViewport() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            String longLabel = "W".repeat(20) + " " + "W".repeat(19) + " "
+                    + "W".repeat(19) + " " + "W".repeat(19);
+            assertEquals(80, longLabel.length());
+            Group group = new Group(new GroupCode("LONG-TEST"), longLabel, GroupKind.SUBJECT);
+            GroupListPanel panel = new GroupListPanel(new GroupCatalogue(List.of(group)));
+            Scene scene = new Scene(panel.getRoot(), 804, 523);
+            scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+            panel.getRoot().applyCss();
+            panel.getRoot().layout();
+            ListView<?> list = (ListView<?>) panel.getRoot().lookup("#groupListView");
+            ListCell<?> cell = list.lookupAll(".list-cell").stream()
+                    .filter(node -> node instanceof ListCell<?> candidate && !candidate.isEmpty())
+                    .map(node -> (ListCell<?>) node)
+                    .findFirst()
+                    .orElseThrow();
+            Label displayedLabel = (Label) cell.getGraphic().lookup("#groupLabel");
+            Label displayedKind = (Label) cell.getGraphic().lookup("#groupKind");
+            Bounds listBounds = list.localToScene(list.getBoundsInLocal());
+            Bounds kindBounds = displayedKind.localToScene(displayedKind.getBoundsInLocal());
+
+            assertEquals(longLabel, displayedLabel.getText());
+            assertTrue(kindBounds.getMaxX() <= listBounds.getMaxX());
         });
     }
 
