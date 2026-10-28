@@ -80,6 +80,26 @@ class FindGuardianIntegrationTest {
     }
 
     @Test
+    void execute_unicodeCaseVariant_findsGuardianBeforeAndAfterReload() throws Exception {
+        Guardian guardian = new Guardian(new GuardianId("G-0006"), new GuardianName("ΟΣ"),
+                new GuardianPhone("60000001"));
+        model.addGuardian(guardian);
+        new JsonAddressBookStorage(dataPath).saveAddressBook(model.getAddressBook());
+        String saved = Files.readString(dataPath);
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            CommandResult result = logic.execute("find-guardian n/οσ");
+            assertEquals("Found 1 guardian(s) matching \"οσ\".", result.getFeedbackToUser());
+            assertEquals(CommandResult.Workspace.GUARDIANS, result.getWorkspace());
+            assertEquals(List.of("G-0006"), visibleIds());
+            assertEquals("ΟΣ", logic.getGuardianList().getFirst().getName().toString());
+            assertEquals(saved, Files.readString(dataPath));
+            model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+            logic = new LogicManager(model, storage);
+        }
+    }
+
+    @Test
     void execute_noMatchOrInvalidQuery_clearsOnlyOnValidSearch() throws Exception {
         logic.execute("find-guardian n/Raj");
         assertThrows(ParseException.class, () -> logic.execute("find-guardian n/Anita n/Lim"));
