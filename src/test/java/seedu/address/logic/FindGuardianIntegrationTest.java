@@ -81,13 +81,33 @@ class FindGuardianIntegrationTest {
     }
 
     @Test
+    void execute_unicodeCaseVariant_findsGuardianBeforeAndAfterReload() throws Exception {
+        Guardian guardian = new Guardian(new GuardianId("G-0006"), new GuardianName("ΟΣ"),
+                new GuardianPhone("60000001"));
+        model.addGuardian(guardian);
+        new JsonAddressBookStorage(dataPath).saveAddressBook(model.getAddressBook());
+        String saved = Files.readString(dataPath);
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            CommandResult result = logic.execute("find-guardian n/οσ");
+            assertEquals("Found 1 guardian matching \"οσ\".", result.getFeedbackToUser());
+            assertEquals(CommandResult.Workspace.GUARDIANS, result.getWorkspace());
+            assertEquals(List.of("G-0006"), visibleIds());
+            assertEquals("ΟΣ", logic.getGuardianList().getFirst().getName().toString());
+            assertEquals(saved, Files.readString(dataPath));
+            model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+            logic = new LogicManager(model, storage);
+        }
+    }
+
+    @Test
     void execute_noMatchOrInvalidQuery_clearsOnlyOnValidSearch() throws Exception {
         logic.execute("find-guardian n/Raj");
         assertThrows(ParseException.class, () -> logic.execute("find-guardian n/Anita n/Lim"));
         assertThrows(ParseException.class, () -> logic.execute("find-guardian n/91234567"));
         assertEquals(List.of("G-0004"), visibleIds());
         CommandResult result = logic.execute("find-guardian n/Mei");
-        assertEquals("No guardians match \"Mei\"", result.getFeedbackToUser());
+        assertEquals("No guardians match \"Mei\".", result.getFeedbackToUser());
         assertEquals(CommandResult.Workspace.GUARDIANS, result.getWorkspace());
         assertTrue(visibleIds().isEmpty());
         assertEquals(3, model.getAddressBook().getGuardianList().size());
@@ -99,7 +119,7 @@ class FindGuardianIntegrationTest {
         assertThrows(DataLoadingException.class, storage::readAddressBook);
         model.setAddressBook(new AddressBook());
         CommandResult result = logic.execute("find-guardian n/Anita");
-        assertEquals("No guardians match \"Anita\"", result.getFeedbackToUser());
+        assertEquals("No guardians match \"Anita\".", result.getFeedbackToUser());
         assertTrue(new FindGuardianCommand(new GuardianName("Anita")).isReadOnly());
         assertEquals("{invalid}", Files.readString(dataPath));
         assertTrue(logic.getDataRecoveryReason().isPresent());

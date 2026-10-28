@@ -208,7 +208,7 @@ Examples: `find-guardian n/anita`; `find-guardian n/Anita Lim`
 
 Switches to the Guardians tab and displays names containing the query, ignoring case and normalizing whitespace. A multiword query is matched as one phrase. Results are sorted by normalized name and then guardian ID. Guardians with the same name remain separate records. Phone numbers, IDs and linked student names are not searched.
 
-Each row shows the contact details and linked-student count; selecting a row shows its linked students. One result reports `Found 1 guardian matching "anita".` Multiple results report `Found N guardians matching "anita".`, where `N` is the number of matches. A search with no results shows an empty list and `No guardians match "anita"`. Run `list-guardians` to clear the search.
+Each row shows the contact details and linked-student count; selecting a row shows its linked students. One result reports `Found 1 guardian matching "anita".` Multiple results report `Found N guardians matching "anita".`, where `N` is the number of matches. A search with no results shows an empty list and `No guardians match "anita".` Run `list-guardians` to clear the search.
 
 Queries must contain 1-80 characters after whitespace normalization and follow the shared name rules. Invalid values report `Search query must be 1-80 characters and contain name characters only.` Missing or blank queries, repeated prefixes and additional parameters report `Invalid command format. Use: find-guardian n/QUERY`. Rejected searches preserve the current tab and list.
 

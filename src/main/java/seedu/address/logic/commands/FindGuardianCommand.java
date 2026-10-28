@@ -19,7 +19,7 @@ public class FindGuardianCommand extends Command {
             "Search query must be 1-80 characters and contain name characters only.";
     public static final String MESSAGE_SINGLE_MATCH_FORMAT = "Found 1 guardian matching \"%s\".";
     public static final String MESSAGE_SUCCESS_FORMAT = "Found %d guardians matching \"%s\".";
-    public static final String MESSAGE_NO_MATCHES_FORMAT = "No guardians match \"%s\"";
+    public static final String MESSAGE_NO_MATCHES_FORMAT = "No guardians match \"%s\".";
 
     private static final Logger logger = LogsCenter.getLogger(FindGuardianCommand.class);
 

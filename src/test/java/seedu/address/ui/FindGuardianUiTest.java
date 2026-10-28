@@ -89,7 +89,7 @@ class FindGuardianUiTest {
                 assertTrue(tab(stage, "guardiansTab").isSelected());
                 ListView<?> list = (ListView<?>) stage.getScene().lookup("#guardianListView");
                 assertTrue(list.getItems().isEmpty());
-                assertEquals("No guardians match \"Nobody\"", ((Label) list.getPlaceholder()).getText());
+                assertEquals("No guardians match \"Nobody\".", ((Label) list.getPlaceholder()).getText());
                 Node details = stage.getScene().lookup("#guardianDetailsRoot");
                 assertFalse(details.lookup("#detailsContent").isVisible());
                 submit(stage, "list-guardians");

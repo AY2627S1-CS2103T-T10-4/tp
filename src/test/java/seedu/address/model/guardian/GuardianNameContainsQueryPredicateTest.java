@@ -21,6 +21,32 @@ class GuardianNameContainsQueryPredicateTest {
     }
 
     @Test
+    void test_unicodeCaseVariants_matchesWholeNamesAndSubstrings() {
+        for (String name : new String[]{"ΟΣ", "οσ", "ος"}) {
+            Guardian guardian = guardian(name);
+            for (String query : new String[]{"ΟΣ", "οσ", "ος", "Σ", "σ", "ς"}) {
+                assertTrue(predicate(query).test(guardian), name + " should match " + query);
+            }
+        }
+        assertTrue(predicate("i").test(guardian("İpek")));
+        assertTrue(predicate("İ").test(guardian("Ipek")));
+        assertTrue(predicate("ß").test(guardian("ẞ")));
+        assertFalse(predicate("οτ").test(guardian("ΟΣ")));
+        assertFalse(predicate("e").test(guardian("É")));
+    }
+
+    @Test
+    void equals_unicodeCaseVariants_comparesSearchMeaning() {
+        GuardianNameContainsQueryPredicate uppercase = predicate("ΟΣ");
+        GuardianNameContainsQueryPredicate lowercase = predicate("οσ");
+        GuardianNameContainsQueryPredicate finalSigma = predicate("ος");
+        assertEquals(uppercase, lowercase);
+        assertEquals(lowercase, finalSigma);
+        assertEquals(uppercase.hashCode(), lowercase.hashCode());
+        assertEquals(lowercase.hashCode(), finalSigma.hashCode());
+    }
+
+    @Test
     void equals_normalizedQueries_comparesSearchMeaning() {
         GuardianNameContainsQueryPredicate predicate = predicate("Anita Lim");
         GuardianNameContainsQueryPredicate equivalent = predicate(" anita   LIM ");
