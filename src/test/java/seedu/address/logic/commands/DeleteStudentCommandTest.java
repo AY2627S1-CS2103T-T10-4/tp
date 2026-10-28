@@ -42,7 +42,7 @@ class DeleteStudentCommandTest {
 
         Executable execution = () -> command.execute(model);
 
-        assertThrows(CommandException.class, "Student S-0399 was not found.", execution);
+        assertThrows(CommandException.class, "Student S-0399 does not exist.", execution);
         assertEquals(java.util.List.of(retained), model.getStudentList());
     }
 

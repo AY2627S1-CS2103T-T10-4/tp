@@ -134,12 +134,17 @@ class LinkGuardianIntegrationTest {
         assertEquals(before, model.getAddressBook());
         assertTrue(model.getStudentList().isEmpty());
         storage.failure = null;
-        logic.execute("delete-student sid/S-0007");
+        CommandResult result = logic.execute("delete-student sid/S-0007");
+        assertEquals("Deleted student S-0007: Mei Lin. Guardian link removed; guardian G-0003 was retained.",
+                result.getFeedbackToUser());
         assertEquals(1, model.getAddressBook().getGuardianLinks().size());
         assertEquals(1, model.getAddressBook().getGroupAssignments().size());
         assertTrue(logic.getLinkedGuardian("S-0008").isPresent());
         assertEquals(2, model.getGuardianList().size());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        CommandException unknown = assertThrows(CommandException.class, () ->
+                logic.execute("delete-student sid/S-0007"));
+        assertEquals("Student S-0007 does not exist.", unknown.getMessage());
     }
 
     @Test

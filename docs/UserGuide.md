@@ -173,7 +173,7 @@ The command finds the ID in the complete register, even when Search hides the st
 
 Deleting the selected student clears the selection and profile. Deleting another student preserves the current selection. The search filter and active tab remain unchanged.
 
-Example result: `Deleted student S-0007: Mei Lin.` An unknown ID reports `Student S-0007 was not found.` If saving fails, the complete register, filter, selection and workspace are restored, and the result says `Could not save changes. Student S-0007 was not deleted.`
+Example result: `Deleted student S-0007: Mei Lin.` If the student had a linked guardian, the result also says `Guardian link removed; guardian G-0003 was retained.` An unknown ID reports `Student S-0007 does not exist.` If saving fails, the complete register, filter, selection and workspace are restored, and the result says `Could not save changes. Student S-0007 was not deleted.`
 
 Command and prefix names ignore case. Supply exactly one nonempty `sid/` value in uppercase `S-` form followed by at least four digits. Missing, repeated or unknown prefixes, malformed IDs and extra text report `Invalid command format. Use: delete-student sid/STUDENT_ID`.
 
