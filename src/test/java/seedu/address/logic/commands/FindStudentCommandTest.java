@@ -36,7 +36,7 @@ public class FindStudentCommandTest {
 
         CommandResult result = command("Mei").execute(model);
 
-        assertEquals("Found 2 student(s) matching \"Mei\".", result.getFeedbackToUser());
+        assertEquals("Found 2 students matching \"Mei\".", result.getFeedbackToUser());
         assertEquals(List.of(meiLin, meiWen), model.getStudentList());
         assertEquals(beforeCommand, model.getAddressBook());
     }
@@ -54,8 +54,9 @@ public class FindStudentCommandTest {
     public void execute_secondQuery_replacesPreviousFilter() {
         command("Mei").execute(model);
 
-        command("Amy").execute(model);
+        CommandResult result = command("Amy").execute(model);
 
+        assertEquals("Found 1 student matching \"Amy\".", result.getFeedbackToUser());
         assertEquals(List.of(amyTan), model.getStudentList());
     }
 

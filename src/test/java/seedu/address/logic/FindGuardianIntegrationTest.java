@@ -66,11 +66,12 @@ class FindGuardianIntegrationTest {
 
         CommandResult result = logic.execute("find-guardian n/ANITA");
 
-        assertEquals("Found 2 guardian(s) matching \"ANITA\".", result.getFeedbackToUser());
+        assertEquals("Found 2 guardians matching \"ANITA\".", result.getFeedbackToUser());
         assertEquals(CommandResult.Workspace.GUARDIANS, result.getWorkspace());
         assertEquals(List.of("G-0003", "G-0005"), visibleIds());
         assertEquals(1, logic.getLinkedStudents("G-0003").size());
-        logic.execute("find-guardian n/Raj");
+        CommandResult singleResult = logic.execute("find-guardian n/Raj");
+        assertEquals("Found 1 guardian matching \"Raj\".", singleResult.getFeedbackToUser());
         assertEquals(List.of("G-0004"), visibleIds());
         logic.execute("list-guardians");
         assertEquals(List.of("G-0003", "G-0005", "G-0004"), visibleIds());

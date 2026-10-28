@@ -114,7 +114,7 @@ Examples:
 
 Matching ignores case and uses a substring of the normalized name, so partial names work. A multiword query is one phrase, not separate alternative keywords. This command does not search guardian names, academic levels, or assignments.
 
-The main list shows all matches and reports, for example, `Found 2 student(s) matching "mei".` A valid query with no matches reports `No students match "mei".`
+The main list shows all matches and reports, for example, `Found 2 students matching "mei".` A valid query with no matches reports `No students match "mei".`
 
 Search and list commands change only the displayed Student list and do not save data. They keep the current tab; select Students to see results if Groups is open.
 
@@ -208,7 +208,7 @@ Examples: `find-guardian n/anita`; `find-guardian n/Anita Lim`
 
 Switches to the Guardians tab and displays names containing the query, ignoring case and normalizing whitespace. A multiword query is matched as one phrase. Results are sorted by normalized name and then guardian ID. Guardians with the same name remain separate records. Phone numbers, IDs and linked student names are not searched.
 
-Each row shows the contact details and linked-student count; selecting a row shows its linked students. The result reports, for example, `Found 2 guardian(s) matching "anita".` A search with no results shows an empty list and `No guardians match "anita"`. Run `list-guardians` to clear the search.
+Each row shows the contact details and linked-student count; selecting a row shows its linked students. The result reports, for example, `Found 2 guardians matching "anita".` A search with no results shows an empty list and `No guardians match "anita"`. Run `list-guardians` to clear the search.
 
 Queries must contain 1-80 characters after whitespace normalization and follow the shared name rules. Invalid values report `Search query must be 1-80 characters and contain name characters only.` Missing or blank queries, repeated prefixes and additional parameters report `Invalid command format. Use: find-guardian n/QUERY`. Rejected searches preserve the current tab and list.
 
