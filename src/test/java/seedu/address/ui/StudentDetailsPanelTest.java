@@ -32,7 +32,7 @@ class StudentDetailsPanelTest {
                     new AcademicLevel("Sec 2"));
             panel.setStudent(student);
             assertEquals("S-0090", getLabel(panel, "id").getText());
-            assertEquals("Mei Lin", getLabel(panel, "name").getText());
+            assertEquals("S-0090 - Mei Lin", getLabel(panel, "name").getText());
             assertEquals("Sec 2", getLabel(panel, "academicLevel").getText());
             assertEquals("Phone: none", getLabel(panel, "studentPhone").getText());
             assertFalse(getPane(panel, "emptyState").isVisible());
