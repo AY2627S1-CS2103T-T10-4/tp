@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollToEvent;
 import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupCatalogue;
@@ -81,6 +83,29 @@ class GroupListPanelTest {
             assertEquals(List.of(physics), list.getItems());
             assertEquals(physics, list.getSelectionModel().getSelectedItem());
             assertEquals("1 groups", ((Label) panel.getRoot().lookup("#groupCountLabel")).getText());
+        });
+    }
+
+    @Test
+    void selectGroupCode_existingGroup_selectsAndRequestsScroll() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            List<Group> groups = new ArrayList<>(ConfiguredGroups.getCatalogue().getGroups());
+            groups.add(new Group(new GroupCode("RP-AA"), "Repro Alpha", GroupKind.SUBJECT));
+            groups.add(new Group(new GroupCode("RP-BB"), "Repro Beta", GroupKind.SUBJECT));
+            Group target = new Group(new GroupCode("RP-CC"), "Repro Gamma", GroupKind.SUBJECT);
+            groups.add(target);
+            GroupListPanel panel = new GroupListPanel(new GroupCatalogue(groups));
+            new Scene(panel.getRoot());
+            panel.getRoot().applyCss();
+            int[] scrollTargets = {-1};
+            panel.getRoot().addEventFilter(ScrollToEvent.scrollToTopIndex(), event ->
+                    scrollTargets[0] = event.getScrollTarget());
+
+            panel.selectGroupCode("RP-CC");
+
+            ListView<?> list = (ListView<?>) panel.getRoot().lookup("#groupListView");
+            assertEquals(target, list.getSelectionModel().getSelectedItem());
+            assertEquals(groups.indexOf(target), scrollTargets[0]);
         });
     }
 

@@ -46,13 +46,18 @@ public class GroupListPanel extends UiPart<Region> {
                 FXCollections.observableArrayList(catalogue.getGroups())));
     }
 
-    /** Selects a group by canonical code when present. */
+    /** Selects and scrolls to a group by canonical code when present. */
     public void selectGroupCode(String code) {
         if (code == null) {
             return;
         }
-        groupListView.getItems().stream().filter(group -> group.getCode().getValue().equals(code)).findFirst()
-                .ifPresent(group -> groupListView.getSelectionModel().select(group));
+        for (int index = 0; index < groupListView.getItems().size(); index++) {
+            if (groupListView.getItems().get(index).getCode().getValue().equals(code)) {
+                groupListView.getSelectionModel().select(index);
+                groupListView.scrollTo(index);
+                return;
+            }
+        }
     }
 
     /** Renders each immutable group using the existing theme's text styles. */
