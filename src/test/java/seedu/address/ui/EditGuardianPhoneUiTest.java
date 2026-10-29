@@ -177,7 +177,7 @@ class EditGuardianPhoneUiTest {
                 MainWindow window = openWindow(stage, model, storage);
                 submit(stage, "edit-guardian gid/G-0003 p/98765432");
                 submit(stage, "FiNd-GuArDiAn n/AnItA   lIm");
-                assertEquals("Found 1 guardian(s) matching \"AnItA lIm\".", feedback(stage));
+                assertEquals("Found 1 guardian matching \"AnItA lIm\".", feedback(stage));
                 guardianList(stage).getSelectionModel().selectFirst();
                 model.updateFilteredStudentList(student -> student.getId().value.equals("S-0007"));
                 window.getStudentListPanel().selectStudentId("S-0007");
@@ -227,7 +227,7 @@ class EditGuardianPhoneUiTest {
                 submit(stage, "find-guardian n/Nobody");
                 window.getStudentListPanel().clearSelection();
                 Node placeholder = guardianList(stage).getPlaceholder();
-                assertEquals("No guardians match \"Nobody\"", ((Label) placeholder).getText());
+                assertEquals("No guardians match \"Nobody\".", ((Label) placeholder).getText());
                 Predicate<?> guardianFilter = ((FilteredList<?>) model.getGuardianList()).getPredicate();
                 AddressBook before = new AddressBook(model.getAddressBook());
                 storage.failure = new IOException("Injected failure before writing");
@@ -235,7 +235,7 @@ class EditGuardianPhoneUiTest {
                 submit(stage, "edit-guardian gid/G-0003 p/98765432");
 
                 assertSame(placeholder, guardianList(stage).getPlaceholder());
-                assertEquals("No guardians match \"Nobody\"", ((Label) placeholder).getText());
+                assertEquals("No guardians match \"Nobody\".", ((Label) placeholder).getText());
                 assertSame(guardianFilter, ((FilteredList<?>) model.getGuardianList()).getPredicate());
                 assertTrue(model.getGuardianList().isEmpty());
                 assertNull(window.getGuardianListPanel().selectedGuardianProperty().get());

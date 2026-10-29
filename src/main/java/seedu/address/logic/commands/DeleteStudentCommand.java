@@ -12,7 +12,7 @@ import seedu.address.model.student.Student;
 public class DeleteStudentCommand extends Command {
     public static final String COMMAND_WORD = "delete-student";
     public static final String MESSAGE_USAGE = "Invalid command format. Use: delete-student sid/STUDENT_ID";
-    public static final String MESSAGE_STUDENT_NOT_FOUND = "Student %s was not found.";
+    public static final String MESSAGE_STUDENT_NOT_FOUND = "Student %s does not exist.";
     public static final String MESSAGE_SUCCESS = "Deleted student %s: %s.";
     public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. Student %s was not deleted.";
 
@@ -42,8 +42,11 @@ public class DeleteStudentCommand extends Command {
         requireNonNull(model);
         Student student = model.findStudent(studentId)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_STUDENT_NOT_FOUND, studentId)));
-        model.deleteStudent(student.getId());
         String feedback = String.format(MESSAGE_SUCCESS, studentId, student.getName());
+        feedback += model.getLinkedGuardian(studentId)
+                .map(guardian -> " Guardian link removed; guardian " + guardian.getId() + " was retained.")
+                .orElse("");
+        model.deleteStudent(student.getId());
         return new CommandResult(feedback, false, false, null, true, studentId);
     }
 

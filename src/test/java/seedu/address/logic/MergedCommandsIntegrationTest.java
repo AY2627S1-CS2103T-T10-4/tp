@@ -246,7 +246,7 @@ class MergedCommandsIntegrationTest {
         CommandException error = assertThrows(CommandException.class, () ->
                 rejecting.execute("delete-student sid/" + unknown));
 
-        assertEquals("Student " + unknown + " was not found.", error.getMessage());
+        assertEquals("Student " + unknown + " does not exist.", error.getMessage());
         assertEquals(previousId + 1, Long.parseLong(StudentId.generate().value.substring(2)));
         assertEquals(before, model.getAddressBook());
         assertEquals(List.of(mei), model.getStudentList());

@@ -28,6 +28,16 @@ class StudentValueTest {
     }
 
     @Test
+    void studentName_unicodeCaseVariants_haveSameIdentity() {
+        StudentName uppercase = new StudentName("ΟΣ");
+        StudentName lowercase = new StudentName("οσ");
+        assertEquals("ΟΣ", uppercase.toString());
+        assertEquals(uppercase, lowercase);
+        assertEquals(uppercase.hashCode(), lowercase.hashCode());
+        assertEquals(0, uppercase.compareTo(lowercase));
+    }
+
+    @Test
     void academicLevel_canonicalizesAndRejectsUnsupportedValues() {
         assertEquals("Sec 2", new AcademicLevel(" sec   2 ").toString());
         assertEquals("IP 6", new AcademicLevel("ip 6").toString());

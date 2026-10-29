@@ -35,6 +35,7 @@ class StudentNameContainsQueryPredicateTest {
         StudentNameContainsQueryPredicate predicate = predicate("  Ｍｅｉ   Ｌｉｎ  ");
 
         assertTrue(predicate.test(meiLin));
+        assertTrue(predicate("οσ").test(student("S-1004", "ΟΣ")));
     }
 
     @Test

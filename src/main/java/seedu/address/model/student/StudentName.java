@@ -18,7 +18,12 @@ public final class StudentName implements Comparable<StudentName> {
             throw new IllegalArgumentException(MESSAGE_CONSTRAINTS);
         }
         this.value = cleaned;
-        this.normalized = Normalizer.normalize(cleaned, Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT);
+        StringBuilder folded = new StringBuilder();
+        Normalizer.normalize(cleaned, Normalizer.Form.NFKC).codePoints()
+                .map(Character::toUpperCase)
+                .map(Character::toLowerCase)
+                .forEach(folded::appendCodePoint);
+        this.normalized = folded.toString();
     }
 
     /** Returns whether the value follows the student-name character and length rules. */

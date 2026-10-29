@@ -33,16 +33,19 @@ public class FindStudentCommandParser implements Parser<FindStudentCommand> {
 
         try {
             arguments.verifyNoDuplicatePrefixesFor(PREFIX_NAME);
-            String rawQuery = arguments.getValue(PREFIX_NAME)
-                    .orElseThrow(() -> new IllegalArgumentException(FindStudentCommand.MESSAGE_USAGE));
-            if (rawQuery.isBlank()) {
-                throw new IllegalArgumentException(FindStudentCommand.MESSAGE_USAGE);
-            }
-            return new FindStudentCommand(new StudentName(rawQuery));
         } catch (ParseException e) {
             throw new ParseException(FindStudentCommand.MESSAGE_USAGE);
+        }
+        String rawQuery = arguments.getValue(PREFIX_NAME)
+                .orElseThrow(() -> new ParseException(FindStudentCommand.MESSAGE_USAGE));
+        if (rawQuery.isBlank()) {
+            throw new ParseException(FindStudentCommand.MESSAGE_USAGE);
+        }
+
+        try {
+            return new FindStudentCommand(new StudentName(rawQuery));
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage());
+            throw new ParseException(FindStudentCommand.MESSAGE_QUERY_CONSTRAINTS);
         }
     }
 }

@@ -11,7 +11,9 @@ keywords. Phone numbers, IDs and student names are not searched.
 - Queries follow the shared 1-80 character name rules. Invalid query values
   report `Search query must be 1-80 characters and contain name characters only.`
   Missing, blank, repeated or additional parameters report the command usage.
-- `GuardianNameContainsQueryPredicate` reuses `GuardianName` normalization.
+- `GuardianNameContainsQueryPredicate` normalizes whitespace through `GuardianName`,
+  applies NFKC normalization and folds Unicode code points for case-insensitive
+  search, including Greek sigma variants. Stored names retain their supplied casing.
   The filtered view preserves the aggregate's name/ID order and distinct
   guardians with the same name. Every search considers the complete source list.
 - The command is read-only and remains available during recovery. It changes

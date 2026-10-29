@@ -46,6 +46,22 @@ class EditStudentCommandTest {
     }
 
     @Test
+    void execute_unicodeCaseDuplicateInFullRegister_rejectsLevelChange() {
+        ModelManager model = new ModelManager();
+        model.addStudent(student("S-0007", "ΟΣ", "Sec 1"));
+        Student target = student("S-0008", "οσ", "Sec 2");
+        model.addStudent(target);
+        model.updateFilteredStudentList(student -> student.getAcademicLevel().equals(new AcademicLevel("Sec 2")));
+
+        assertEquals("Cannot update S-0008: a student named οσ at Sec 1 already exists.",
+                assertThrows(CommandException.class, () ->
+                        new EditStudentCommand(target.getId(), new AcademicLevel("Sec 1")).execute(model))
+                        .getMessage());
+        assertEquals(target, model.findStudent(target.getId()).orElseThrow());
+        assertEquals(2, model.getAddressBook().getStudentList().size());
+    }
+
+    @Test
     void execute_unknownLargeId_doesNotAdvanceIdGenerator() {
         ModelManager model = new ModelManager();
 

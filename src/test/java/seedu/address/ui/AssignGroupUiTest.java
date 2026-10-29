@@ -99,13 +99,15 @@ class AssignGroupUiTest {
             MainWindow window = createWindow(model, data, stage);
             submit(stage, "list-groups");
             submit(stage, "find-student n/Mei");
+            assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
+            submit(stage, "list-groups");
             submit(stage, "view-student sid/S-9402");
 
             assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
             Student amy = model.findStudent("S-9402").orElseThrow();
             assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
             Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
-            assertEquals("Amy Tan", ((Label) profile.lookup("#name")).getText());
+            assertEquals("S-9402 - Amy Tan", ((Label) profile.lookup("#name")).getText());
             assertEquals(List.of("No groups assigned."), assignments(stage));
             assertArrayEquals(beforeQueries, Files.readAllBytes(data.getAddressBookFilePath()));
 
@@ -164,7 +166,7 @@ class AssignGroupUiTest {
             assertEquals(2, model.getStudentList().size());
             selectTab(stage, "studentsTab");
             Node profile = stage.getScene().lookup("#studentDetailsPanelPlaceholder");
-            assertEquals("Mei Lin", ((Label) profile.lookup("#name")).getText());
+            assertEquals("S-9401 - Mei Lin", ((Label) profile.lookup("#name")).getText());
             assertEquals("Sec 4", ((Label) profile.lookup("#academicLevel")).getText());
             assertEquals(List.of("MAT — Mathematics", "S2-MAT-A — Secondary 2 Mathematics A"), assignments(stage));
 
@@ -256,6 +258,8 @@ class AssignGroupUiTest {
             assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
 
             submit(stage, "list-students");
+            assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
+            submit(stage, "list-groups");
             submit(stage, "delete-student sid/S-9403");
             assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
             assertEquals(List.of("ENG — English"), assignments(stage));

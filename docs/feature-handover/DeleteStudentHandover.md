@@ -11,7 +11,7 @@ The `delete-student sid/STUDENT_ID` command resolves a student against the compl
 
 The parser validates lookup IDs as text and the command reuses the matched record's StudentId. Neither path constructs a lookup ID or advances the ID generator. Command/prefix names ignore case; exactly one nonempty `sid/` value is required. Malformed, repeated or unknown prefixes and extra text are rejected.
 
-Success reports `Deleted student S-0007: Mei Lin.` Unknown IDs retain the incoming command's wording, `Student S-0007 was not found.` If saving fails, `LogicManager` restores all three collections and reports `Could not save changes. Student S-0007 was not deleted.` The UI restores the previous selection and profile, including an empty selection. Failed-load recovery blocks deletion before execution and preserves the damaged file. Guardian linking (#63) remains outside this integration.
+Success reports `Deleted student S-0007: Mei Lin.` If a guardian was linked, it also reports `Guardian link removed; guardian G-0003 was retained.` Unknown IDs report `Student S-0007 does not exist.` If saving fails, `LogicManager` restores the register and reports `Could not save changes. Student S-0007 was not deleted.` The UI restores the previous selection and profile, including an empty selection. Failed-load recovery blocks deletion before execution and preserves the damaged file.
 
 ## Implementation map
 

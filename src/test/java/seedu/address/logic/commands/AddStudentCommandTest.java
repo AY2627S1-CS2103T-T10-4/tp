@@ -36,6 +36,16 @@ class AddStudentCommandTest {
     }
 
     @Test
+    void execute_unicodeCaseDuplicate_rejectsSameLevel() throws Exception {
+        ModelManager model = new ModelManager();
+        new AddStudentCommand(new StudentName("ΟΣ"), new AcademicLevel("Sec 1")).execute(model);
+
+        assertThrows(CommandException.class, () ->
+                new AddStudentCommand(new StudentName("οσ"), new AcademicLevel("Sec 1")).execute(model));
+        assertEquals(1, model.getStudentList().size());
+    }
+
+    @Test
     void execute_addsOptionalPhoneWithoutChangingDuplicateRule() throws Exception {
         ModelManager model = new ModelManager();
         CommandResult result = new AddStudentCommand(new StudentName("Mei Lin"), new AcademicLevel("Sec 2"),
