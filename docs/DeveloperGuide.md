@@ -965,3 +965,239 @@ than a claim that concurrent writers are safely coordinated.
     Logic, Model and Storage responsibilities. Domain invariants must be testable without starting
     JavaFX UI controls, and command parsers must be testable without writing user files. Verify through
     dependency review and the domain/parser test suites. **Status:** reflected in the current structure.
+
+### Glossary
+
+| Term | Meaning in Mentora |
+| --- | --- |
+| Academic level | A student's canonical level: Sec 1–5 or IP 1–6. It is independent of group assignments. |
+| Assignment | A unique pair of student ID and group code recording group membership. |
+| Canonical value | A standard stored/comparison representation, such as `+65 91234567` or uppercase group code `MAT`. |
+| Class group | A configured tuition class, for example `S2-MAT-A`; assigning it does not automatically assign its Subject group. |
+| Coordinator | The single local user maintaining the tuition centre's register. |
+| Group catalogue | The ordered set of currently configured Subject and Class groups, including user-created groups. |
+| Guardian | A parent or other responsible contact whose canonical phone is unique among guardian records; it may exist without linked students. A student's separate phone may use the same number. |
+| Guardian link | A relationship from one student ID to one guardian ID; at most one per student. |
+| Immutable value | A value whose fields do not change after construction; an edit uses a replacement value. |
+| Normalized name | The comparison form of a validated name after whitespace, Unicode and case normalization. |
+| Read-only command | A command that leaves persisted register data unchanged, although it may alter a filter, selection, workspace or help display. |
+| Recovery mode | A session entered after a register-load failure; register writes and modifying commands are disabled. |
+| Register / aggregate | The complete AddressBook data: students, guardians, catalogue, links and assignments. |
+| Shared guardian | One guardian record linked to multiple students, such as siblings. |
+| Stable ID | An immutable identifier for an existing student or guardian, independent of list position; not a promise of never reusing deleted IDs across restarts. |
+| Student | A learner represented by a name, level, generated ID and optional phone. The current model has no enrolment-status field. |
+| Subject group | A configured subject such as Mathematics; explicit membership can be used by `filter-students`. |
+| Workspace | One of the Students, Guardians or Groups views inside the main window. |
+
+For planned features only, **enrolment status** distinguishes prospective, active, withdrawn and
+graduated students; an **archived student** is retained outside active lists; a **class contact list**
+is a deduplicated collection of guardian contacts for external use. These concepts have no current
+domain field or command.
+
+## Appendix: Instructions for manual testing
+
+These repeatable checks use synthetic records and describe current source-build behavior, with version dependencies noted below. Record the exact source revision or release, JAR filename, Java version, operating system, actual results and any deviations. When testing a historical release, verify its behavior before applying the exact expectations below. Run the workflow sections in order; the startup/recovery scenarios use separate folders. These checks are a starting point for further exploratory testing, not a claim of exhaustive coverage.
+
+### Setup and test conventions
+
+1. Run `java -version` in a terminal and confirm Java **25**. Obtain a JAR from the [team releases](https://github.com/AY2627S1-CS2103T-T10-4/tp/releases), or run `./gradlew shadowJar` (`.\gradlew.bat shadowJar` on Windows) in a source checkout.
+   Current source builds produce `build/libs/mentora.jar`. The historical v1.4.1 release asset was named `Mentora.jar`. When testing a historical release, use its actual JAR filename and capitalization.
+2. Create a new writable folder named `workflow` in a disposable test location and copy the JAR into it. Keep it separate from personal data and other running Mentora instances.
+3. Before launching, create `workflow/data/addressbook.json` as a UTF-8 text file containing exactly `{"students":[]}`. This valid empty register gives no students or guardians and the five default groups. A zero-byte file is **not** a valid empty register.
+4. Open a terminal **inside `workflow`** and run `java -jar "mentora.jar"` for the current source build. When testing a historical release, substitute its actual JAR filename. Mentora uses `data/addressbook.json` relative to this working folder; its location appears in the footer. Select **Students**.
+5. Submit one command at a time. Record the IDs returned when adding Amy, Ben and Anita as **`SID_A`**, **`SID_B`** and **`GID`**. Replace these tokens in every later command and expected message with the actual IDs, including their `S-` or `G-` prefix. They are not literal input, list positions or assumed consecutive numbers. Student IDs also appear in Students; use `list-guardians` to recover a guardian ID.
+6. For every rejection below, check the exact feedback and that records, displayed lists, filters, selection and details remain unchanged from immediately before that command. Once a data file exists, its contents should also be unchanged. Each invalid-input case keeps the other required values valid.
+7. To repeat a workflow section, close Mentora, create another disposable folder with the empty-register fixture, and repeat its preceding setup steps. Do not reset by deleting files in a normal installation. Cleanup means closing only the test instance and retaining or discarding only its disposable folder.
+
+For command syntax and field rules, see the [User Guide](UserGuide.md) or `help COMMAND`. Counted results below depend on the stated fixture and sequence. Successful edits save immediately; listing, finding, filtering and viewing do not save.
+
+Successful `list-students` and `find-student` open Students, including empty results. `view-student` retains the active workspace; select Students to inspect its requested profile. Run the additional focused checks below in their own disposable folders; they must not alter the main workflow or its `valid-register.json` backup.
+
+### Students: create, retrieve and update
+
+**Starting state:** the empty `workflow` fixture above, with Students selected. Keep both created students for the following sections.
+
+| Command/action | Expected feedback | Expected visible state |
+| --- | --- | --- |
+| Select Groups; `list-students` | `No students registered.` | Students opens with an empty list. |
+| `add-student n/Amy Tan al/Sec 2 p/91234567` | `Added student SID_A: Amy Tan (Sec 2) with phone +65 91234567.` | Amy is selected; profile shows Sec 2, the student phone, `Guardian: none` and `No groups assigned.` Record `SID_A`. |
+| `add-student n/Ben Tan al/IP 4` | `Added student SID_B: Ben Tan (IP 4).` | Ben is selected; profile shows IP 4 and `Phone: none`. Record `SID_B`. |
+| Select Groups; `list-students` | `Listed 2 student(s).` | Students opens; Amy and Ben appear, in name order, with their stable IDs and levels. Ben remains selected. |
+| `add-student n/Amy Tan al/Sec 2` | `A student named Amy Tan at Sec 2 already exists.` | No third student; Ben remains selected. |
+| `add-student n/Cara Lim` | `Invalid command format. Use: add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]` | No Cara record. The missing level is the invalid condition. |
+| Select Guardians; `find-student n/amy` | `Found 1 student matching "amy".` | Students opens with only Amy listed; the hidden Ben selection is cleared. |
+| Select Groups; `find-student n/Zzz` | `No students match "Zzz".` | Students opens with an empty displayed list; both records are still stored. |
+| Select Groups; `view-student sid/SID_A`; then select Students | `Opened profile for SID_A.` | The command leaves Groups active until you select Students. The hiding filter clears; both rows return and Amy is selected. Heading shows `SID_A - Amy Tan`. |
+| `filter-students al/Sec 2` | `Found 1 student(s) at Sec 2.` | Students opens, showing only Amy and `Filtered by academic level: Sec 2`. |
+| `edit-student sid/SID_A al/Sec 3 p/98765432` | `Updated student SID_A: academic level is now Sec 3 and phone is now +65 98765432.` | Same Amy ID/name; both fields update. The Sec 2 filter clears to reveal Amy, and both rows are visible. |
+
+**Boundary and invalid-value checks:** continue with Amy selected. Run each command separately; these check phone lengths just below/at/above eight digits and the Sec-level endpoints. Ben must remain unchanged.
+
+| Command/action | Expected feedback and state |
+| --- | --- |
+| `edit-student sid/SID_A p/9123456` | `Phone number must be an 8-digit Singapore number, optionally prefixed by +65.` Amy retains `+65 98765432`. |
+| `edit-student sid/SID_A p/91234567` | `Updated student SID_A phone to +65 91234567.` Only the student phone changes. |
+| `edit-student sid/SID_A p/912345678` | Same phone-validation error; Amy retains `+65 91234567`. |
+| `edit-student sid/SID_A al/Sec 0` | `Academic level must be Sec 1-5 or IP 1-6.` Amy remains Sec 3. |
+| `edit-student sid/SID_A al/Sec 1`, then `edit-student sid/SID_A al/Sec 4`, then `edit-student sid/SID_A al/Sec 5` | Each succeeds: `Updated student SID_A: academic level is now Sec LEVEL.` Replace `LEVEL` with 1, 4 or 5 respectively; verify the selected profile each time. |
+| `edit-student sid/SID_A al/Sec 6` | Same academic-level error; Amy remains Sec 5. |
+| Reset: `edit-student sid/SID_A al/Sec 3 p/98765432` | `Updated student SID_A: academic level is now Sec 3 and phone is now +65 98765432.` Continue with these values. |
+
+### Guardians: shared contact and phone updates
+
+**Starting state:** Amy and Ben from the student checks; no guardians or links. Student phones and guardian phones are separate fields.
+
+| Command/action | Expected feedback | Expected visible state |
+| --- | --- | --- |
+| `list-guardians` | `No guardians registered.` | Guardians opens with an empty list. |
+| `add-guardian n/Anita Lim p/92345678` | `Added guardian GID: Anita Lim (+65 92345678).` | One guardian is added. Record `GID`; creation alone does not promise selection. |
+| `list-guardians`, then click the row with `GID` | `Listed 1 guardian(s).` | Anita has phone `+65 92345678` and no linked students. |
+| `find-guardian n/anita` | `Found 1 guardian matching "anita".` | Anita is the only matching guardian. |
+| `add-guardian n/Other Guardian p/+6592345678` | `A guardian with phone +65 92345678 already exists (GID). Link that guardian instead.` | Normalized duplicate phone is rejected; one guardian remains. |
+| `link-guardian sid/SID_A gid/GID` | `Linked student SID_A (Amy Tan) to guardian GID (Anita Lim, +65 92345678).` | Students opens and Amy is selected; her profile displays Anita and the guardian phone. |
+| `link-guardian sid/SID_B gid/GID` | `Linked student SID_B (Ben Tan) to guardian GID (Anita Lim, +65 92345678).` | Ben is selected with the same guardian. |
+| Repeat `link-guardian sid/SID_B gid/GID` | `Student SID_B is already linked to guardian GID.` | No duplicate relationship. |
+| `list-guardians`, then select `GID` | `Listed 1 guardian(s).` | Linked-student count is 2; details list Amy and Ben with their recorded IDs. |
+| Select Students; `view-student sid/SID_A`, then `edit-guardian gid/GID p/+65 93456789` | `Opened profile for SID_A.`, then `Updated guardian GID phone to +65 93456789. Updated contact will appear in 2 linked student profile(s).` | Amy stays selected; her guardian contact updates immediately, while her own phone remains `+65 98765432`. |
+| `view-student sid/SID_B` | `Opened profile for SID_B.` | Ben also shows Anita with `+65 93456789`, while his student phone remains absent. |
+
+Keep both links for the save/reload and unlink checks below.
+
+### Groups: catalogue, assignments and filtering
+
+**Starting state:** both students and their shared guardian remain. The fixture catalogue has only `ENG`, `MAT`, `SCI`, `CHI` and `S2-MAT-A`; neither `PHY` nor `S3-PHY-B` exists.
+
+| Command/action | Expected feedback | Expected visible state |
+| --- | --- | --- |
+| `list-groups` | `Listed 5 configured group(s).` | Groups opens; each default row shows its code, label and kind. |
+| `add-group g/PHY l/Physics k/Subject` | `Created group PHY (Physics, Subject).` | Groups selects PHY. |
+| `add-group g/S3-PHY-B l/Secondary 3 Physics B k/Class` | `Created group S3-PHY-B (Secondary 3 Physics B, Class).` | Groups selects S3-PHY-B. |
+| `add-group g/phy l/Other Physics k/Subject` | `Group PHY is already configured.` | No duplicate, renamed label or extra group; `list-groups` reports `Listed 7 configured group(s).` |
+| `assign-group sid/SID_A g/PHY` | `Assigned group PHY (Physics) to student SID_A.` | Students opens; Amy is selected and her profile lists PHY / Physics. |
+| `assign-group sid/SID_B g/S3-PHY-B` | `Assigned group S3-PHY-B (Secondary 3 Physics B) to student SID_B.` | Ben is selected and shows the Class assignment; his IP 4 level is unchanged. |
+| `filter-students g/PHY` | `Found 1 student(s) assigned to PHY.` | Only Amy is listed; summary is `Filtered by group: PHY — Physics`. |
+| `filter-students g/S3-PHY-B` | `Group S3-PHY-B is a Class group; use the academic-level filter.` | The previous PHY filter/results remain. |
+| `filter-students g/PHY al/Sec 3` | `Invalid command format. Use: filter-students g/GROUP_CODE` | Two individually valid criteria cannot be combined; previous results remain. |
+| `view-student sid/SID_B` | `Opened profile for SID_B.` | Hidden Ben is revealed and selected; both students return and the filter clears. |
+| `delete-group g/PHY` | `Group PHY is assigned to 1 student(s). Remove those assignments before deleting it.` | Group and Amy’s assignment remain; Ben’s selection/details are unchanged. |
+
+### Save and reload the completed workflow
+
+**Starting state:** exactly two students, one guardian, seven groups; Amy has PHY and Ben has S3-PHY-B; both link to Anita.
+
+1. Run `exit`. The application closes (the command feedback is `Closing Mentora.`). Reopen the **same JAR from the same `workflow` folder**.
+2. Select Students and run `list-students`: expect `Listed 2 student(s).`. Run `view-student sid/SID_A`: expect `Opened profile for SID_A.` and Amy’s Sec 3, student phone `+65 98765432`, PHY assignment and Anita’s `+65 93456789` contact.
+3. Run `view-student sid/SID_B`: expect `Opened profile for SID_B.`, IP 4, `Phone: none`, S3-PHY-B and the same guardian contact. IDs must match those recorded before restart.
+4. Run `list-guardians`: expect `Listed 1 guardian(s).`; select `GID` and check both linked students. Run `list-groups`: expect `Listed 7 configured group(s).` including both newly created groups.
+5. Close Mentora with `exit`. Copy this **test** `data/addressbook.json` to a file named `valid-register.json` outside the `workflow` folder but inside the disposable test location. Keep it for the recovery scenario. Relaunch the workflow folder before continuing.
+
+### Unlink, unassign and delete safely
+
+**Starting state:** the saved workflow above. These destructive commands affect only synthetic records.
+
+| Command/action | Expected feedback | Expected visible state |
+| --- | --- | --- |
+| Select Students; `unlink-guardian sid/SID_A` | `Removed guardian GID from student SID_A. Guardian record was retained.` | Amy is selected and shows `Guardian: none`; her PHY assignment remains. |
+| Repeat `unlink-guardian sid/SID_A` | `Student SID_A has no guardian to unlink.` | Amy and Anita both remain. |
+| `list-guardians`, then select `GID` | `Listed 1 guardian(s).` | Only Ben is linked; linked-student count is 1. |
+| `link-guardian sid/SID_A gid/GID` | `Linked student SID_A (Amy Tan) to guardian GID (Anita Lim, +65 93456789).` | Amy is selected; both students again share Anita. |
+| `unassign-group sid/SID_A g/PHY` | `Removed group PHY from student SID_A.` | Amy shows `No groups assigned.`; guardian and other student fields remain. |
+| `delete-group g/PHY` | `Deleted group PHY: Physics (Subject).` | Groups opens; PHY is absent and the other six groups remain. |
+| Repeat `delete-group g/PHY` | `Group PHY is not configured. Run list-groups to see available groups.` | Unknown-code rejection changes no remaining group. |
+| `assign-group sid/SID_A g/MAT` | `Assigned group MAT (Mathematics) to student SID_A.` | Amy is selected and has an assignment for the deletion check. |
+| `delete-student sid/SID_A` | `Deleted student SID_A: Amy Tan. Guardian link removed; guardian GID was retained.` | Amy disappears and her selected profile clears. Her assignment/link are removed; Ben remains. |
+| `view-student sid/SID_A` | `Student SID_A does not exist.` | The previously generated, now-deleted ID is a reliable unknown-ID case. No record reappears. |
+| `view-student sid/SID_B` | `Opened profile for SID_B.` | Ben retains his ID, IP 4, Class assignment and Anita link. |
+| `list-guardians`, then select `GID`; `list-groups` | `Listed 1 guardian(s).`, then `Listed 6 configured group(s).` | Anita is retained with only Ben linked; MAT is still configured. |
+| `unassign-group sid/SID_B g/S3-PHY-B`, then `delete-group g/S3-PHY-B` | `Removed group S3-PHY-B from student SID_B.`, then `Deleted group S3-PHY-B: Secondary 3 Physics B (Class).` | Ben’s final assignment is removed; five default groups remain. |
+
+**Cleanup:** close the test instance. To rerun, use a new folder and fresh IDs; guardian deletion is not supported, so do not invent a cleanup command.
+
+### Missing data file: normal startup
+
+**Starting state:** create a separate new folder named `missing` containing only the JAR. Do not copy preferences or a `data` directory into it.
+
+1. Launch from `missing` using the actual JAR filename. In the current source build, Students contains sample students **Mei Lin / Sec 2** and **S. Kumar / IP 4**; no recovery warning or `Saving disabled` indicator appears.
+2. Run `list-students`: expect `Listed 2 student(s).`. The register file must still be absent after startup and this read-only command; preferences/log files may exist.
+3. Run `add-student n/Recovery Check al/Sec 2`. Record its generated ID as `SID_C`; expect `Added student SID_C: Recovery Check (Sec 2).` The new student is selected and `data/addressbook.json` now exists.
+4. Exit and relaunch from `missing`; `list-students` reports `Listed 3 student(s).`. `view-student sid/SID_C` reports `Opened profile for SID_C.` and displays the saved student.
+
+**Integration dependency:** [PR #123](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/123) is pending. If testing a build that includes that change, expect an empty register and counts of 0 after startup and 1 after adding the student; do not mistake that intended change for invalid-file recovery. Close this test instance when finished.
+
+### Invalid data file: preservation and recovery
+
+**Starting state:** the valid synthetic backup from the save/reload section is available. Create a third disposable folder named `recovery`, copy the JAR into it, and ensure no Mentora instance is using it.
+
+1. Create `recovery/data/addressbook.json` as UTF-8 text containing exactly `broken JSON`. Keep an identical copy named `invalid-original.json` outside its `data` directory. This deliberately malformed file must never replace personal data.
+2. Record its SHA-256 hash. On Windows PowerShell, from `recovery`, run `Get-FileHash -LiteralPath .\data\addressbook.json -Algorithm SHA256`; on macOS/Linux use an equivalent checksum tool. Launch the JAR from `recovery`.
+3. Expect empty student/guardian lists and this recovery feedback: **`Could not load local data. Your original data file was not changed; restore or replace it before saving.`** The footer must say **`Saving disabled`**; hovering over it explains the failure.
+4. Run `list-students` and `list-guardians`: expect `No students registered.` and `No guardians registered.` respectively. Run `list-groups`: expect `Listed 5 configured group(s).`. Read-only feedback may replace the warning text, but the footer must remain `Saving disabled`. Each list command opens its corresponding workspace.
+5. Run the syntactically valid mutation `add-student n/Recovery Check al/Sec 2`. Expect the same recovery message from step 3; no student is added and saving stays disabled. A malformed command would test parsing instead, so use this exact valid input.
+6. Run `exit`, then recompute the register hash and compare it with step 2 (or compare the bytes with `invalid-original.json`). They must match. Recovery does not repair or back up the register automatically; preferences and logs can change independently.
+7. With Mentora closed, retain the invalid copy and replace only the disposable `recovery/data/addressbook.json` with the saved `valid-register.json`. Relaunch. Expect the two students, guardian links and seven groups from that backup, with no recovery warning or `Saving disabled` indicator. Saving remains disabled for an old recovery session even if its file is replaced externally; a restart is required.
+8. Select Students and run `edit-student sid/SID_B p/94567890`: expect `Updated student SID_B phone to +65 94567890.` and the phone in Ben’s profile. Exit, reopen, and use `view-student sid/SID_B` to confirm the saved phone and original relationships.
+
+**Cleanup:** close the test instance and keep the test files/results for review, or discard only the disposable test location. File preservation in this scenario concerns load-failure recovery; it does not imply that normal saves use atomic file replacement.
+
+### Additional focused checks: isolated edge cases
+
+**Starting state:** create a new disposable folder named `edge-cases`, separate from `workflow`, `missing` and `recovery`. Copy the same JAR into it and, with Mentora closed, create `edge-cases/data/addressbook.json` containing exactly `{"students":[]}`. Launch from `edge-cases` with `java -jar "mentora.jar"` and select Students. Do not copy or modify the main workflow's `valid-register.json`.
+
+Run the four setup commands below once. Record their generated IDs as `EX_A`, `EX_B`, `EX_G1` and `EX_G2`, and substitute them everywhere in this section. The two students deliberately have the same name at different levels; distinguish them by ID. Failed additions may consume an ID, so do not assume consecutive IDs.
+
+| Setup command | Expected feedback and state |
+| --- | --- |
+| `ADD-STUDENT AL/sec 2 N/Noor Tan P/91234567` | `Added student EX_A: Noor Tan (Sec 2) with phone +65 91234567.` The uppercase command/prefixes and alternate field order are accepted; Noor at Sec 2 is selected. |
+| `add-student n/Noor Tan al/Sec 4` | `Added student EX_B: Noor Tan (Sec 4).` A different level is permitted; EX_B is selected with `Phone: none`. |
+| `add-guardian n/Alice Tan p/81234567` | `Added guardian EX_G1: Alice Tan (+65 81234567).` |
+| `add-guardian n/Ben Tan p/87654321` | `Added guardian EX_G2: Ben Tan (+65 87654321).` |
+
+There are now exactly two students, two guardians, five default groups and no links or assignments. Continue in the order below. For each rejection, compare the existing data file's bytes before and after the command and check that the prior tab, filter, selection and relationships remain unchanged.
+
+| Command/action | Expected feedback | Expected visible state |
+| --- | --- | --- |
+| `add-student n/  noor   tan  al/sec 2` | `A student named noor tan at Sec 2 already exists.` | Case and repeated spaces normalize to EX_A's identity. The feedback uses the supplied cleaned lowercase name; two students remain and EX_B stays selected. |
+| `edit-student sid/EX_A al/Sec 4` | `Cannot update EX_A: a student named Noor Tan at Sec 4 already exists.` | EX_A remains Sec 2; EX_B remains Sec 4. The failed edit does not select EX_A. |
+| `link-guardian sid/EX_A gid/EX_G1` | `Linked student EX_A (Noor Tan) to guardian EX_G1 (Alice Tan, +65 81234567).` | Students opens; EX_A is selected with Alice's contact. |
+| `link-guardian sid/EX_A gid/EX_G2` | `Student EX_A already has guardian EX_G1. Unlink it before linking another guardian.` | EX_A keeps Alice; no relationship is overwritten. |
+| `edit-guardian gid/EX_G1 p/87654321` | `Phone +65 87654321 is already used by guardian EX_G2.` | Alice retains `+65 81234567`; guardian Ben retains `+65 87654321`. |
+| `link-guardian sid/EX_B gid/EX_G2` | `Linked student EX_B (Noor Tan) to guardian EX_G2 (Ben Tan, +65 87654321).` | EX_B is selected with guardian Ben's contact. |
+| `assign-group sid/EX_A g/S2-MAT-A` | `Assigned group S2-MAT-A (Secondary 2 Mathematics A) to student EX_A.` | EX_A is selected and has only the Class assignment; no Subject membership is inferred. |
+| `filter-students g/MAT` | `No students are assigned to MAT.` | Empty Students view, although EX_A belongs to the Mathematics Class. Both student records remain stored. |
+| `view-student sid/EX_A` | `Opened profile for EX_A.` | Both rows return; EX_A is selected with only S2-MAT-A. |
+| `assign-group sid/EX_A g/mat` | `Assigned group MAT (Mathematics) to student EX_A.` | EX_A now has two distinct assignments, MAT and S2-MAT-A. |
+| Repeat `assign-group sid/EX_A g/MAT` | `Student EX_A is already assigned to MAT.` | Exactly two assignments remain on EX_A; no duplicate pair. |
+| `unassign-group sid/EX_A g/MAT` | `Removed group MAT from student EX_A.` | S2-MAT-A remains on EX_A; the Class and Subject assignments are independent. |
+| `assign-group sid/EX_B g/MAT` | `Assigned group MAT (Mathematics) to student EX_B.` | EX_B is selected with MAT only; no Class assignment is inferred, and Sec 4 is unchanged. |
+| Choose `G_MISSING` as an uppercase ID of the form `G-` followed by at least four digits, different from both recorded guardian IDs. For example, use `G-999999` only after confirming it is neither EX_G1 nor EX_G2. Run `link-guardian sid/EX_A gid/G_MISSING`. | `Guardian G_MISSING does not exist.` | EX_B stays selected; both existing links and phones remain. This is a syntactically valid missing reference, not an ID-format test. |
+| `view-student sid/EX_A`, then `delete-student sid/EX_B` | `Opened profile for EX_A.`, then `Deleted student EX_B: Noor Tan. Guardian link removed; guardian EX_G2 was retained.` | EX_A remains selected with Sec 2, `+65 91234567`, Alice and S2-MAT-A. EX_B and its MAT assignment/link disappear; its guardian remains. |
+| `list-guardians`, then select EX_G2 | `Listed 2 guardian(s).` | Guardian Ben has zero linked students; Alice has one. Only EX_A remains in the register, and the five default groups remain configured. |
+
+#### Help and current exit handling
+
+Keep the same disposable `edge-cases` instance. Close the help window after each successful help request before entering the next command in the main window.
+
+| Command/action | Expected feedback and outcome |
+| --- | --- |
+| `help` | `Opened help window.` The command overview opens; records and the current workspace are unchanged. |
+| `help add-student` | `Showing help for add-student.` The help window shows that command's syntax and examples; no student is added. |
+| `help unknown-command` | `No help is available for "unknown-command". Run help to see all commands.` No data changes. |
+| `help add-student extra` | `Invalid command format. Use: help [COMMAND]` No data changes. |
+| With the help window closed, `exit extra` | In the current merged build, the application closes; the command feedback is `Closing Mentora.` Do not expect strict argument rejection in this build. |
+
+**Version dependency:** [PR #122](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/122) is pending. If the tested build includes its strict exit parser, `exit extra` instead reports `Invalid command format. Use: exit` and keeps the application open; use `exit` to close that build. The argument-free `exit` used in the main workflow is unaffected.
+
+**Cleanup:** close only the edge-case instance. Keep its evidence separately from the main workflow. To repeat, start again in a new disposable folder with the explicit empty-register fixture and fresh generated IDs.
+
+### Additional focused checks: absent versus empty group catalogue
+
+These cases use valid data files, not the missing-file or malformed-file startup paths. Create two separate new disposable folders, `catalogue-defaults` and `catalogue-empty`, each with the same JAR and its own `data` directory. With no instance running in either folder, write the exact UTF-8 JSON below.
+
+| Folder and data-file contents | Commands/actions | Expected feedback and state |
+| --- | --- | --- |
+| `catalogue-defaults/data/addressbook.json` contains `{"students":[]}`. | Launch from `catalogue-defaults` with `java -jar "mentora.jar"`; run `list-students`, then `list-groups`. | `No students registered.`, then `Listed 5 configured group(s).` Groups shows ENG, MAT, SCI, CHI and S2-MAT-A. No sample students or recovery warning appear. The absent `groups` property supplies defaults. |
+| `catalogue-empty/data/addressbook.json` contains `{"students":[],"groups":[]}`. | Launch from `catalogue-empty` with `java -jar "mentora.jar"`; run `list-students`, then `list-groups`. | `No students registered.`, then `Listed 0 configured group(s).` Groups shows `No configured groups.` The explicitly empty catalogue is retained; no recovery warning appears. |
+| Continue in `catalogue-empty` with Groups active. | `filter-students g/MAT` | `Group MAT is not configured. Run list-groups to see available groups.` Groups remains active and empty; the file is unchanged. Defaults are not silently reintroduced. |
+| Continue in `catalogue-empty`. | `exit`; relaunch the same JAR from the same folder; run `list-groups`. | `Listed 0 configured group(s).` The empty catalogue survives restart without entering recovery. |
+
+**Cleanup:** close both test instances. Preserve or discard only these disposable directories. Do not replace the main workflow's backup or any personal register.
