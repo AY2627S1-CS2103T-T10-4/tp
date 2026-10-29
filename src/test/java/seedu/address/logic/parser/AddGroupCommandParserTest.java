@@ -23,6 +23,17 @@ class AddGroupCommandParserTest {
     }
 
     @Test
+    void parse_asciiAndAccentedCodes_acceptsOnlyAsciiCode() throws Exception {
+        AddGroupCommand expected = new AddGroupCommand(
+                new Group(new GroupCode("ET"), "French", GroupKind.SUBJECT));
+        String expectedError = "Group code must be 2-20 ASCII letters (A-Z or a-z), digits, or hyphens, "
+                + "start with a letter, and end with a letter or digit.";
+
+        assertEquals(expected, parser.parse(" g/ET l/French k/Subject"));
+        assertError(" g/ÉT l/French k/Subject", expectedError);
+    }
+
+    @Test
     void parse_invalidCodeLabelAndKind_reportsFieldErrors() {
         assertError(" g/P l/Physics k/Subject", GroupCode.MESSAGE_NEW_CODE_CONSTRAINTS);
         assertError(" g/PHY l/" + "a".repeat(81) + " k/Subject", Group.MESSAGE_LABEL_CONSTRAINTS);

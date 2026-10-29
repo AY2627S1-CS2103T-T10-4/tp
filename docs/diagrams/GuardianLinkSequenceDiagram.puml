@@ -1,0 +1,28 @@
+@startuml
+!include mentora-style.puml
+participant "model:ModelManager" as model
+participant ":AddressBook" as register
+
+[-> model : linkGuardian(sid, gid)
+activate model
+model -> register : linkGuardian(sid, gid)
+activate register
+register -> register : findStudent(sid)
+activate register
+register --> register : student
+deactivate register
+register -> register : findGuardian(gid)
+activate register
+register --> register : guardian
+deactivate register
+note right of register
+Both lookups succeeded.
+The student has no existing link.
+Store the pair of existing IDs
+in guardianLinks.
+end note
+register --> model
+deactivate register
+[<-- model
+deactivate model
+@enduml

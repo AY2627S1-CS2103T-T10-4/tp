@@ -1,0 +1,29 @@
+@startuml
+!include mentora-style.puml
+participant ":AddressBookParser" as router
+participant ":AssignGroupCommandParser" as parser
+participant "command:AssignGroupCommand" as command
+
+[-> router : parseCommand(text)
+activate router
+create parser
+router -> parser : new()
+activate parser
+parser --> router
+deactivate parser
+router -> parser : parse(arguments)
+activate parser
+note right of parser
+Validate syntax and values.
+Keep student ID as text.
+end note
+create command
+parser -> command : new(sid, code)
+activate command
+command --> parser
+deactivate command
+parser --> router : command
+deactivate parser
+[<-- router : command
+deactivate router
+@enduml

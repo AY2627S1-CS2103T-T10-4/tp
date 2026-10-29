@@ -1,0 +1,36 @@
+' Shared style for the current Developer Guide diagrams.
+' Layout helpers using [hidden] have no UML meaning.
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam defaultFontColor #202B38
+skinparam shadowing false
+skinparam ArrowColor #334155
+skinparam ArrowFontSize 14
+skinparam ArrowFontStyle plain
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #F1F5F9
+skinparam classBorderColor #475569
+skinparam classFontColor #202B38
+skinparam classStereotypeFontColor #C00000
+skinparam genericDisplay new
+skinparam componentStyle rectangle
+skinparam componentBackgroundColor #F1F5F9
+skinparam componentBorderColor #475569
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor white
+skinparam packageBorderColor #94A3B8
+skinparam sequenceParticipantBackgroundColor #F1F5F9
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceLifeLineBorderColor #64748B
+skinparam sequenceLifeLineBackgroundColor #E2E8F0
+skinparam sequenceGroupBackgroundColor #F8FAFC
+skinparam sequenceGroupBorderColor #64748B
+skinparam sequenceMessageAlign left
+skinparam noteBackgroundColor #FFFBE8
+skinparam noteBorderColor #A89454
+skinparam nodesep 35
+skinparam ranksep 40
+hide circle
+hide empty members
+hide footbox
