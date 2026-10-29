@@ -427,7 +427,7 @@ Mentora automatically saves students, guardians, groups, links and assignments a
 
 Your records are stored in **`data/addressbook.json`**, relative to the folder from which you launched Mentora. The location appears in the status bar. Start from the same folder each time, and use only one running copy with that data file. No account or internet connection is needed.
 
-When you reopen Mentora, it reloads the saved register. A missing file currently loads sample students; a valid data file containing an empty register opens with no students. A zero-byte file is not a valid empty register. Previously saved groups, including an empty catalogue, are retained.
+When you reopen Mentora, it reloads the saved register. If the data file is missing, Mentora starts with an empty register. A valid data file containing an empty register also opens with no students. A zero-byte file is not a valid empty register. Previously saved groups, including an empty catalogue, are retained.
 
 #### Backing up and restoring
 
