@@ -1,676 +1,282 @@
 ---
 layout: page
 title: Developer Guide
+page_class: developer-guide
 ---
+
+This guide describes the current Mentora source implementation: a Java desktop contact manager for a
+single tuition-centre coordinator. The Java packages retain the inherited `seedu.address` name, and
+`AddressBook` is the name of Mentora's register class. Neither name means that legacy AddressBook
+commands are still supported.
+
+Read the [User Guide](UserGuide.md) for command usage and the
+[MVP feature specification](FeatureSpecification.md) for the product contract. Where implementation
+falls short of that contract, this guide records the gap in [Known limitations](#known-limitations);
+documenting a limitation does not remove the requirement. Future stories are labelled separately.
+
 * Table of Contents
-{:toc}
+  {:toc}
 
---------------------------------------------------------------------------------------------------------------------
+## Acknowledgements
 
-## **Acknowledgements**
+* Mentora adapts the JavaFX application structure, command architecture, tests and documentation of
+  [SE-EDU AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
+* Runtime libraries include [OpenJFX](https://openjfx.io/) for the desktop interface and
+  [Jackson](https://github.com/FasterXML/jackson) for JSON conversion. Development tools include
+  [JUnit](https://junit.org/junit5/) for tests and [Gradle](https://gradle.org/) for builds.
+  The exact dependency versions are declared in `build.gradle`.
+* Diagrams are rendered with [PlantUML](https://plantuml.com/). Their notation follows the
+  [course UML reference](https://se-education.org/se-book/uml/); the requirements format follows the
+  [course requirements reference](https://se-education.org/se-book/specifyingRequirements/).
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+## Setting up and getting started
 
---------------------------------------------------------------------------------------------------------------------
+Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
+From the repository root, run `./gradlew check shadowJar` on macOS/Linux or
+`.\gradlew.bat check shadowJar` in Windows PowerShell. The output is
+`build/libs/addressbook.jar`; launch it with `java -jar addressbook.jar` from the directory in which
+you want Mentora to store its data. The first build needs access to dependency repositories.
+Normal application use and built-in command help work offline.
 
-## **Setting up, getting started**
+## Design
 
-Refer to the guide [_Setting up and getting started_](SettingUp.md).
+### Reading the diagrams
 
---------------------------------------------------------------------------------------------------------------------
+Every diagram below has a PlantUML source in `docs/diagrams` and a rendered PNG in `docs/images`.
+The class diagrams are deliberately partial: their captions state the omissions. A solid arrow
+denotes a navigable association; a dashed arrow denotes a dependency; a hollow triangular arrowhead
+denotes generalization (solid line) or interface realization (dashed line). A filled diamond denotes
+composition. Multiplicities describe the shown association ends; an omitted multiplicity is
+unspecified. Colours are decorative and do not encode extra semantics.
 
-## **Design**
-
-<div markdown="span" class="alert alert-primary">
-
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
-</div>
+Sequence diagrams show synchronous calls with solid arrows, returns with dashed arrows, and
+activation bars for the shown executions. Creation messages meet the newly created object's head.
+No destruction marker is used merely because a Java local variable goes out of scope. See
+[Maintaining the diagrams](#maintaining-the-diagrams) for rendering instructions.
 
 ### Architecture
 
-#### Current Mentora MVP implementation
+![UML component diagram showing UI, Logic, Model and Storage dependencies](images/ArchitectureDiagram.png)
 
-The inherited AB3 diagrams and Person-command examples below are historical reference material. The current
-runtime stores Students, Guardians, student-guardian links, and group assignments; retired Person APIs remain only
-for source compatibility.
+*Figure 1. Main component dependencies. Arrows indicate use, not the direction of every data transfer. MainApp wiring and shared Commons utilities are omitted.*
 
-- `ConfiguredGroups` supplies the five-entry default catalogue for new and legacy data files. `AddressBook` owns the
-  current ordered `GroupCatalogue`, immutable `GroupAssignment` pairs, and student-to-guardian links. It validates
-  references and uniqueness and includes the complete aggregate in copy/reset/equality/hash. Student replacement keeps
-  relationships by stable ID; deleting a student removes only that student's relationships.
-- `link-guardian` validates both stable IDs, enforces one guardian per student, permits a guardian to be shared by
-  siblings, and refreshes the selected student's profile after saving.
-- `assign-group` and `unassign-group` parse ID text without allocating IDs and validate before mutation. Their
-  results request the Students workspace, which MainWindow applies only after Logic has saved successfully.
-  `list-groups` is a read-only query and requests Groups.
-- `add-group` creates a validated Subject or Class group. `delete-group` removes only an unassigned group; the domain
-  rejects deletion while any student references its code. Both request Groups and use the normal save/rollback boundary.
-- JSON has `students` plus optional `guardians`, `groups`, `guardianLinks`, and `groupAssignments` arrays. Stored text
-  must be JSON strings; malformed or dangling relationships and records fail the complete load instead of publishing
-  partial data. An absent legacy `groups` property loads the five defaults; a present array is authoritative.
-- `StorageManager` retains a load-failure state. Logic rejects mutations before execution, and storage rejects
-  writes independently. Read-only commands remain available. Save failure restores the in-memory aggregate;
-  direct normal writes are not atomic and can still partially damage a file.
-- MainWindow coordinates selection/navigation and explicitly refreshes assignment-only changes. The profile
-  scrolls as a whole to keep long names and assignments reachable at compact sizes without changing its styling.
-- `list-guardians` is a read-only query that clears the Guardian filter and requests the Guardians workspace.
-  The three-tab MainWindow reuses one Guardian list/details pair; rows show ID, name, phone and linked-student
-  count, while the profile resolves linked Students from the current aggregate.
-- Model exposes a filtered Student view while the complete register remains authoritative for lookup and saving.
-  View/Search/List are read-only; successful View/Assign/Unassign/Add Student results reveal a hidden target by clearing
-  the filter after any required save. Failed operations preserve the prior filter, selection and workspace.
+| Component | Responsibility | Public interface / implementation |
+| --- | --- | --- |
+| UI | Accept commands; display records, feedback and help. | `Ui` / `UiManager` |
+| Logic | Parse and execute commands; coordinate saving and report failures. | `Logic` / `LogicManager` |
+| Model | Maintain the in-memory register, relationships, filtered views and preferences. | `Model` / `ModelManager` |
+| Storage | Load and save the register and preferences as local JSON files. | `Storage` / `StorageManager` |
 
-See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for assignment behavior,
-[Add Group Handover](feature-handover/AddGroupHandover.md) and
-[Delete Group Handover](feature-handover/DeleteGroupHandover.md) for catalogue mutation, and
-[Link Guardian Handover](feature-handover/LinkGuardianHandover.md) for the guardian-relationship and profile-display
-contract.
+The UI calls Logic and displays Model value types obtained through Logic. It does not hold a
+`ModelManager` or write files. Logic depends on the Model and Storage interfaces. Storage depends on
+Model types to convert between JSON and domain data; Model does not depend on Storage. The
+`seedu.address.commons` package supplies shared utilities, logging, exceptions and GUI settings.
 
-For `unassign-group`, `LogicManager.execute` asks `AddressBookParser` to dispatch to
-`UnassignGroupCommandParser`, which validates syntax, retains the student ID as text and creates
-`UnassignGroupCommand`. Logic checks recovery state and snapshots the complete register before executing
-the command. The command resolves the student from the full register without constructing another ID and
-resolves the canonical group through the configured catalogue. It calls `Model.removeGroupAssignment`;
-`ModelManager` delegates to `AddressBook.removeGroupAssignment`. The aggregate validates the student,
-configured group and existing membership before removing exactly that pair, including a final assignment.
-Student and guardian records, guardian links, other assignments and the catalogue are preserved.
-
-After command execution, Logic saves the changed aggregate exactly once through the existing JSON schema.
-Syntax and domain rejections do not save. A save `IOException` restores the complete in-memory snapshot and
-becomes `Could not save changes. The group assignment was not removed.`, retaining the original cause.
-Only successful saving permits Logic to reveal a hidden target and return the `CommandResult`.
-MainWindow then applies its target ID and Students workspace request and explicitly refreshes the profile,
-even when the Student object is unchanged. The profile displays `No groups assigned.` when the list is empty.
-The command performs neither persistence nor UI updates. Normal saves remain non-atomic: in-memory rollback
-does not guarantee that a file partially written before failure is unchanged.
-
-F10 coverage is in `AddressBookAssignmentTest`, `ModelManagerAssignmentTest`, `UnassignGroupCommandTest`,
-`UnassignGroupCommandParserTest`, `UnassignGroupIntegrationTest` and `UnassignGroupUiTest`. These exercise
-validation and ID safety, relationship preservation, save counts, JSON reload, recovery and failed-save
-rollback, post-save reveal, same-object profile refresh, navigation and rendered failure states.
-
-See [Unassign Group Handover](feature-handover/UnassignGroupHandover.md) for the F10 command contract, implementation boundaries, regression commands and follow-up risks.
-
-<img src="images/ArchitectureDiagram.png" width="280" />
-
-The ***Architecture Diagram*** given above explains the high-level design of the App.
-
-The following provides a quick overview of the main components and their interactions.
-
-**Main components of the architecture**
-
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
-
-The bulk of the app's work is done by the following four components:
-
-* [**`UI`**](#ui-component): The UI of the App.
-* [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
-* [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
-
-[**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
-
-**How the architecture components interact with each other**
-
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
-
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
-
-Each of the four main components (also shown in the diagram above),
-
-* defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
-
-For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
-
-<img src="images/ComponentManagers.png" width="300" />
-
-The sections below give more details of each component.
+`Main` launches `MainApp`. During initialization, `MainApp` loads preferences, constructs Storage,
+loads the register into Model, then creates Logic and UI with their dependencies. A missing register
+uses sample data; an invalid or unreadable register uses recovery mode. On normal shutdown,
+`MainApp.stop()` saves preferences. Register changes are saved during command execution, not deferred
+until shutdown. MainApp wiring, Commons and JavaFX infrastructure are omitted from Figure 1 to keep
+the architectural view at component level.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+API: [`Ui.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/ui/Ui.java).
 
-![Structure of the UI Component](images/UiClassDiagram.png)
+![Partial UI class diagram showing the manager, main window, Logic interface and student panels](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+*Figure 2. UI coordination and representative student panels. `UiPart` uses `T = Stage` for `MainWindow` and `T = Region` for the panels. The nullable associations account for initialization before `fillInnerParts()` installs the panels; other UI parts are omitted.*
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+`UiManager` creates `MainWindow`. `MainWindow` holds the shared `Logic` reference and coordinates
+three workspaces: Students, Guardians and Groups. `UiPart<T>` loads JavaFX FXML; `T` is `Stage` for
+windows and `Region` for the panels shown. The remaining UI parts follow the same inheritance
+pattern and are listed here rather than repeating crossing inheritance lines in the diagram.
 
-The `UI` component,
+| UI part | Purpose |
+| --- | --- |
+| `CommandBox` | Submits text through a callback to `MainWindow.executeCommand`. |
+| `ResultDisplay` | Displays success or error feedback, including multiline messages. |
+| `StudentListPanel`, `StudentCard`, `StudentDetailsPanel` | Show the filtered student list, rows and the selected student's profile. |
+| `GuardianListPanel`, `GuardianCard`, `GuardianDetailsPanel` | Show guardians, linked-student counts and linked-student details. |
+| `GroupListPanel` | Shows the current catalogue and group selection. |
+| `HelpWindow` | Shows built-in command help from `help/commands.properties`. |
+| `StatusBarFooter` | Shows the data path and the session's recovery status. |
 
-* executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
-* keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+FXML layouts are in `src/main/resources/view`. For example, `MainWindow.fxml` supplies the containers
+that `MainWindow.fillInnerParts()` populates. Student and guardian lists are observable; relation-only
+changes also need an explicit profile refresh because they need not replace a `Student` object.
+
+`CommandResult` carries feedback and optional UI requests. After Logic returns successfully,
+`MainWindow` applies selection and workspace requests and refreshes details. On a `ParseException`
+or `CommandException`, it displays the error and restores the previous student and guardian
+selection where those records remain visible. See [Filtering and selection](#filtering-and-selection)
+for the current navigation behaviour.
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
+API: [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/logic/Logic.java).
 
-The partial class diagram below uses `assign-group` and `unassign-group` as Mentora examples.
-`Model` and `Storage` are external interfaces; their implementations and other command families are omitted.
+![Partial Logic class diagram showing retained dependencies and command execution](images/LogicClassDiagram.png)
 
-<img src="images/LogicClassDiagram.png" width="740"/>
+*Figure 3. LogicManager retains Model, Storage and one AddressBookParser; concrete commands and parsers are shown separately. CommandResult is a returned value and does not execute UI actions.*
 
-`LogicManager` implements `Logic` and retains the injected `Model` and `Storage` references. It constructs and
-retains one `AddressBookParser`. That router does not implement `Parser<T>`: it creates a matching concrete
-parser when routing input. `AssignGroupCommandParser` implements `Parser<AssignGroupCommand>`, and
-`UnassignGroupCommandParser` implements `Parser<UnassignGroupCommand>`, where `T` is bounded by `Command`.
+`LogicManager.execute(String)` asks `AddressBookParser` to route the command, executes the returned
+`Command` against Model, and saves changed register data through Storage. Commands do not call
+Storage or manipulate JavaFX controls. Read-only commands may change a filter or request a profile;
+they do not change the persisted register. `Command.isReadOnly()` defaults to `false`.
 
-For these group commands, the execution path is:
+![Parser class diagram using assign-group as a concrete command family](images/ParserClasses.png)
 
-1. `LogicManager.execute` passes the input to `AddressBookParser.parseCommand`. The router selects the concrete
-   parser, which validates the arguments and creates the corresponding `Command` subclass. The group parsers
-   retain the student ID as text and canonicalize the group code without allocating a `StudentId`.
-1. Before executing a mutating command, `LogicManager` checks the storage recovery state and snapshots the
-   complete in-memory register. `Command.isReadOnly()` defaults to `false`; both group commands inherit that
-   classification. Read-only commands bypass saving, while recovery blocks mutations before execution.
-1. The command executes against `Model`, resolving the student from the full register and the group from the
-   configured catalogue. It calls `addGroupAssignment` or `removeGroupAssignment`; domain validation and
-   mutation remain in the model. The command does not write to Storage or control the UI.
-1. If execution changes the register, `LogicManager` saves it once through `Storage` before returning success.
-   Parsing and domain rejections, read-only commands and unchanged data do not trigger a save. A save
-   `IOException` restores the complete in-memory snapshot and becomes command-specific error feedback.
-   Normal file writes are not atomic, so this rollback does not guarantee preservation of partially written disk data.
-1. After execution and any required save succeed, Logic reveals a requested student hidden by the current filter
-   and returns the `CommandResult`. The result carries feedback and optional student-ID selection and workspace
-   requests. The UI applies these requests and refreshes the profile; `CommandResult` performs no UI actions.
+*Figure 4. One command family: AddressBookParser creates a command-specific parser but does not implement Parser itself. Parser is shown with its generic type parameter; other parsers, prefixes and value types are omitted.*
 
-`add-group` and `delete-group` use the same router, recovery guard, snapshot and save boundary. Their parsers validate
-group-specific prefixes and construct canonical `Group`/`GroupCode` values without touching student IDs. The commands
-call `Model.addGroup` or `Model.deleteGroup`; `AddressBook` enforces code uniqueness and the no-assigned-students deletion
-rule. `CommandResult` can request a canonical group-code selection, which `MainWindow` applies only after saving succeeds.
-
-**Historical AB3 illustrations:** The following unchanged diagrams explain inherited parsing and execution
-patterns. Their `delete 1`, Person and Add/Delete command examples do not describe current Mentora command routes.
-
-The sequence diagram illustrates the former `execute("delete 1")` flow:
-
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</div>
-
-The inherited parser diagram also shows supporting utilities omitted from the current partial class diagram:
-
-<img src="images/ParserClasses.png" width="600"/>
+`Parser<T>` is an interface with `T extends Command`. For example,
+`AssignGroupCommandParser` implements `Parser<AssignGroupCommand>`. Its argument validation uses
+`ArgumentTokenizer`, `ArgumentMultimap` and validated domain values before constructing the command.
+Other command families follow this dispatch pattern, but their validation rules are specific to
+their command. The old Person parsers are not routes in the current `AddressBookParser`.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="850" />
+API: [`Model.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/model/Model.java).
 
-`ModelManager` implements the `Model` API and owns the in-memory `AddressBook` and user preferences. `AddressBook` is the complete register: it owns Student and Guardian records, the ordered group catalogue, student-to-guardian links and group assignments. It implements `ReadOnlyAddressBook` for callers that need to inspect the register without mutating it.
+![Model class diagram showing ModelManager composition and read-only interfaces](images/ModelClassDiagram.png)
 
-Students and Guardians are immutable records composed from their stable IDs and validated value types. A student may link to at most one guardian, while a guardian may be shared by multiple students. `AddressBook` stores these links by `StudentId` and `GuardianId`, so contact details stay on the Guardian record and are resolved when a profile is displayed.
+*Figure 5. ModelManager constructs its own AddressBook and UserPrefs from the supplied initial data. Filtered views and the register's contents are shown separately or omitted.*
 
-`GroupAssignment` pairs a `StudentId` with a configured `GroupCode`. `AddressBook` validates that the student exists,
-the group is configured, and the pair is unique. It replaces the immutable `GroupCatalogue` value when adding or
-deleting a group, preserving insertion order. `ConfiguredGroups` supplies only the default five groups. `setGroups`
-rejects a replacement catalogue that would leave an assignment pointing to a missing group, and `deleteGroup` rejects
-an assigned group rather than cascading relationship deletion.
+`ModelManager` also holds filtered student and guardian lists backed by the register's observable
+lists. These views are for browsing, while full-register lookups are authoritative for commands.
+Read-only interfaces restrict the API exposed to callers; they do not imply a detached snapshot.
 
-`ModelManager` exposes filtered Student and Guardian views for the UI while keeping the full `AddressBook` available for authoritative lookup and saving. The diagram omits the retired Person classes, which remain only for source compatibility.
+![Register class diagram showing records, identifier-based relationships and group catalogue](images/RegisterClassDiagram.png)
 
+*Figure 6. AddressBook stores the current catalogue and relationships. Record fields and operations are omitted. Immutable values may be shared by snapshots, so composition is not implied; Student has no Guardian field because links and assignments use IDs and codes.*
+
+`AddressBook` contains students, guardians, a `Map<StudentId, GuardianId>` of guardian links, a set
+of `GroupAssignment` values and the current `GroupCatalogue`. `ModelManager.getGroupCatalogue()`
+delegates to this register; ModelManager has no separate catalogue field. `ConfiguredGroups` supplies
+the five defaults (`ENG`, `MAT`, `SCI`, `CHI`, `S2-MAT-A`), not a permanent restriction to those groups.
+
+`Student`, `Guardian`, `Group`, `GroupAssignment` and `GroupCatalogue` are immutable domain classes
+(not Java `record` declarations). Snapshots copy mutable collections and share immutable values, so
+the associations in Figure 6 deliberately do not assert exclusive composition of those values.
+Edits replace a student or guardian while retaining its ID. `AddressBook.resetData` validates a
+replacement register before publishing its contents. See [Domain invariants](#domain-invariants)
+for the rules enforced by the aggregate.
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
+API: [`Storage.java`](https://github.com/AY2627S1-CS2103T-T10-4/tp/blob/master/src/main/java/seedu/address/storage/Storage.java).
+
+![Storage class diagram including all five persisted record collections](images/StorageClassDiagram.png)
+
+*Figure 7. StorageManager delegates to separate register and preference stores; the JSON wrapper composes all five adapter collections. Model types, Jackson and deserialization utilities are omitted. An absent groups property selects defaults, while an empty array means no groups.*
+
+`JsonAddressBookStorage` uses `JsonUtil` and Jackson to read or write `JsonSerializableAddressBook`.
+The wrapper converts between JSON adapters and the complete register. Relationship adapters store
+IDs and codes, not copies of student or guardian records. `StoredStringDeserializer` rejects
+non-string JSON values in text fields rather than allowing automatic number-to-string conversion.
+
+| JSON collection | Adapter | Contents |
+| --- | --- | --- |
+| `students` | `JsonAdaptedStudent` | ID, name, academic level and optional phone. |
+| `guardians` | `JsonAdaptedGuardian` | ID, name and phone. |
+| `groups` | `JsonAdaptedGroup` | Code, label and kind (`Subject` or `Class`). |
+| `guardianLinks` | `JsonAdaptedGuardianLink` | Student ID and guardian ID. |
+| `groupAssignments` | `JsonAdaptedGroupAssignment` | Student ID and group code. |
+
+Loading reconstructs the catalogue, students and guardians before validating assignments and links.
+A conversion error prevents the partially reconstructed register from reaching Model. Missing
+`students`, `guardians`, `guardianLinks` and `groupAssignments` properties default to empty
+collections for compatibility. Missing `groups` uses the five defaults; an explicit empty array
+means an empty catalogue. Explicitly null collections, null entries, duplicate fields, trailing JSON
+content, invalid values, duplicate records and dangling references are rejected. A missing or null
+student `phone` is allowed.
+
+Unsupported fields are rejected by the register and record adapters, except the legacy root
+`persons` and `_comment` fields, which are ignored. **Legacy Person data is not migrated into
+Students.** An old file containing only `persons` therefore loads no students and can lose that
+ignored content on the next save. Preserve a copy before attempting a migration.
+
+The register path is `data/addressbook.json`; preferences are in `preferences.json`, both relative
+to the process working directory. `MainApp` fixes these paths in the current implementation.
+`StorageManager` remembers the first register-load failure and refuses later register writes for
+that storage session. Preference storage is independent and can still run in recovery mode.
+
+## Implementation
+
+### Command routing and validation
+
+Commands and prefixes are case-insensitive; stable ID values use uppercase `S-` or `G-` and at least
+four digits. Prefix order is flexible, but a prefix cannot be repeated. Each parser rejects missing
+required fields, unsupported prefixes and invalid syntax. Domain value classes validate names,
+levels, phones and group values. Exact feedback comes from the relevant command/parser constants;
+format errors and invalid-value errors are not necessarily the same message.
+
+![Sequence diagram showing assign-group parsing and command creation](images/CommandParsingSequenceDiagram.png)
+
+*Figure 8. Parsing `assign-group sid/S-0001 g/MAT`. The incoming call is from LogicManager; `text` is the complete input and `arguments` excludes the command word. `sid` remains validated ID text, `code` is a canonical GroupCode, and `new(...)` denotes construction. Execution and persistence occur afterwards.*
+
+Existing-record commands retain the ID as text and resolve it in the full register. Constructing a
+`StudentId` or `GuardianId` advances its generator, so lookup must not instantiate an ID just to
+validate user input. New-record creation generates IDs; loading existing records advances the
+generators past the numeric IDs read. IDs remain stable for a record, but are not list positions,
+need not be consecutive and are not guaranteed never to be reused after deletion and restart.
+The generator counters are process state and are not rolled back with a register snapshot.
+
+### Domain invariants
+
+| Area | Invariant and consequence |
+| --- | --- |
+| Student identity | IDs are unique. Normalized name plus academic level is also unique, both on addition and editing. Phone is not part of identity. |
+| Guardian identity | IDs and canonical phone numbers are unique. Guardian names may repeat. A student phone may equal any other student or guardian phone. |
+| Names and search | Names retain display casing. Whitespace normalization, Unicode NFKC normalization and case folding support matching. Searches use a contiguous substring of the normalized name, not separate OR keywords. |
+| Academic level | `Sec 1`–`Sec 5` or `IP 1`–`IP 6`, stored canonically. Changing level does not automatically change group assignments. |
+| Phone | Eight digits starting with `3`, `6`, `8` or `9`, optionally prefixed by `+65` with zero or one following space; stored as `+65 XXXXXXXX`. |
+| Guardian links | A student has zero or one guardian; a guardian may have zero or many students. Both endpoints must exist. Linking twice is rejected; replacing a guardian requires unlinking first. |
+| Groups | Codes are unique case-insensitively; newly configured codes have 2–20 ASCII letters, digits or hyphens, start with a letter and end with a letter or digit. Labels contain 1–80 characters after whitespace normalization. Kind is Subject or Class. |
+| Assignments | Each pair of student ID and configured group code is unique and both references must exist. A student can have zero or many assignments. Class and Subject assignments are independent; class membership does not imply subject membership. |
+| Student deletion | Removes that student's record, guardian link and assignments. Keeps guardians, sibling links, other assignments and configured groups. |
+| Group deletion | Rejects groups with any assigned students; an unused group can be deleted. Removing an assignment never deletes its group or student. |
+
+`AddressBook` enforces cross-record rules even when callers bypass the command layer. Model changes
+that could violate an invariant are validated before mutation. `GroupCatalogue` is immutable;
+adding/deleting groups replaces it and preserves catalogue order. Saving, copying, restoring and
+equality checks include the catalogue, records, guardian links and assignments.
+
+### Guardian relationships and contact updates
+
+![Sequence diagram of ModelManager delegating a guardian link to AddressBook](images/GuardianLinkSequenceDiagram.png)
+
+*Figure 9. Successful guardian linking inside Model. The command has already validated ID syntax; AddressBook checks references and the one-guardian rule. Returns abbreviate nonempty Optional values, map operations are omitted, and Logic saves afterwards.*
+
+`LinkGuardianCommand` resolves both records and calls `Model.linkGuardian`. `ModelManager` delegates
+to `AddressBook`, which rejects an existing identical link or a different guardian for that student.
+`UnlinkGuardianCommand` removes only the link and returns the removed guardian ID for feedback.
+Both commands request the student's profile in the Students workspace after saving succeeds.
+
+`EditGuardianCommand` checks for another guardian with the proposed canonical phone, then replaces
+the guardian with a new immutable value having the same ID and name. Student profiles resolve the
+guardian through the current register, so siblings share the updated contact. MainWindow refreshes
+the selected student profile, guardian details and linked-student counts after a successful command.
+
+**Design choice:** Store one guardian record and link by ID. Copying a guardian's phone into each
+student would simplify an individual display lookup but permit inconsistent sibling contacts.
+The shared record requires reference validation but makes an update apply consistently.
+
+### Group assignments and catalogue changes
+
+`AssignGroupCommand` and `UnassignGroupCommand` resolve the student in the full register and the
+group in the current catalogue. They construct `GroupAssignment` from the existing student's ID
+and the canonical group's code, then call `Model.addGroupAssignment` or
+`Model.removeGroupAssignment`. AddressBook validates reference existence and pair membership before
+changing the set. Removing the final assignment is valid; the profile then shows `No groups assigned.`
+
+`AddGroupCommand` adds a validated group; `DeleteGroupCommand` removes only an unused group.
+These commands request the Groups workspace. New Subject groups are immediately eligible for
+subject filtering. Existing catalogue data is authoritative on reload, including custom groups or
+an empty catalogue.
+
+**Design choice:** Reject deletion of an assigned group instead of cascading assignment removal.
+This requires the coordinator to remove assignments explicitly but prevents an apparently small
+catalogue change from discarding many students' tuition arrangements.
 
-<img src="images/StorageClassDiagram.png" width="850" alt="Storage classes and the persisted Mentora record collections" />
-
-`StorageManager` implements `Storage` and delegates register and user-preference file access to
-`JsonAddressBookStorage` and `JsonUserPrefsStorage`, respectively. These collaborators are supplied through its
-constructor. User preferences are stored separately from the student and guardian register.
-
-`JsonAddressBookStorage` reads and writes JSON through `JsonUtil`. It creates a `JsonSerializableAddressBook`
-from the complete `ReadOnlyAddressBook` when saving and calls `toModelType()` on the loaded wrapper when reading.
-The wrapper holds five collections:
-
-* `JsonAdaptedStudent` stores student IDs, names, academic levels and optional student phones.
-* `JsonAdaptedGuardian` stores guardian IDs, names and phone numbers.
-* `JsonAdaptedGroup` stores each group's canonical code, normalized label and Subject/Class kind.
-* `JsonAdaptedGuardianLink` stores a student ID and guardian ID for each relationship.
-* `JsonAdaptedGroupAssignment` stores a student ID and group code for each assignment.
-
-The relationship adapters store IDs and codes rather than references to other adapters. Loading reconstructs the
-catalogue before group assignments, so saved custom codes can be resolved, and reconstructs students and guardians
-before validating assignment and guardian-link references. A conversion failure prevents a partially validated
-register from being returned. For backward compatibility, an absent `groups` property uses `ConfiguredGroups`; an
-explicit array, including an empty one, is saved and loaded as the authoritative catalogue.
-
-When a register load fails, `StorageManager` retains the failure and blocks subsequent register saves for that
-storage session. User-preference storage remains independent. Normal register writes are not atomic; the
-in-memory rollback performed by Logic after a save failure does not guarantee restoration of disk contents.
-
-The partial diagram omits model types, JSON utilities and deserialization helpers for readability. The retired
-`JsonAdaptedPerson` and `JsonAdaptedTag` classes remain for compatibility but are not part of the current
-persisted record collections.
-
-### Common classes
-
-Classes used by multiple components are in the `seedu.address.commons` package.
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Implementation**
-
-This section describes some noteworthy details on how certain features are implemented.
-
-### \[Proposed\] Undo/redo feature
-
-#### Proposed Implementation
-
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
-
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
-
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-![UndoRedoState0](images/UndoRedoState0.png)
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-![UndoRedoState1](images/UndoRedoState1.png)
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-![UndoRedoState2](images/UndoRedoState2.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Documentation, logging, testing, dev-ops**
-
-* [Documentation guide](Documentation.md)
-* [Testing guide](Testing.md)
-* [Logging guide](Logging.md)
-* [DevOps guide](DevOps.md)
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Appendix: Requirements**
-
-### Product scope
-
-**Target user profile**:
-
-* coordinates a small private tuition centre in Singapore;
-* manages approximately 30–200 active and prospective secondary-school students;
-* frequently updates student and guardian contact details, enrolment statuses, academic levels, and class or subject assignments;
-* needs to retrieve individual contacts and contact groups quickly for administrative work;
-* can type quickly and prefers fast keyboard-driven workflows to mouse-heavy systems; and
-* is the sole user of a local desktop application and does not require real-time collaboration.
-
-**Value proposition**: Manage every student and guardian contact accurately, and find the right people in seconds using fast typed commands.
-
-Mentora will:
-
-* manage contact and basic administrative information for students and their guardians;
-* represent student–guardian relationships without duplicating shared guardian records;
-* help coordinators organize, find, update, and act on contacts by academic level, class, subject, or enrolment status;
-* treat people and their contact information as its primary focus; and
-* support keyboard-first, local desktop usage by one coordinator at a time.
-
-Mentora will not:
-
-* manage lesson content, attendance, grades, fees, payroll, or accounting;
-* replace a full student-management or learning-management system;
-* send WhatsApp, SMS, or email messages directly;
-* support real-time collaboration between multiple staff members; or
-* target large schools, universities, or multi-branch education businesses.
-
-
-### User stories
-
-Priorities: High (must have) - `* * *`, Medium (should have) - `* *`, Low (possible future direction) - `*`.
-
-| ID | Priority | As a …​ | I want to …​ | So that I can …​ |
-| -- | -------- | ------- | -------------- | ----------------- |
-| US01 | `* * *` | new coordinator | view command help and clear examples | learn or recall how to use Mentora without leaving the application |
-| US02 | `* * *` | coordinator | add a student with a name and academic level | create a basic student record |
-| US03 | `* * *` | coordinator | update a student's academic level | keep the record accurate when the student advances or a mistake is found |
-| US04 | `* * *` | coordinator | delete a student while preserving any shared guardian record | remove an incorrect student record without affecting siblings |
-| US05 | `* * *` | coordinator | add a guardian with a name and phone number | retain the student's administrative contact information |
-| US06 | `* * *` | coordinator | update a guardian's phone number once | show the new number in every linked student's profile |
-| US07 | `* * *` | coordinator | link a student to a guardian | see the appropriate contact from the student's profile |
-| US08 | `* * *` | coordinator | link siblings to the same guardian record | avoid entering and maintaining duplicate contact details |
-| US09 | `* * *` | coordinator | assign a student to an existing subject or class group | record the student's tuition arrangements |
-| US10 | `* * *` | coordinator | view a student's group assignments in the student's profile | understand the student's current tuition arrangements |
-| US11 | `* * *` | coordinator | list all registered students | browse the centre's records |
-| US12 | `* * *` | coordinator | search for a student by name | answer enquiries without scanning multiple spreadsheets |
-| US13 | `* * *` | coordinator | open a student's profile | see the academic level, assignments, and linked guardian together |
-| US14 | `* * *` | coordinator | perform core record-management tasks using typed commands | work quickly without switching repeatedly between keyboard and mouse |
-| US15 | `* * *` | coordinator | receive clear feedback for successful and invalid commands | know whether the intended change was made and how to correct errors |
-| US16 | `* * *` | coordinator | have records saved locally and reloaded when Mentora reopens | continue working without an account, network connection, or manual save step |
-| US17 | `* *` | coordinator | search for guardians by name | retrieve an existing guardian record quickly |
-| US18 | `* *` | coordinator | filter students by subject or academic level | review a relevant cohort without scanning all records |
-| US19 | `* *` | coordinator | jump directly to a student's edit workflow using a command | update frequently changing information with minimal interruption |
-| US20 | `* *` | coordinator | mark a prospective student as active | keep the enrolment status current when the student enrols |
-| US21 | `* *` | coordinator | display only active students | keep daily work focused on currently enrolled students |
-| US22 | `* *` | coordinator | archive withdrawn or graduated students | retain historical records without cluttering active lists |
-| US23 | `* *` | coordinator | display guardian contacts for a selected class | prepare the correct audience for an announcement |
-| US24 | `* *` | coordinator | obtain a copyable class contact list containing each shared guardian once | use the list in an external messaging application without sending duplicate messages |
-| US25 | `* *` | coordinator | require guardian phone numbers to contain eight digits and explain invalid entries | correct contact details before they are saved |
-| US26 | `*` | coordinator | link a student to more than one guardian | retain multiple valid contacts for the same student |
-| US27 | `*` | coordinator | record a student's school | retain additional context useful for administration |
-| US28 | `*` | coordinator | filter contacts by class or enrolment status | retrieve other useful contact groups quickly |
-| US29 | `*` | coordinator | detect incomplete or duplicate records | correct inconsistent data before it causes administrative mistakes |
-| US30 | `*` | coordinator | import and export contact lists | move existing spreadsheet data into or out of Mentora efficiently |
-| US31 | `*` | coordinator | create and safely delete subject or class groups using commands | adapt Mentora when the centre's class structure changes |
-
-### Use cases
-
-(For all use cases below, the **System** is `Mentora` and the **Actor** is the tuition-centre coordinator, unless specified otherwise.)
-
-**Use case UC01: Register a new student with a guardian and group assignment**
-
-**Preconditions:** Mentora has loaded a writable local data file.
-
-**MSS**
-
-1. Coordinator requests to add a guardian with the guardian's name and phone number.
-2. Mentora creates the guardian record.
-3. Coordinator requests to add a student with the student's name and academic level.
-4. Mentora creates the student record.
-5. Coordinator requests to link the student to the guardian.
-6. Mentora creates the student–guardian relationship.
-7. Coordinator requests to assign an existing subject or class group to the student.
-8. Mentora adds the group assignment.
-9. Coordinator requests to view the student's profile.
-10. Mentora displays the student's academic level, group assignment, and linked guardian contact.
-
-    Use case ends.
-
-**Extensions**
-
-* 1a. The guardian already has a record in Mentora.
-  * 1a1. Coordinator searches for the guardian by name.
-  * 1a2. Mentora displays the matching guardian record.
-
-    Use case resumes at step 3.
-
-* 1b. The guardian details are invalid.
-  * 1b1. Mentora explains why the guardian cannot be added.
-
-    Use case resumes at step 1.
-
-* 3a. The student details are invalid or match an existing student record.
-  * 3a1. Mentora explains why the student cannot be added.
-
-    Use case resumes at step 3.
-
-* 5a. The student already has the maximum number of guardians supported by the current product version.
-  * 5a1. Mentora informs the coordinator that another guardian cannot be linked.
-
-    Use case ends.
-
-* 7a. The selected group does not exist.
-  * 7a1. Mentora displays the configured groups.
-
-    Use case resumes at step 7.
-
-* \*a. At any time, Mentora cannot save a requested change.
-  * \*a1. Mentora leaves the last valid data unchanged and reports the failure.
-
-    Use case ends.
-
-**Use case UC02: Handle a parent enquiry and update the guardian's phone number**
-
-**Preconditions:** The student and linked guardian have existing records, and Mentora has loaded a writable local data file.
-
-**MSS**
-
-1. Coordinator searches for the student by name.
-2. Mentora displays matching students.
-3. Coordinator requests to view the required student's profile.
-4. Mentora displays the student's academic level, assignments, and linked guardian contact.
-5. Coordinator requests to update the guardian's phone number.
-6. Mentora updates the guardian record and confirms the change.
-7. Coordinator requests to view the student's profile again.
-8. Mentora displays the updated guardian phone number.
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. No student matches the search.
-  * 2a1. Mentora reports that no student was found.
-
-    Use case ends.
-
-* 5a. The new phone number is invalid.
-  * 5a1. Mentora explains the required phone-number format.
-
-    Use case resumes at step 5.
-
-* 5b. The new phone number duplicates another guardian's number.
-  * 5b1. Mentora identifies the duplicate record and does not update the guardian.
-
-    Use case ends.
-
-* 6a. Mentora cannot save the updated number.
-  * 6a1. Mentora retains the previous number and reports the failure.
-
-    Use case ends.
-
-**Use case UC03: Review a cohort and archive an inactive student**
-
-**Preconditions:** Mentora contains student records and has loaded a writable local data file.
-
-**MSS**
-
-1. Coordinator requests students belonging to a subject or academic level.
-2. Mentora displays matching active students.
-3. Coordinator selects a student who has withdrawn or graduated.
-4. Coordinator requests to archive the selected student.
-5. Mentora retains the record but removes it from active-student results.
-6. Coordinator requests to display active students again.
-7. Mentora displays the active students without the archived record.
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. No active students match the selected subject or level.
-  * 2a1. Mentora reports that no matching students were found.
-
-    Use case ends.
-
-* 4a. The selected student is already archived.
-  * 4a1. Mentora informs the coordinator that no change is required.
-
-    Use case ends.
-
-* 5a. Mentora cannot save the archival change.
-  * 5a1. Mentora keeps the student active and reports the failure.
-
-    Use case ends.
-
-**Use case UC04: Prepare a class contact list for an external announcement**
-
-**Preconditions:** The selected class and its students exist in Mentora.
-
-**MSS**
-
-1. Coordinator requests to view students in a selected class.
-2. Mentora displays the matching students.
-3. Coordinator requests the guardian contacts for those students.
-4. Mentora displays a copyable contact list containing each shared guardian once.
-5. Coordinator copies the list for use in an external messaging application.
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The selected class contains no students.
-  * 2a1. Mentora reports that there are no contacts to display.
-
-    Use case ends.
-
-* 3a. One or more students have no linked guardian.
-  * 3a1. Mentora identifies those students and displays the remaining available contacts.
-
-    Use case resumes at step 4.
-
-* 3b. Multiple students share the same guardian.
-  * 3b1. Mentora includes that guardian only once in the contact list.
-
-    Use case resumes at step 4.
-
-### Non-Functional Requirements
-
-1. **NFR01 — Platform independence:** Mentora should work on Windows, Linux, and macOS computers that have Java 25 installed.
-2. **NFR02 — Portability:** Mentora should run without an installer and should be distributed as a single JAR file.
-3. **NFR03 — Local single-user operation:** Mentora should support one coordinator operating one local data set at a time and should not require an account, Internet connection, remote server, or real-time collaboration service.
-4. **NFR04 — Human-editable storage:** Mentora should store its persistent data locally in a human-editable text format such as JSON and should not require a database management system.
-5. **NFR05 — Capacity and responsiveness:** With 200 student records and their associated guardian, enrolment, and group data, Mentora should complete a valid command within one second on a reference computer with a 2 GHz four-core processor, 8 GB of RAM, an SSD, and Java 25.
-6. **NFR06 — Startup performance:** With the data volume specified in NFR05, Mentora should load the local data and become ready for commands within three seconds on the same reference computer.
-7. **NFR07 — Data integrity:** A state-changing command should either be saved completely or leave both the in-memory and persisted data unchanged. Mentora should preserve an unreadable or invalid data file instead of overwriting it.
-8. **NFR08 — Keyboard accessibility:** Every core record-management function should be usable through typed commands without requiring a mouse.
-9. **NFR09 — Screen compatibility:** The GUI should work without resolution-related inconvenience at 1920×1080 or higher with 100% or 125% display scaling, and all functions should remain usable at 1280×720 or higher with 150% scaling.
-10. **NFR10 — Deliverable size:** The distributed JAR or ZIP file should not exceed 100 MB and should not contain unnecessarily large assets or unused libraries.
-11. **NFR11 — External dependencies:** Any third-party libraries should be free, open-source, permissively licensed, and should not require separate installation by the user.
-
-### Glossary
-
-* **Academic level**: A student's current Singapore secondary-school level, such as Secondary 1 or Integrated Programme Year 4.
-* **Active student**: A student currently enrolled at the tuition centre.
-* **Archived student**: A withdrawn or graduated student whose record is retained but excluded from active-student lists.
-* **Class group**: A tuition class to which one or more students are assigned.
-* **Contact list**: A copyable collection of guardian contact details prepared for use in an external messaging application.
-* **Coordinator**: The single tuition-centre staff member who operates Mentora and maintains its records.
-* **Enrolment status**: The stage of a student's relationship with the centre, such as prospective, active, withdrawn, or graduated.
-* **Guardian**: A parent or other responsible person whose contact record may be linked to one or more students.
-* **Guardian link**: The relationship connecting a student to a guardian. The MVP supports one guardian per student and allows one guardian to be linked to multiple students; support for multiple guardians per student is deferred.
-* **Group assignment**: A relationship indicating that a student belongs to a configured subject or class group.
-* **Keyboard-first**: Designed so that core tasks can be completed efficiently using typed commands without requiring mouse input.
-* **Prospective student**: A student whose details are recorded before enrolment is confirmed.
-* **Shared guardian**: One guardian record linked to multiple students, such as siblings.
-* **Student**: An active or prospective secondary-school learner whose contact and basic administrative information is managed in Mentora.
-* **Subject group**: A configured tuition subject to which students may be assigned.
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Appendix: Instructions for manual testing**
-
-Given below are instructions to test the app manually.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
-
-</div>
-
-### Launch and shutdown
-
-1. Initial launch
-
-   1. Download the JAR file and copy it into an empty folder.
-
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
-
-1. Saving window preferences
-
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
-
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
-
-1. _{ more test cases …​ }_
-
-### Deleting a person
-
-1. Deleting a person while all persons are being shown
-
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases …​ }_
-
-### Saving data
-
-1. Dealing with missing/corrupted data files
-
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases …​ }_
