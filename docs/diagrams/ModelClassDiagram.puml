@@ -1,41 +1,15 @@
 @startuml
-!include style.puml
-skinparam arrowThickness 1.1
-skinparam arrowColor MODEL_COLOR
-skinparam classBackgroundColor MODEL_COLOR
-
-interface Model
-interface ReadOnlyAddressBook
-interface ReadOnlyUserPrefs
+!include mentora-style.puml
+interface Model <<interface>>
 class ModelManager
 class AddressBook
+interface ReadOnlyAddressBook <<interface>>
 class UserPrefs
-class ConfiguredGroups
-class GroupCatalogue
-class Student
-class Guardian
-class GroupAssignment
-class Group
+interface ReadOnlyUserPrefs <<interface>>
 
 ModelManager .up.|> Model
-AddressBook .up.|> ReadOnlyAddressBook
-UserPrefs .up.|> ReadOnlyUserPrefs
-Model ..> ReadOnlyAddressBook
-Model ..> ReadOnlyUserPrefs
-
-ModelManager *--> "1" AddressBook : register
-ModelManager *--> "1" UserPrefs : preferences
-ModelManager --> "1" GroupCatalogue : shared catalogue
-ConfiguredGroups --> "1" GroupCatalogue : supplies one catalogue
-AddressBook *--> "0..*" Student : students
-AddressBook *--> "0..*" Guardian : guardians
-AddressBook *--> "0..*" GroupAssignment : assignments
-Student "0..*" -- "0..1" Guardian : guardianLinks by ID
-GroupCatalogue *--> "0..*" Group : configured groups
-
-note right of GroupAssignment
-    Stores a StudentId and GroupCode pair.
-    The code resolves in GroupCatalogue.
-end note
-
+ModelManager "1" *--> "1" AddressBook : addressBook
+ModelManager "1" *--> "1" UserPrefs : userPrefs
+AddressBook .down.|> ReadOnlyAddressBook
+UserPrefs .down.|> ReadOnlyUserPrefs
 @enduml
