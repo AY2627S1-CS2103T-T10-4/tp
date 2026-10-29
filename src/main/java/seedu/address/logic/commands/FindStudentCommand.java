@@ -35,12 +35,14 @@ public class FindStudentCommand extends Command {
         model.updateFilteredStudentList(predicate);
         int matchCount = model.getStudentList().size();
         if (matchCount == 0) {
-            return new CommandResult(String.format(MESSAGE_NO_MATCHES_FORMAT, query));
+            return new CommandResult(String.format(MESSAGE_NO_MATCHES_FORMAT, query), CommandResult.Workspace.STUDENTS);
         }
         if (matchCount == 1) {
-            return new CommandResult(String.format(MESSAGE_SINGLE_MATCH_FORMAT, query));
+            return new CommandResult(String.format(MESSAGE_SINGLE_MATCH_FORMAT, query),
+                    CommandResult.Workspace.STUDENTS);
         }
-        return new CommandResult(String.format(MESSAGE_SUCCESS_FORMAT, matchCount, query));
+        return new CommandResult(String.format(MESSAGE_SUCCESS_FORMAT, matchCount, query),
+                CommandResult.Workspace.STUDENTS);
     }
 
     @Override
