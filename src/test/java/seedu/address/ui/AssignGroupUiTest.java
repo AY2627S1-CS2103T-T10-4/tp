@@ -99,6 +99,8 @@ class AssignGroupUiTest {
             MainWindow window = createWindow(model, data, stage);
             submit(stage, "list-groups");
             submit(stage, "find-student n/Mei");
+            assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
+            submit(stage, "list-groups");
             submit(stage, "view-student sid/S-9402");
 
             assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
@@ -256,6 +258,8 @@ class AssignGroupUiTest {
             assertTrue(((ToggleButton) stage.getScene().lookup("#groupsTab")).isSelected());
 
             submit(stage, "list-students");
+            assertTrue(((ToggleButton) stage.getScene().lookup("#studentsTab")).isSelected());
+            submit(stage, "list-groups");
             submit(stage, "delete-student sid/S-9403");
             assertSame(amy, window.getStudentListPanel().selectedStudentProperty().get());
             assertEquals(List.of("ENG — English"), assignments(stage));

@@ -59,7 +59,8 @@ The Student list uses the filtered view from `Logic#getStudentList()`. Stable-ID
 complete AddressBook, which stores students, guardians, guardian links and assignments. After a successful result requests a
 hidden student, `LogicManager.revealRequestedStudent()` clears the filter before MainWindow applies selection.
 This runs after any required save, preserving the previous filter on failure. Visible targets retain the filter.
-View/Search/List keep the active workspace; View Student still requires selecting the Students tab when Groups is open.
+Successful `find-student` and `list-students` commands open the Students workspace, including empty results.
+Invalid arguments leave the current workspace unchanged. View Student still retains the current tab.
 
 Edit Student uses the same post-success reveal/selection path and keeps the active workspace. Its immutable
 Student replacement retains the ID and assignments; MainWindow explicitly renders the selected replacement,
@@ -97,7 +98,7 @@ Mutating commands are rejected before execution. See [Recovery and write protect
 
 Features 18/19 add `studentFilterSummaryLabel` above the student list. Successful `filter-students g/CODE`
 or `filter-students al/LEVEL` requests the Students workspace and shows the active group/level summary.
-`list-students` clears the predicate and hides/unmanages the summary, retaining its existing tab behavior.
+`list-students` clears the predicate, hides/unmanages the summary, and opens the Students workspace.
 Assignment-only rollback refreshes group-filter membership as well as restoring relationships; see
 [Filter Students Handover](feature-handover/FilterStudentsHandover.md) for the API, regression tests and review fixes.
 
@@ -116,7 +117,7 @@ The Groups workspace remains managed while active so it occupies the workspace a
 
 `MainWindow.fillGroupPanel()` constructs the panel once using `Logic#getGroupCatalogue()`. The model owns access to the shared immutable configuration supplied by `ConfiguredGroups`; the panel renders its rows using the current theme. The catalogue is separate from persisted student data.
 
-`list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` and `unassign-group` request `STUDENTS` and a stable student ID. `MainWindow` switches tabs after successful execution and any required save, without interpreting feedback text or replacing the Student panels. Earlier commands retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
+`list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` and `unassign-group` request `STUDENTS` and a stable student ID. `find-student` and `list-students` also request `STUDENTS`, including empty results. `MainWindow` switches tabs after successful execution and any required save, without interpreting feedback text or replacing the Student panels. Commands that do not request a workspace retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
 
 See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for catalogue, assignment, persistence and refresh contracts. The Student UI change is limited to the Assignments section and the selection/refresh hooks above.
 

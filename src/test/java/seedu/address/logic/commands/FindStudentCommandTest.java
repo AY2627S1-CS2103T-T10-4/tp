@@ -37,6 +37,7 @@ public class FindStudentCommandTest {
         CommandResult result = command("Mei").execute(model);
 
         assertEquals("Found 2 students matching \"Mei\".", result.getFeedbackToUser());
+        assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
         assertEquals(List.of(meiLin, meiWen), model.getStudentList());
         assertEquals(beforeCommand, model.getAddressBook());
     }
@@ -46,6 +47,7 @@ public class FindStudentCommandTest {
         CommandResult result = command("Zara").execute(model);
 
         assertEquals("No students match \"Zara\".", result.getFeedbackToUser());
+        assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
         assertEquals(List.of(), model.getStudentList());
         assertEquals(3, model.getAddressBook().getStudentList().size());
     }
@@ -57,6 +59,7 @@ public class FindStudentCommandTest {
         CommandResult result = command("Amy").execute(model);
 
         assertEquals("Found 1 student matching \"Amy\".", result.getFeedbackToUser());
+        assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
         assertEquals(List.of(amyTan), model.getStudentList());
     }
 

@@ -23,7 +23,7 @@ public class ListStudentsCommand extends Command {
         int studentCount = model.getStudentList().size();
         return new CommandResult(studentCount == 0
                 ? MESSAGE_EMPTY
-                : String.format(MESSAGE_SUCCESS_FORMAT, studentCount));
+                : String.format(MESSAGE_SUCCESS_FORMAT, studentCount), CommandResult.Workspace.STUDENTS);
     }
 
     @Override
