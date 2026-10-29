@@ -149,7 +149,7 @@ Read-only interfaces restrict the API exposed to callers; they do not imply a de
 
 ![Register class diagram showing records, identifier-based relationships and group catalogue](images/RegisterClassDiagram.png)
 
-*Figure 6. AddressBook stores the current catalogue and relationships. Record fields and operations are omitted. Immutable values may be shared by snapshots, so composition is not implied; Student has no Guardian field because links and assignments use IDs and codes.*
+*Figure 6. AddressBook stores records, guardian links and group assignments. Links and assignments refer to records by ID or code; the diagram omits other fields and operations.*
 
 `AddressBook` contains students, guardians, a `Map<StudentId, GuardianId>` of guardian links, a set
 of `GroupAssignment` values and the current `GroupCatalogue`. `ModelManager.getGroupCatalogue()`
@@ -158,7 +158,8 @@ the five defaults (`ENG`, `MAT`, `SCI`, `CHI`, `S2-MAT-A`), not a permanent rest
 
 `Student`, `Guardian`, `Group`, `GroupAssignment` and `GroupCatalogue` are immutable domain classes
 (not Java `record` declarations). Snapshots copy mutable collections and share immutable values, so
-the associations in Figure 6 deliberately do not assert exclusive composition of those values.
+those values are not exclusively owned by one snapshot. A student has no guardian field: links and
+assignments refer to records using IDs and group codes.
 Edits replace a student or guardian while retaining its ID. `AddressBook.resetData` validates a
 replacement register before publishing its contents. See [Domain invariants](#domain-invariants)
 for the rules enforced by the aggregate.
@@ -541,3 +542,426 @@ numbered, case-specific extensions without repeating the same failure paths in e
   * **\*c1.** Mentora restores the in-memory state immediately before that command and reports the save failure.
   * The use case ends. Earlier successful commands remain completed. Disk contents may need restoration
     because writes are not atomic; the use case does not promise a disk rollback.
+
+#### UC01 — Register a student with a guardian and group
+
+**Related stories:** US02, US05, US07–US10, US13, US16, US34.
+
+**Preconditions:** Mentora is running. The intended group is configured.
+
+**Success postcondition:** The student and guardian exist, are linked, and the student is assigned to the group.
+
+**MSS**
+
+1. Coordinator requests creation of a guardian using a name and phone number.
+2. Mentora creates and saves the guardian, then returns its ID.
+3. Coordinator requests creation of a student using a name, academic level and optional phone.
+4. Mentora creates and saves the student, then returns its ID.
+5. Coordinator requests linking that student to the guardian.
+6. Mentora saves the relationship and confirms it.
+7. Coordinator requests assignment of the configured group to the student.
+8. Mentora saves the assignment and displays the updated student profile.
+
+The use case ends.
+
+**Extensions**
+
+* **1a.** The coordinator already knows the guardian's existing ID.
+  * **1a1.** The coordinator reuses that ID.
+  * The use case resumes at step 3.
+* **2a.** The phone already belongs to a guardian.
+  * **2a1.** Mentora rejects the duplicate and identifies the existing guardian.
+  * **2a2.** Coordinator chooses to reuse that ID or supply a corrected phone.
+  * The use case resumes at step 3 if reusing the ID, or step 1 if correcting the phone.
+* **4a.** The normalized student name and level already exist.
+  * **4a1.** Mentora rejects the duplicate.
+  * The use case resumes at step 3. Any guardian created at step 2 remains saved.
+* **6a.** A supplied ID does not identify an existing student or guardian.
+  * **6a1.** Mentora reports the missing record without creating a link.
+  * The use case resumes at step 5.
+* **6b.** The student already has a guardian.
+  * **6b1.** Mentora reports either an identical existing link or the one-guardian limit.
+  * The use case ends. To replace a guardian, use UC07.
+* **8a.** The student is missing, the group is not configured, or the assignment already exists.
+  * **8a1.** Mentora reports the reason and does not add an assignment. An unknown-group error directs the coordinator to list groups; it does not list them automatically.
+  * The use case resumes at step 7.
+
+#### UC02 — Find a student and update the shared guardian phone
+
+**Related stories:** US06, US12, US13, US25.
+
+**Preconditions:** The student and linked guardian exist; the Students workspace is visible.
+
+**Success postcondition:** The guardian has the new phone, and linked student profiles resolve that phone.
+
+**MSS**
+
+1. Coordinator searches for a student by name.
+2. Mentora displays matching students.
+3. Coordinator requests the required student's profile by ID.
+4. Mentora displays the profile, including the linked guardian.
+5. Coordinator requests a phone update using the guardian's ID.
+6. Mentora validates and saves the update, confirms it, and refreshes the displayed contact.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** No student matches.
+  * **2a1.** Mentora displays an empty result and explains that no name matched.
+  * The use case resumes at step 1.
+* **4a.** The supplied student ID does not exist.
+  * **4a1.** Mentora reports the missing student.
+  * The use case resumes at step 3.
+* **6a.** The guardian ID does not exist or the new phone belongs to another guardian.
+  * **6a1.** Mentora rejects the update and identifies the missing ID or conflicting guardian.
+  * The use case resumes at step 5.
+* **6b.** The canonical phone is unchanged.
+  * **6b1.** Mentora confirms the requested value without writing an unchanged register.
+  * The use case ends.
+
+#### UC03 — Review a cohort
+
+**Related stories:** US11, US13, US18.
+
+**Preconditions:** Mentora is running.
+
+**Success postcondition:** The coordinator can inspect students matching one chosen criterion; stored records are unchanged.
+
+**MSS**
+
+1. Coordinator requests students assigned to one Subject group or at one academic level.
+2. Mentora displays the matching students and the filter description in Students.
+3. Coordinator requests a matching student's profile by ID.
+4. Mentora displays the profile.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** No students match a valid criterion.
+  * **2a1.** Mentora displays an empty result and the active filter.
+  * The use case ends.
+* **2b.** The group is unknown, is a Class group, or the criterion is malformed or combines both filter types.
+  * **2b1.** Mentora explains the error and retains the previous filter.
+  * The use case resumes at step 1.
+* **3a.** The coordinator requests an existing student outside the filter.
+  * **3a1.** Mentora clears the filter and displays that student's profile.
+  * The use case ends.
+* **4a.** The student ID is missing or invalid.
+  * **4a1.** Mentora reports the error and retains the previous selection.
+  * The use case resumes at step 3.
+
+#### UC04 — Find an existing guardian
+
+**Related stories:** US17, US35.
+
+**Preconditions:** Mentora is running.
+
+**Success postcondition:** Matching guardian records and their IDs are available for reuse; no register data changes.
+
+**MSS**
+
+1. Coordinator requests guardians matching a whole or partial name.
+2. Mentora opens Guardians and shows matching records with IDs, phones and linked-student counts.
+
+The use case ends.
+
+**Extensions**
+
+* **1a.** The coordinator wants the complete guardian list.
+  * **1a1.** Coordinator requests all guardians.
+  * **1a2.** Mentora clears the guardian-name filter and displays all guardians.
+  * The use case ends.
+* **2a.** No guardians match, or the register has no guardians when listing all.
+  * **2a1.** Mentora displays the corresponding empty-result message.
+  * The use case ends.
+* **2b.** The query is missing or invalid.
+  * **2b1.** Mentora explains the error without replacing the existing results.
+  * The use case resumes at step 1.
+
+#### UC05 — Update a student's details
+
+**Related stories:** US03, US19, US36.
+
+**Preconditions:** The student exists.
+
+**Success postcondition:** The supplied level and/or phone are updated; the student's ID, guardian link and assignments remain intact.
+
+**MSS**
+
+1. Coordinator requests a new academic level and/or student phone using the student's ID.
+2. Mentora validates and saves the replacement student record and confirms the change.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** The ID does not exist or the proposed name-and-level combination duplicates another student.
+  * **2a1.** Mentora rejects the update and explains the conflict.
+  * The use case resumes at step 1.
+* **2b.** All supplied values already match the stored values.
+  * **2b1.** Mentora confirms them without saving an unchanged register.
+  * The use case ends.
+
+#### UC06 — Delete a student
+
+**Related stories:** US04.
+
+**Preconditions:** The coordinator knows the ID of the student to remove.
+
+**Success postcondition:** The student, its guardian link and its assignments are removed; guardian records and other students' data are retained.
+
+**MSS**
+
+1. Coordinator requests deletion of the student by ID.
+2. Mentora deletes the student and its relationships, saves the result and confirms deletion.
+
+The use case ends. There is no confirmation prompt or undo command.
+
+**Extensions**
+
+* **2a.** The ID does not identify an existing student.
+  * **2a1.** Mentora reports the missing student without deleting anything.
+  * The use case resumes at step 1.
+
+#### UC07 — Correct a guardian relationship
+
+**Related stories:** US07, US08, US32.
+
+**Preconditions:** The student and intended replacement guardian exist.
+
+**Success postcondition:** The student is linked to the intended guardian; guardian records and sibling relationships are retained.
+
+**MSS**
+
+1. Coordinator requests removal of the student's existing guardian link.
+2. Mentora removes and saves only that relationship and confirms retention of the guardian record.
+3. Coordinator requests linking the student to the intended guardian.
+4. Mentora validates and saves the new relationship and displays the updated profile.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** The student exists but has no guardian.
+  * **2a1.** Mentora reports that there is no link to remove.
+  * The use case resumes at step 3.
+* **2b.** The student does not exist.
+  * **2b1.** Mentora reports the missing student.
+  * The use case ends.
+* **4a.** An endpoint is missing or the student already has a guardian.
+  * **4a1.** Mentora explains the rejection without overwriting a relationship.
+  * The use case ends. A successful unlink at step 2 is not undone if this later command fails.
+
+#### UC08 — Change a student's group assignments
+
+**Related stories:** US09, US10, US33, US34.
+
+**Preconditions:** The student exists. Any group to be added is configured.
+
+**Success postcondition:** The requested assignment changes are saved; unrelated data is unchanged.
+
+**MSS**
+
+1. Coordinator requests removal of one obsolete assignment from the student.
+2. Mentora removes and saves that assignment and confirms the change.
+3. Coordinator requests assignment of the replacement group.
+4. Mentora validates and saves the assignment and displays the updated profile.
+
+The use case ends.
+
+**Extensions**
+
+* **1a.** The coordinator only wants to add an assignment.
+  * The use case resumes at step 3.
+* **2a.** The student or configured group is missing, or that pair is not assigned.
+  * **2a1.** Mentora reports the reason without removing anything.
+  * The use case resumes at step 1.
+* **2b.** No replacement is needed, including when the final assignment was removed.
+  * The use case ends after confirming the removal.
+* **4a.** The student or group is missing, or the replacement pair already exists.
+  * **4a1.** Mentora rejects the addition and explains the reason.
+  * The use case resumes at step 3. Any removal at step 2 remains completed.
+
+#### UC09 — Create a group
+
+**Related stories:** US31, US34.
+
+**Preconditions:** Mentora is running.
+
+**Success postcondition:** The new group is configured and available for assignment.
+
+**MSS**
+
+1. Coordinator requests creation of a group with a code, label and kind.
+2. Mentora validates and saves the new group, then displays it in Groups.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** The canonical code already exists.
+  * **2a1.** Mentora rejects the duplicate without changing the catalogue.
+  * The use case resumes at step 1.
+
+#### UC10 — Resume work from local storage
+
+**Related stories:** US16, US37.
+
+**Preconditions:** The coordinator has access to the application and its working directory.
+
+**Success postcondition:** A valid register is available for work, loaded from storage or initialized with samples on first use.
+
+**MSS**
+
+1. Coordinator launches Mentora.
+2. Mentora loads preferences and validates the saved register.
+3. Mentora displays the loaded students and accepts commands.
+
+The use case ends.
+
+**Extensions**
+
+* **2a.** The register file is missing.
+  * **2a1.** Mentora uses sample students and the default groups, without writing the register yet.
+  * The use case resumes at step 3.
+* **2b.** The register cannot be read or validated.
+  * **2b1.** Mentora preserves that file, reports recovery mode and provides an empty register with default groups.
+  * **2b2.** Mentora rejects modifying commands for the session while allowing read-only commands.
+  * The use case ends. The coordinator can restore data while the application is closed and restart.
+* **2c.** Preferences cannot be read or validated.
+  * **2c1.** Mentora logs the problem, uses default preferences and attempts to save them.
+  * The use case continues with register loading at step 2; this alone does not enable register recovery mode.
+
+#### UC11 — Consult command help
+
+**Related stories:** US01, US15.
+
+**Preconditions:** Mentora is running.
+
+**Success postcondition:** The coordinator can read help without a network connection.
+
+**MSS**
+
+1. Coordinator requests help for a supported command.
+2. Mentora displays its syntax, examples, validation rules and common errors.
+
+The use case ends.
+
+**Extensions**
+
+* **1a.** No command name is supplied.
+  * **1a1.** Mentora displays the command overview.
+  * The use case ends.
+* **2a.** The command is unknown, or more than one command word is supplied.
+  * **2a1.** Mentora reports the unsupported topic or required format.
+  * The use case resumes at step 1.
+
+#### UC12 — Delete an unused group
+
+**Related stories:** US31, US34.
+
+**Preconditions:** Mentora is running and the coordinator knows the intended group code.
+
+**Success postcondition:** The group is removed; records and other groups are unchanged.
+
+**MSS**
+
+1. Coordinator requests deletion of a group by code.
+2. Mentora verifies that the group exists and has no assigned students, deletes and saves it, and confirms deletion.
+
+The use case ends. There is no confirmation prompt or undo command.
+
+**Extensions**
+
+* **2a.** The group does not exist.
+  * **2a1.** Mentora reports the unknown group and suggests listing configured groups.
+  * The use case resumes at step 1.
+* **2b.** Students are assigned to the group.
+  * **2b1.** Mentora rejects deletion and reports the assignment count.
+  * The use case ends. The coordinator can remove assignments using UC08 before trying again.
+
+#### UC13 — Browse configured groups
+
+**Related stories:** US34.
+
+**Preconditions:** Mentora is running.
+
+**Success postcondition:** The current catalogue is visible; stored data is unchanged.
+
+**MSS**
+
+1. Coordinator requests the configured groups.
+2. Mentora displays each group's code, label and kind in Groups and reports the count.
+
+The use case ends. An empty catalogue is a valid result with a count of zero.
+
+**Extensions**
+
+* **2a.** The request contains unexpected arguments.
+  * **2a1.** Mentora reports the required format and leaves the existing workspace unchanged.
+  * The use case resumes at step 1.
+
+### Non-functional requirements
+
+These are acceptance targets and constraints. **Pending verification** means the stated measurement
+has not been established by this documentation review. **Partial** means an identified implementation
+gap remains; it is not an exemption. The single-user/local-data scope is a product constraint rather
+than a claim that concurrent writers are safely coordinated.
+
+1. **NFR01 — Platform compatibility.** The packaged application must launch and complete the core
+   manual scenarios on Windows, macOS and Linux with Java 25 and compatible JavaFX native libraries.
+   Record the OS version and CPU architecture for each release check; do not infer ARM support from
+   an x86-64 build. **Status:** cross-platform release verification pending; the build currently
+   specifies JavaFX `win`, `mac` and `linux` classifiers.
+2. **NFR02 — Portable distribution.** With the required Java runtime installed, the user must be
+   able to run the release JAR from a writable directory without installing Mentora or a separate
+   database. Verify a fresh-directory launch using `java -jar addressbook.jar`. **Status:** packaging
+   supported by `shadowJar`; test each final release artifact.
+3. **NFR03 — Offline operation.** After obtaining the JAR and Java runtime, all current record
+   commands, reload and built-in help must work with network access disabled and without an account
+   or remote service. Optional external documentation links and build-time downloads are excluded.
+   **Status:** locally implemented; offline packaged acceptance check required.
+4. **NFR04 — Inspectable storage.** The complete register and preferences must be stored as local
+   UTF-8 JSON readable by a text editor. A valid save/reload must preserve every domain value and
+   relationship, including custom groups and optional student phones. **Status:** implemented with
+   JSON conversion and round-trip tests; manual file changes require closing the application first.
+5. **NFR05 — Capacity and command latency.** For 200 students, up to 200 guardians, 50 groups, at most
+   one guardian link and ten group assignments per student, a valid command must display its result
+   within one second on a reference computer with a 2 GHz four-core CPU, 8 GB RAM, an SSD and Java 25.
+   Measure from command submission to displayed result, including any save; exclude time spent typing
+   and OS start-up. Run 30 trials per command family after warm-up and record the maximum, including
+   worst-size lists and searches. **Status:** benchmark pending; this is a target, not a measured claim.
+6. **NFR06 — Startup latency.** With the NFR05 data set on the same reference computer, the application
+   must reach a visible, command-ready window within three seconds of process launch. Measure ten
+   launches and record the maximum and cache conditions; do not count Java installation or first-time
+   dependency downloads. **Status:** benchmark pending.
+7. **NFR07 — Data integrity.** A failed state-changing command must leave the pre-command in-memory
+   register intact, and saving must either replace the entire persistent register or leave its previous
+   contents intact. An invalid or unreadable register must not be overwritten by recovery-mode saves.
+   Verify using injected write failures, interrupted-write tests and invalid-file startup tests.
+   **Status: partial.** In-memory rollback on `IOException` and load-failure protection exist, but
+   direct disk writes do not meet atomicity or interruption safety. The contract is retained.
+8. **NFR08 — Keyboard accessibility.** A user must be able to create, retrieve, update, link/unlink,
+   assign/unassign and delete supported records, obtain help and exit without mouse input, starting
+   from any workspace. Verify the complete command workflow, focus movement and result visibility.
+   **Status: partial.** Commands exist, but cross-workspace result visibility and guardian-detail
+   selection need further work and keyboard acceptance testing.
+9. **NFR09 — Display compatibility.** At 1920×1080 and above with 100% or 125% scaling, text and controls
+   must remain readable; at 1280×720 with 150% scaling every function and complete result must remain
+   reachable without controls falling off-screen. Test long names, multiline errors, many assignments
+   and help content at these settings. **Status:** verification pending with a known risk: MainWindow
+   initially requests at least 900×600 logical units, while 1280×720 at 150% offers less logical space.
+10. **NFR10 — Distribution size.** Each distributed JAR or ZIP must be no larger than 100 MB
+    (100,000,000 bytes). Measure the final artifact, including bundled native libraries and assets.
+    **Status:** check the release artifact; source-directory size is not the metric.
+11. **NFR11 — Dependency distribution.** Bundled third-party libraries must be available without
+    additional user payment, carry redistribution-compatible open-source licences with the required
+    notices, and require no separate end-user installation beyond the declared Java prerequisite.
+    Check the final dependency list and notices for each release. **Status:** audit required; a blanket
+    “all libraries are permissively licensed” claim is inappropriate for the JavaFX dependency.
+12. **NFR12 — Maintainability.** The application must remain a Java implementation with distinct UI,
+    Logic, Model and Storage responsibilities. Domain invariants must be testable without starting
+    JavaFX UI controls, and command parsers must be testable without writing user files. Verify through
+    dependency review and the domain/parser test suites. **Status:** reflected in the current structure.
