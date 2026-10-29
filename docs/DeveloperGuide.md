@@ -74,7 +74,7 @@ Model types to convert between JSON and domain data; Model does not depend on St
 
 `Main` launches `MainApp`. During initialization, `MainApp` loads preferences, constructs Storage,
 loads the register into Model, then creates Logic and UI with their dependencies. A missing register
-uses sample data; an invalid or unreadable register uses recovery mode. On normal shutdown,
+uses an empty student and guardian register with five default groups; an invalid or unreadable register uses recovery mode. On normal shutdown,
 `MainApp.stop()` saves preferences. Register changes are saved during command execution, not deferred
 until shutdown. MainApp wiring, Commons and JavaFX infrastructure are omitted from Figure 1 to keep
 the architectural view at component level.
@@ -338,7 +338,7 @@ On startup there are three distinct outcomes:
 
 | File state | Current behaviour |
 | --- | --- |
-| Confirmed missing path | Load two sample students and five default groups. The register file is first written after a command changes register data. |
+| Confirmed missing path | Load no students or guardians and five default groups, with saving enabled. The register file is first written after a command changes register data. |
 | Valid JSON register | Load and validate all data, then permit commands and saving. |
 | Unreadable or invalid register | Preserve the input file, load an empty recovery register with default groups, display the recovery error and disable register mutations and saves for the session. |
 
@@ -811,7 +811,7 @@ The use case ends.
 
 **Preconditions:** The coordinator has access to the application and its working directory.
 
-**Success postcondition:** A valid register is available for work, loaded from storage or initialized with samples on first use.
+**Success postcondition:** A valid register is available for work, loaded from storage or initialized with no students or guardians and five default groups on first use.
 
 **MSS**
 
@@ -824,7 +824,7 @@ The use case ends.
 **Extensions**
 
 * **2a.** The register file is missing.
-  * **2a1.** Mentora uses sample students and the default groups, without writing the register yet.
+  * **2a1.** Mentora uses an empty student/guardian register and the five default groups, without writing the register yet.
   * The use case resumes at step 3.
 * **2b.** The register cannot be read or validated.
   * **2b1.** Mentora preserves that file, reports recovery mode and provides an empty register with default groups.
@@ -917,7 +917,7 @@ than a claim that concurrent writers are safely coordinated.
    specifies JavaFX `win`, `mac` and `linux` classifiers.
 2. **NFR02 — Portable distribution.** With the required Java runtime installed, the user must be
    able to run the release JAR from a writable directory without installing Mentora or a separate
-   database. Verify a fresh-directory launch using `java -jar addressbook.jar`. **Status:** packaging
+   database. Verify a fresh-directory launch using `java -jar mentora.jar`. **Status:** packaging
    supported by `shadowJar`; test each final release artifact.
 3. **NFR03 — Offline operation.** After obtaining the JAR and Java runtime, all current record
    commands, reload and built-in help must work with network access disabled and without an account
@@ -1117,12 +1117,12 @@ Keep both links for the save/reload and unlink checks below.
 
 **Starting state:** create a separate new folder named `missing` containing only the JAR. Do not copy preferences or a `data` directory into it.
 
-1. Launch from `missing` using the actual JAR filename. In the current source build, Students contains sample students **Mei Lin / Sec 2** and **S. Kumar / IP 4**; no recovery warning or `Saving disabled` indicator appears.
-2. Run `list-students`: expect `Listed 2 student(s).`. The register file must still be absent after startup and this read-only command; preferences/log files may exist.
+1. Launch from `missing` using the actual JAR filename. Students and Guardians are empty and the five default groups are available; no recovery warning or `Saving disabled` indicator appears.
+2. Run `list-students`: expect `No students registered.` The register file must still be absent after startup and this read-only command; preferences/log files may exist.
 3. Run `add-student n/Recovery Check al/Sec 2`. Record its generated ID as `SID_C`; expect `Added student SID_C: Recovery Check (Sec 2).` The new student is selected and `data/addressbook.json` now exists.
-4. Exit and relaunch from `missing`; `list-students` reports `Listed 3 student(s).`. `view-student sid/SID_C` reports `Opened profile for SID_C.` and displays the saved student.
+4. Exit and relaunch from `missing`; `list-students` reports `Listed 1 student(s).`. `view-student sid/SID_C` reports `Opened profile for SID_C.` and displays the saved student.
 
-**Integration dependency:** [PR #123](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/123) is pending. If testing a build that includes that change, expect an empty register and counts of 0 after startup and 1 after adding the student; do not mistake that intended change for invalid-file recovery. Close this test instance when finished.
+Close this test instance when finished. Missing-file startup is normal and must not be confused with invalid-file recovery.
 
 ### Invalid data file: preservation and recovery
 
@@ -1183,9 +1183,8 @@ Keep the same disposable `edge-cases` instance. Close the help window after each
 | `help add-student` | `Showing help for add-student.` The help window shows that command's syntax and examples; no student is added. |
 | `help unknown-command` | `No help is available for "unknown-command". Run help to see all commands.` No data changes. |
 | `help add-student extra` | `Invalid command format. Use: help [COMMAND]` No data changes. |
-| With the help window closed, `exit extra` | In the current merged build, the application closes; the command feedback is `Closing Mentora.` Do not expect strict argument rejection in this build. |
-
-**Version dependency:** [PR #122](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/122) is pending. If the tested build includes its strict exit parser, `exit extra` instead reports `Invalid command format. Use: exit` and keeps the application open; use `exit` to close that build. The argument-free `exit` used in the main workflow is unaffected.
+| With the help window closed, `exit extra` | `Invalid command format. Use: exit` The application remains open and data is unchanged. |
+| `exit` | `Closing Mentora.` The application closes. |
 
 **Cleanup:** close only the edge-case instance. Keep its evidence separately from the main workflow. To repeat, start again in a new disposable folder with the explicit empty-register fixture and fresh generated IDs.
 
