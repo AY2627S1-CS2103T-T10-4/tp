@@ -74,7 +74,7 @@ Model types to convert between JSON and domain data; Model does not depend on St
 
 `Main` launches `MainApp`. During initialization, `MainApp` loads preferences, constructs Storage,
 loads the register into Model, then creates Logic and UI with their dependencies. A missing register
-uses sample data; an invalid or unreadable register uses recovery mode. On normal shutdown,
+uses an empty student and guardian register with five default groups; an invalid or unreadable register uses recovery mode. On normal shutdown,
 `MainApp.stop()` saves preferences. Register changes are saved during command execution, not deferred
 until shutdown. MainApp wiring, Commons and JavaFX infrastructure are omitted from Figure 1 to keep
 the architectural view at component level.
@@ -811,7 +811,7 @@ The use case ends.
 
 **Preconditions:** The coordinator has access to the application and its working directory.
 
-**Success postcondition:** A valid register is available for work, loaded from storage or initialized with samples on first use.
+**Success postcondition:** A valid register is available for work, loaded from storage or initialized with no students or guardians and five default groups on first use.
 
 **MSS**
 
