@@ -6,6 +6,8 @@ import java.text.Normalizer;
 public final class StudentName implements Comparable<StudentName> {
     public static final String MESSAGE_CONSTRAINTS =
             "Name must be 1-80 characters and contain letters, spaces, apostrophes, hyphens, or periods only.";
+    private static final int MAX_LENGTH = 80;
+
     private final String value;
     private final String normalized;
 
@@ -26,7 +28,7 @@ public final class StudentName implements Comparable<StudentName> {
 
     /** Returns whether the value follows the student-name character and length rules. */
     public static boolean isValid(String value) {
-        return value != null && value.length() <= 80
+        return value != null && value.codePointCount(0, value.length()) <= MAX_LENGTH
                 && value.matches("(?U)\\p{L}+(?:(?:[ '-]|\\.\\s?)\\p{L}+)*");
     }
     public String normalized() {

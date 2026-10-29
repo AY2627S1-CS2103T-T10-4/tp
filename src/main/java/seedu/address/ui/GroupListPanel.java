@@ -46,13 +46,18 @@ public class GroupListPanel extends UiPart<Region> {
                 FXCollections.observableArrayList(catalogue.getGroups())));
     }
 
-    /** Selects a group by canonical code when present. */
+    /** Selects and scrolls to a group by canonical code when present. */
     public void selectGroupCode(String code) {
         if (code == null) {
             return;
         }
-        groupListView.getItems().stream().filter(group -> group.getCode().getValue().equals(code)).findFirst()
-                .ifPresent(group -> groupListView.getSelectionModel().select(group));
+        for (int index = 0; index < groupListView.getItems().size(); index++) {
+            if (groupListView.getItems().get(index).getCode().getValue().equals(code)) {
+                groupListView.getSelectionModel().select(index);
+                groupListView.scrollTo(index);
+                return;
+            }
+        }
     }
 
     /** Renders each immutable group using the existing theme's text styles. */
@@ -75,6 +80,7 @@ public class GroupListPanel extends UiPart<Region> {
             label.setId("groupLabel");
             label.getStyleClass().add("detail-value");
             label.setWrapText(true);
+            label.setMinWidth(0);
             label.setMaxWidth(Double.MAX_VALUE);
             HBox.setHgrow(label, Priority.ALWAYS);
             String kindText = group.getKind().toDisplayString();
@@ -85,6 +91,7 @@ public class GroupListPanel extends UiPart<Region> {
             HBox row = new HBox(code, label, kind);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(12, 18, 12, 18));
+            row.prefWidthProperty().bind(widthProperty());
             setGraphic(row);
         }
     }

@@ -25,7 +25,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 | `ACADEMIC_LEVEL` | One of `Sec 1` through `Sec 5` or `IP 1` through `IP 6`, case-insensitive. It is stored and shown in this canonical form. | `Academic level must be Sec 1-5 or IP 1-6.` | These are the intended secondary-school levels; a closed set prevents unusable variants such as `Secondary two`. |
 | `PHONE` | Either eight digits beginning with `3`, `6`, `8`, or `9`, or the same number prefixed by `+65` (with an optional single space after `+65`). It is stored as `+65 XXXXXXXX`. Hyphens, brackets, and extensions are not accepted. | `Phone number must be an 8-digit Singapore number, optionally prefixed by +65.` | The product is for Singapore centres. A canonical form makes duplicate detection and display reliable. |
 | `STUDENT_ID` / `GUARDIAN_ID` | An existing generated ID with the correct prefix, for example `sid/S-0007` or `gid/G-0003`. | `Student S-0007 does not exist.` / `Guardian G-0003 does not exist.` (Use the supplied ID.) | Stable IDs make a command independent of a changing filtered list. |
-| `GROUP_CODE` | An exact, case-insensitive code in the configured group catalogue. The MVP ships with subject groups `ENG`, `MAT`, `SCI`, `CHI` and class groups such as `S1-ENG-A`, `S1-MAT-A`, ..., `S5-SCI-A`; the full deployed catalogue is shown by `list-groups`. Codes are stored uppercase. | `Group CODE is not configured. Run list-groups to see available groups.` | A code is quick to type and unambiguous. Group creation is deliberately outside the MVP. |
+| `GROUP_CODE` | Existing-group commands use an exact, case-insensitive code from `list-groups`. A new code supplied to `add-group` must contain 2-20 ASCII letters, digits, or hyphens, start with a letter, and end with a letter or digit. Codes are stored uppercase. | `Group CODE is not configured. Run list-groups to see available groups.` / `Group code must be 2-20 ASCII letters (A-Z or a-z), digits, or hyphens, start with a letter, and end with a letter or digit.` | A short canonical code is quick to type and unambiguous. The catalogue starts with five default groups and can be extended with `add-group`; unused groups can be removed with `delete-group`. |
 | `QUERY` | 1-80 normalized characters that meet the `NAME` character rule; it may be a whole or partial name. | `Search query must be 1-80 characters and contain name characters only.` | Search should tolerate incomplete recollection without silently accepting arbitrary parser noise. |
 
 ## 1. Student record management
@@ -121,18 +121,38 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Duplicate handling:** Not applicable.
 - **Possible errors:** No link produces `Student S-0007 has no guardian to unlink.` Unknown ID and save failures report the corresponding standard not-found or `Could not save changes. The guardian link was not removed.` message.
 
-## 4. Subject and class assignment
+## 4. Subject and class group management
 
 ### View configured groups
 ![](./mockup/view-configured-groups.png)
 - **Feature:** Browse configured groups
-- **Purpose:** Shows the fixed subject and class groups which can be assigned in this MVP.
+- **Purpose:** Shows every configured subject and class group available for assignment, including groups created by the user.
 - **Command format:** `list-groups`
 - **Example commands:** `list-groups`
 - **Parameters:** None.
-- **Outputs:** The main list shows group code, label, and kind (Subject or Class), for example `MAT | Mathematics | Subject` and `S2-MAT-A | Secondary 2 Mathematics A | Class`. Result panel: `Listed 24 configured group(s).`
+- **Outputs:** The main list shows group code, label, and kind (Subject or Class), for example `MAT | Mathematics | Subject` and `S2-MAT-A | Secondary 2 Mathematics A | Class`. The default catalogue contains five groups; successfully created groups appear after them and persist across restarts. The result panel reports the current count, for example `Listed 6 configured group(s).`
 - **Duplicate handling:** Configuration must contain unique case-insensitive group codes; startup rejects a catalogue with duplicates using `Configured group codes must be unique.`
 - **Possible errors:** Extra input reports `Invalid command format. Use: list-groups`. If the catalogue cannot be read at startup, the application reports the storage recovery error described below and does not permit assignments.
+
+### Create group
+- **Feature:** Create configured group
+- **Purpose:** Adds a reusable Subject or Class group to the catalogue without assigning any students to it.
+- **Command format:** `add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND`
+- **Example commands:** `add-group g/PHY l/Physics k/Subject`; `add-group k/Class g/S3-PHY-B l/Secondary 3 Physics B`
+- **Parameters:** `g/` uses the new-code form of `GROUP_CODE`; `l/` is a 1-80 character label after whitespace normalization; `k/` is `Subject` or `Class`, case-insensitively. Prefixes may appear in any order. The code is stored uppercase and the kind is displayed canonically.
+- **Outputs:** On success: `Created group PHY (Physics, Subject).` The Groups view refreshes and selects the new group. It is immediately available to assignment commands; a new Subject group is also available to subject filtering.
+- **Duplicate handling:** Codes are unique case-insensitively. Reusing a configured code is rejected with `Group PHY is already configured.`
+- **Possible errors:** Invalid values use the exact shared code error, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.` Missing, empty, repeated, or unknown parameters show the documented command format, kind rule, and example. A save failure rolls back the addition and reports `Could not save changes. No group was created.` Group creation is unavailable during storage recovery.
+
+### Delete group
+- **Feature:** Delete configured group
+- **Purpose:** Permanently removes one configured group only when no students are assigned to it. Students, guardians, and unrelated groups remain unchanged.
+- **Command format:** `delete-group g/GROUP_CODE`
+- **Example commands:** `delete-group g/S3-PHY-B`
+- **Parameters:** `g/` uses an existing `GROUP_CODE` from `list-groups`.
+- **Outputs:** On success: `Deleted group S3-PHY-B: Secondary 3 Physics B (Class).` The Groups view refreshes and the code is no longer available to assignment or filtering commands.
+- **Duplicate handling:** Not applicable: the canonical code identifies one configured group.
+- **Possible errors:** An unknown code uses the shared group-not-configured message. A group with assignments is retained and reports `Group S3-PHY-B is assigned to 4 student(s). Remove those assignments before deleting it.` Missing, empty, repeated, or unknown parameters report `Invalid command format. Use: delete-group g/GROUP_CODE`. A save failure restores the group and reports `Could not save changes. Group S3-PHY-B was not deleted.` Group deletion is unavailable during storage recovery and has no undo command.
 
 ### Assign group
 ![](./mockup/assign-group.png)
@@ -227,7 +247,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 | Add guardian | `add-guardian n/NAME p/PHONE` |
 | Edit guardian phone | `edit-guardian gid/GUARDIAN_ID p/PHONE` |
 | Link / unlink guardian | `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID` / `unlink-guardian sid/STUDENT_ID` |
-| List groups | `list-groups` |
+| List / create / delete groups | `list-groups` / `add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND` / `delete-group g/GROUP_CODE` |
 | Assign / remove group | `assign-group sid/STUDENT_ID g/GROUP_CODE` / `unassign-group sid/STUDENT_ID g/GROUP_CODE` |
 | List / find students | `list-students` / `find-student n/QUERY` |
 | View profile | `view-student sid/STUDENT_ID` |

@@ -27,6 +27,16 @@ class AddGuardianCommandParserTest {
     }
 
     @Test
+    void parse_supplementaryUnicodeNameBelowLimit_success() throws Exception {
+        String name = "𐐀".repeat(41);
+        ModelManager model = new ModelManager();
+
+        parser.parse("n/" + name + " p/60000000").execute(model);
+
+        assertEquals(name, model.getGuardianList().getFirst().getName().toString());
+    }
+
+    @Test
     void parse_missingRepeatedEmptyUnknownOrStrayArgument_failure() {
         assertParseFailure(parser, "n/Anita Lim", AddGuardianCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "p/91234567", AddGuardianCommand.MESSAGE_USAGE);
@@ -36,6 +46,13 @@ class AddGuardianCommandParserTest {
         assertParseFailure(parser, "unexpected n/Anita Lim p/91234567", AddGuardianCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/ p/91234567", AddGuardianCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "n/Anita Lim p/", AddGuardianCommand.MESSAGE_USAGE);
+    }
+
+    @Test
+    void parse_validPhoneWithTrailingText_failure() {
+        assertParseFailure(parser, "n/Ann p/61239999 extra", AddGuardianCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Ann p/+6591234567 extra", AddGuardianCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Ann p/+65 91234567 extra", AddGuardianCommand.MESSAGE_USAGE);
     }
 
     @Test
