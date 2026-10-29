@@ -21,6 +21,11 @@ class AddressBookParserTest {
     }
 
     @Test
+    void parseCommand_exitWithArguments_throwsParseException() {
+        assertThrows(ParseException.class, ExitCommand.MESSAGE_USAGE, () -> parser.parseCommand("exit extra"));
+    }
+
+    @Test
     void parseCommand_personCommandsAreRejected() {
         for (String retiredCommand : new String[] {"add", "edit 1", "delete 1", "clear", "find Mei", "list"}) {
             assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(retiredCommand));

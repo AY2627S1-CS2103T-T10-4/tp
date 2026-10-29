@@ -55,6 +55,7 @@ public class AddGuardianCommandParser implements Parser<AddGuardianCommand> {
             if (rawName.isEmpty() || rawPhone.isEmpty()) {
                 throw new IllegalArgumentException(AddGuardianCommand.MESSAGE_USAGE);
             }
+            verifyNoTrailingTextAfterPhone(rawPhone);
             return new AddGuardianCommand(new GuardianName(rawName), new GuardianPhone(rawPhone));
         } catch (ParseException e) {
             throw new ParseException(AddGuardianCommand.MESSAGE_USAGE);
@@ -63,6 +64,15 @@ public class AddGuardianCommandParser implements Parser<AddGuardianCommand> {
                 throw new ParseException(e.getMessage());
             }
             throw new ParseException(e.getMessage());
+        }
+    }
+
+    private static void verifyNoTrailingTextAfterPhone(String rawPhone) throws ParseException {
+        for (int index = 0; index < rawPhone.length(); index++) {
+            if (Character.isWhitespace(rawPhone.charAt(index))
+                    && GuardianPhone.isValid(rawPhone.substring(0, index))) {
+                throw new ParseException(AddGuardianCommand.MESSAGE_USAGE);
+            }
         }
     }
 }

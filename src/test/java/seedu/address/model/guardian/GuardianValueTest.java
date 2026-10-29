@@ -24,11 +24,13 @@ class GuardianValueTest {
         assertTrue(GuardianName.isValid("O'Connor"));
         assertTrue(GuardianName.isValid("S. Kumar"));
         assertTrue(GuardianName.isValid("李明"));
+        assertTrue(GuardianName.isValid("𐐀".repeat(80)));
         assertFalse(GuardianName.isValid(null));
         assertFalse(GuardianName.isValid(""));
         assertFalse(GuardianName.isValid("2Anita"));
         assertFalse(GuardianName.isValid("Anita!"));
         assertFalse(GuardianName.isValid("A".repeat(81)));
+        assertFalse(GuardianName.isValid("𐐀".repeat(81)));
         Executable nullName = () -> new GuardianName(null);
         Executable invalidName = () -> new GuardianName("-Anita");
         assertThrows(IllegalArgumentException.class, GuardianName.MESSAGE_CONSTRAINTS, nullName);

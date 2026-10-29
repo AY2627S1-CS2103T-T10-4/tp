@@ -4,6 +4,44 @@ h2, h3, h4, h5, h6 {
   color: #e46c0a;
 }
 
+// Preserve deliberate spaces in command examples without forcing wide tables.
+.developer-guide code {
+  white-space: break-spaces;
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .developer-guide {
+    h2, h3, h4, h5, h6 {
+      break-after: avoid;
+    }
+
+    p, li {
+      orphans: 3;
+      widows: 3;
+    }
+
+    // Each diagram is a Markdown image paragraph followed by its caption.
+    p:has(> img) {
+      break-inside: avoid;
+      break-after: avoid;
+    }
+
+    // Keep API labels, list introductions and MSS/Extensions labels with their content.
+    p:has(+ p > img), p:has(+ ul), p:has(+ ol) {
+      break-after: avoid;
+    }
+
+    tr, pre {
+      break-inside: avoid;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+  }
+}
+
 // Bootstrap style alerts
 .alert {
   position: relative;

@@ -18,10 +18,12 @@ class StudentValueTest {
         assertTrue(StudentName.isValid("O'Connor"));
         assertTrue(StudentName.isValid("S. Kumar"));
         assertTrue(StudentName.isValid("李明"));
+        assertTrue(StudentName.isValid("𐐀".repeat(80)));
         assertFalse(StudentName.isValid(""));
         assertFalse(StudentName.isValid("2Mei"));
         assertFalse(StudentName.isValid("Mei!"));
         assertFalse(StudentName.isValid("A".repeat(81)));
+        assertFalse(StudentName.isValid("𐐀".repeat(81)));
         assertThrows(IllegalArgumentException.class, () -> new StudentName("-Mei"));
     }
 

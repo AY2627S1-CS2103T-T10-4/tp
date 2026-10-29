@@ -340,7 +340,7 @@ Creates a reusable Subject or Class group without assigning any students. Prefix
 
 Example result: `Created group PHY (Physics, Subject).` After saving succeeds, Mentora opens the Groups tab, refreshes the catalogue, and selects the new group. The group is immediately available to `assign-group` and subject groups are available to `filter-students`.
 
-Codes must be unique case-insensitively. Reusing a code reports `Group PHY is already configured.` Invalid values report `Group code must be 2-20 letters, digits, or hyphens, start with a letter, and end with a letter or digit.`, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.`
+Codes must be unique case-insensitively. Reusing a code reports `Group PHY is already configured.` Invalid values report `Group code must be 2-20 ASCII letters (A-Z or a-z), digits, or hyphens, start with a letter, and end with a letter or digit.`, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.`
 
 Missing, empty, repeated, or unknown parameters show:
 
