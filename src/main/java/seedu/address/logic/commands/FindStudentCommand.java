@@ -11,6 +11,8 @@ import seedu.address.model.student.StudentNameContainsQueryPredicate;
 public class FindStudentCommand extends Command {
     public static final String COMMAND_WORD = "find-student";
     public static final String MESSAGE_USAGE = "Invalid command format. Use: find-student n/QUERY";
+    public static final String MESSAGE_QUERY_CONSTRAINTS =
+            "Search query must be 1-80 characters and contain name characters only.";
     public static final String MESSAGE_SINGLE_MATCH_FORMAT = "Found 1 student matching \"%s\".";
     public static final String MESSAGE_SUCCESS_FORMAT = "Found %d students matching \"%s\".";
     public static final String MESSAGE_NO_MATCHES_FORMAT = "No students match \"%s\".";
