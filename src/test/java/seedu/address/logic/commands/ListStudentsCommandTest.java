@@ -29,6 +29,7 @@ public class ListStudentsCommandTest {
         CommandResult result = new ListStudentsCommand().execute(model);
 
         assertEquals("Listed 2 student(s).", result.getFeedbackToUser());
+        assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
         assertEquals(List.of(amy, mei), model.getStudentList());
         assertEquals("", model.getStudentFilterSummary());
     }
@@ -38,6 +39,7 @@ public class ListStudentsCommandTest {
         CommandResult result = new ListStudentsCommand().execute(new ModelManager());
 
         assertEquals("No students registered.", result.getFeedbackToUser());
+        assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
     }
 
     @Test

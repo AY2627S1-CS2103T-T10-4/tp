@@ -52,6 +52,34 @@ class LogicManagerTest {
     }
 
     @Test
+    void execute_invalidStudentQuery_reportsQueryErrorAndPreservesSearchResults() throws Exception {
+        Student ann = new Student(new StudentId("S-0001"), new StudentName("Ann Tan"),
+                new AcademicLevel("Sec 2"));
+        model.addStudent(ann);
+        model.addStudent(new Student(new StudentId("S-0002"), new StudentName("Mei Lin"),
+                new AcademicLevel("Sec 2")));
+        AddressBook before = new AddressBook(model.getAddressBook());
+        JsonAddressBookStorage readOnlyStorage = new JsonAddressBookStorage(temporaryFolder.resolve("unused.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Student searches must not save data");
+            }
+        };
+        logic = createLogic(readOnlyStorage);
+        logic.execute("find-student n/ann");
+        assertEquals(List.of(ann), logic.getStudentList());
+
+        for (String query : List.of("S-0001", "a".repeat(81))) {
+            ParseException error = assertThrows(ParseException.class, () ->
+                    logic.execute("find-student n/" + query));
+            assertEquals("Search query must be 1-80 characters and contain name characters only.",
+                    error.getMessage());
+            assertEquals(List.of(ann), logic.getStudentList());
+            assertEquals(before, model.getAddressBook());
+        }
+    }
+
+    @Test
     void execute_addStudent_savesAndSelectsStudentById() throws Exception {
         CommandResult result = logic.execute("add-student n/Mei Lin al/Sec 2");
         assertEquals(1, logic.getStudentList().size());
