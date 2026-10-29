@@ -625,15 +625,15 @@ Priorities: High (must have) - `* * *`, Medium (should have) - `* *`, Low (possi
 
 ## **Appendix: Instructions for manual testing**
 
-These repeatable checks use synthetic records and target source revision `27d96766`. Use a JAR built from that revision or verify that another build has the same relevant behavior before applying the exact expectations below. Record the build/release, JAR filename, Java version, operating system, actual results and any deviations. Run the workflow sections in order; the startup/recovery scenarios use separate folders. These checks are a starting point for further exploratory testing, not a claim of exhaustive coverage.
+These repeatable checks use synthetic records and describe current source-build behavior, with version dependencies noted below. Record the exact source revision or release, JAR filename, Java version, operating system, actual results and any deviations. When testing a historical release, verify its behavior before applying the exact expectations below. Run the workflow sections in order; the startup/recovery scenarios use separate folders. These checks are a starting point for further exploratory testing, not a claim of exhaustive coverage.
 
 ### Setup and test conventions
 
 1. Run `java -version` in a terminal and confirm Java **25**. Obtain a JAR from the [team releases](https://github.com/AY2627S1-CS2103T-T10-4/tp/releases), or run `./gradlew shadowJar` (`.\gradlew.bat shadowJar` on Windows) in a source checkout.
-   At the baseline for these instructions, **`27d96766`**, the source build produces `build/libs/addressbook.jar`. Pending [PR #132](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/132) changes that to `mentora.jar`; published v1.4.1 uses `Mentora.jar`. Use the actual filename and capitalization of the JAR being tested.
+   Current source builds produce `build/libs/mentora.jar`. The historical v1.4.1 release asset was named `Mentora.jar`. When testing a historical release, use its actual JAR filename and capitalization.
 2. Create a new writable folder named `workflow` in a disposable test location and copy the JAR into it. Keep it separate from personal data and other running Mentora instances.
 3. Before launching, create `workflow/data/addressbook.json` as a UTF-8 text file containing exactly `{"students":[]}`. This valid empty register gives no students or guardians and the five default groups. A zero-byte file is **not** a valid empty register.
-4. Open a terminal **inside `workflow`** and run `java -jar "addressbook.jar"` for the current source build. Substitute the actual JAR filename when different. Mentora uses `data/addressbook.json` relative to this working folder; its location appears in the footer. Select **Students**.
+4. Open a terminal **inside `workflow`** and run `java -jar "mentora.jar"` for the current source build. When testing a historical release, substitute its actual JAR filename. Mentora uses `data/addressbook.json` relative to this working folder; its location appears in the footer. Select **Students**.
 5. Submit one command at a time. Record the IDs returned when adding Amy, Ben and Anita as **`SID_A`**, **`SID_B`** and **`GID`**. Replace these tokens in every later command and expected message with the actual IDs, including their `S-` or `G-` prefix. They are not literal input, list positions or assumed consecutive numbers. Student IDs also appear in Students; use `list-guardians` to recover a guardian ID.
 6. For every rejection below, check the exact feedback and that records, displayed lists, filters, selection and details remain unchanged from immediately before that command. Once a data file exists, its contents should also be unchanged. Each invalid-input case keeps the other required values valid.
 7. To repeat a workflow section, close Mentora, create another disposable folder with the empty-register fixture, and repeat its preceding setup steps. Do not reset by deleting files in a normal installation. Cleanup means closing only the test instance and retaining or discarding only its disposable folder.
@@ -652,7 +652,7 @@ For command syntax and field rules, see the [User Guide](UserGuide.md) or `help 
 | `list-students` | `Listed 2 student(s).` | Amy and Ben appear, in name order, with their stable IDs and levels. |
 | `add-student n/Amy Tan al/Sec 2` | `A student named Amy Tan at Sec 2 already exists.` | No third student; Ben remains selected. |
 | `add-student n/Cara Lim` | `Invalid command format. Use: add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]` | No Cara record. The missing level is the invalid condition. |
-| `find-student n/amy` | `Found 1 student(s) matching "amy".` | Only Amy is listed; the hidden Ben selection is cleared. |
+| `find-student n/amy` | `Found 1 student matching "amy".` | Only Amy is listed; the hidden Ben selection is cleared. |
 | `find-student n/Zzz` | `No students match "Zzz".` | Empty displayed list, with both records still stored. |
 | `view-student sid/SID_A` | `Opened profile for SID_A.` | The hiding filter clears; both rows return and Amy is selected. Heading shows `SID_A - Amy Tan`. |
 | `filter-students al/Sec 2` | `Found 1 student(s) at Sec 2.` | Students opens, showing only Amy and `Filtered by academic level: Sec 2`. |
@@ -679,7 +679,7 @@ For command syntax and field rules, see the [User Guide](UserGuide.md) or `help 
 | `list-guardians` | `No guardians registered.` | Guardians opens with an empty list. |
 | `add-guardian n/Anita Lim p/92345678` | `Added guardian GID: Anita Lim (+65 92345678).` | One guardian is added. Record `GID`; creation alone does not promise selection. |
 | `list-guardians`, then click the row with `GID` | `Listed 1 guardian(s).` | Anita has phone `+65 92345678` and no linked students. |
-| `find-guardian n/anita` | `Found 1 guardian(s) matching "anita".` | Anita is the only matching guardian. |
+| `find-guardian n/anita` | `Found 1 guardian matching "anita".` | Anita is the only matching guardian. |
 | `add-guardian n/Other Guardian p/+6592345678` | `A guardian with phone +65 92345678 already exists (GID). Link that guardian instead.` | Normalized duplicate phone is rejected; one guardian remains. |
 | `link-guardian sid/SID_A gid/GID` | `Linked student SID_A (Amy Tan) to guardian GID (Anita Lim, +65 92345678).` | Students opens and Amy is selected; her profile displays Anita and the guardian phone. |
 | `link-guardian sid/SID_B gid/GID` | `Linked student SID_B (Ben Tan) to guardian GID (Anita Lim, +65 92345678).` | Ben is selected with the same guardian. |
@@ -744,12 +744,12 @@ Keep both links for the save/reload and unlink checks below.
 
 **Starting state:** create a separate new folder named `missing` containing only the JAR. Do not copy preferences or a `data` directory into it.
 
-1. Launch from `missing` using the actual JAR filename. On baseline `27d96766`, Students contains sample students **Mei Lin / Sec 2** and **S. Kumar / IP 4**; no recovery warning or `Saving disabled` indicator appears.
+1. Launch from `missing` using the actual JAR filename. In the current source build, Students contains sample students **Mei Lin / Sec 2** and **S. Kumar / IP 4**; no recovery warning or `Saving disabled` indicator appears.
 2. Run `list-students`: expect `Listed 2 student(s).`. The register file must still be absent after startup and this read-only command; preferences/log files may exist.
 3. Run `add-student n/Recovery Check al/Sec 2`. Record its generated ID as `SID_C`; expect `Added student SID_C: Recovery Check (Sec 2).` The new student is selected and `data/addressbook.json` now exists.
 4. Exit and relaunch from `missing`; `list-students` reports `Listed 3 student(s).`. `view-student sid/SID_C` reports `Opened profile for SID_C.` and displays the saved student.
 
-**Integration dependency:** [PR #123](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/123) is pending at this baseline. If merged, update the startup expectation to an empty register and the counts above to 0/1 as appropriate; do not mistake that intended change for invalid-file recovery. Close this test instance when finished.
+**Integration dependency:** [PR #123](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/123) is pending. If testing a build that includes that change, expect an empty register and counts of 0 after startup and 1 after adding the student; do not mistake that intended change for invalid-file recovery. Close this test instance when finished.
 
 ### Invalid data file: preservation and recovery
 
