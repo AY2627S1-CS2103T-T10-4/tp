@@ -11,7 +11,8 @@ import seedu.address.model.student.StudentNameContainsQueryPredicate;
 public class FindStudentCommand extends Command {
     public static final String COMMAND_WORD = "find-student";
     public static final String MESSAGE_USAGE = "Invalid command format. Use: find-student n/QUERY";
-    public static final String MESSAGE_SUCCESS_FORMAT = "Found %d student(s) matching \"%s\".";
+    public static final String MESSAGE_SINGLE_MATCH_FORMAT = "Found 1 student matching \"%s\".";
+    public static final String MESSAGE_SUCCESS_FORMAT = "Found %d students matching \"%s\".";
     public static final String MESSAGE_NO_MATCHES_FORMAT = "No students match \"%s\".";
 
     private final StudentName query;
@@ -35,6 +36,9 @@ public class FindStudentCommand extends Command {
         int matchCount = model.getStudentList().size();
         if (matchCount == 0) {
             return new CommandResult(String.format(MESSAGE_NO_MATCHES_FORMAT, query));
+        }
+        if (matchCount == 1) {
+            return new CommandResult(String.format(MESSAGE_SINGLE_MATCH_FORMAT, query));
         }
         return new CommandResult(String.format(MESSAGE_SUCCESS_FORMAT, matchCount, query));
     }
