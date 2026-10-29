@@ -18,13 +18,14 @@ public class FindStudentCommandParserTest {
         assertParseSuccess(parser, "n/mei", command("mei"));
         assertParseSuccess(parser, "  N/  Mei   Lin  ", command("Mei Lin"));
         assertParseSuccess(parser, "\tN/\tＭＥＩ\tＬＩＮ\t", command("mei lin"));
+        assertParseSuccess(parser, "n/" + "a".repeat(80), command("a".repeat(80)));
     }
 
     @Test
     public void parse_missingBlankRepeatedUnknownOrPreamble_throwsUsageMessage() {
         String[] invalidArguments = {
             "", " ", "mei", "n/", "n/   ", "n/Mei n/Lin", "n/Mei N/Lin",
-            "al/Sec 2 n/Mei", "unexpected n/Mei"
+            "al/Sec 2 n/Mei", "n/Mei al/Sec 2", "unexpected n/Mei"
         };
         for (String arguments : invalidArguments) {
             assertParseFailure(parser, arguments, FindStudentCommand.MESSAGE_USAGE);
@@ -32,9 +33,11 @@ public class FindStudentCommandParserTest {
     }
 
     @Test
-    public void parse_queryViolatingSharedNameRules_throwsNameConstraintMessage() {
-        assertParseFailure(parser, "n/Mei2", StudentName.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "n/Mei!", StudentName.MESSAGE_CONSTRAINTS);
+    public void parse_queryViolatingSharedNameRules_throwsQueryConstraintMessage() {
+        String expected = "Search query must be 1-80 characters and contain name characters only.";
+        for (String query : new String[] {"Mei2", "Mei!", "S-0001", "a".repeat(81)}) {
+            assertParseFailure(parser, "n/" + query, expected);
+        }
     }
 
     @Test

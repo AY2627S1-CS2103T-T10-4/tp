@@ -165,7 +165,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Command format:** `list-students`
 - **Example commands:** `list-students`
 - **Parameters:** None.
-- **Outputs:** The main panel shows ID, name, academic level, and guardian status for every student; the result says `Listed 18 student(s).` An empty database says `No students registered.`
+- **Outputs:** Each student list row shows ID, name, and academic level. Guardian information is shown in the student profile, not in the list rows. The result says `Listed 18 student(s).` An empty database says `No students registered.`
 - **Duplicate handling:** Not applicable.
 - **Possible errors:** Extra input reports `Invalid command format. Use: list-students`.
 
@@ -176,7 +176,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Command format:** `find-student n/QUERY`
 - **Example commands:** `find-student n/mei`; `find-student n/Mei Lin`
 - **Parameters:** `n/` uses `QUERY`. A query may match part of a name: `mei` matches `Mei Lin`; it does not search guardian names, levels, or assignments.
-- **Outputs:** The main panel displays matching rows and says `Found 2 student(s) matching "mei".` A valid search with no results says `No students match "mei".`
+- **Outputs:** The main panel displays matching rows. One result reports `Found 1 student matching "mei".` Multiple results report `Found N students matching "mei".`, where `N` is the number of matches. A valid search with no results says `No students match "mei".`
 - **Duplicate handling:** Not applicable: every matching student is displayed.
 - **Possible errors:** An invalid or omitted query reports its exact shared error or the format error.
 

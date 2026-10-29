@@ -17,7 +17,8 @@ public class FindGuardianCommand extends Command {
     public static final String MESSAGE_USAGE = "Invalid command format. Use: find-guardian n/QUERY";
     public static final String MESSAGE_QUERY_CONSTRAINTS =
             "Search query must be 1-80 characters and contain name characters only.";
-    public static final String MESSAGE_SUCCESS_FORMAT = "Found %d guardian(s) matching \"%s\".";
+    public static final String MESSAGE_SINGLE_MATCH_FORMAT = "Found 1 guardian matching \"%s\".";
+    public static final String MESSAGE_SUCCESS_FORMAT = "Found %d guardians matching \"%s\".";
     public static final String MESSAGE_NO_MATCHES_FORMAT = "No guardians match \"%s\".";
 
     private static final Logger logger = LogsCenter.getLogger(FindGuardianCommand.class);
@@ -42,9 +43,14 @@ public class FindGuardianCommand extends Command {
         model.updateFilteredGuardianList(predicate);
         int count = model.getGuardianList().size();
         logger.fine(() -> "Guardian name search returned " + count + " record(s).");
-        String feedback = count == 0
-                ? String.format(Locale.ROOT, MESSAGE_NO_MATCHES_FORMAT, query)
-                : String.format(Locale.ROOT, MESSAGE_SUCCESS_FORMAT, count, query);
+        String feedback;
+        if (count == 0) {
+            feedback = String.format(Locale.ROOT, MESSAGE_NO_MATCHES_FORMAT, query);
+        } else if (count == 1) {
+            feedback = String.format(Locale.ROOT, MESSAGE_SINGLE_MATCH_FORMAT, query);
+        } else {
+            feedback = String.format(Locale.ROOT, MESSAGE_SUCCESS_FORMAT, count, query);
+        }
         return new CommandResult(feedback, CommandResult.Workspace.GUARDIANS);
     }
 

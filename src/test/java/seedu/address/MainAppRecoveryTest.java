@@ -78,6 +78,31 @@ class MainAppRecoveryTest {
     }
 
     @Test
+    void initModelManager_unicodeCaseDuplicate_preservesOriginalFile() throws Exception {
+        assertRecovery("{\"students\":[{\"id\":\"S-0007\",\"name\":\"ΟΣ\",\"academicLevel\":\"Sec 1\"},"
+                + "{\"id\":\"S-0008\",\"name\":\"οσ\",\"academicLevel\":\"Sec 1\"}]}");
+    }
+
+    @Test
+    void editStudent_unicodeCaseDuplicate_rejectsAndLeavesSavedDataUnchanged() throws Exception {
+        StorageManager storage = createStorage();
+        byte[] original = ("{\"students\":[{\"id\":\"S-0007\",\"name\":\"ΟΣ\",\"academicLevel\":\"Sec 1\"},"
+                + "{\"id\":\"S-0008\",\"name\":\"οσ\",\"academicLevel\":\"Sec 2\"}]}")
+                .getBytes(StandardCharsets.UTF_8);
+        Files.write(storage.getAddressBookFilePath(), original);
+        Model model = new MainApp().initModelManager(storage, new UserPrefs());
+        LogicManager logic = new LogicManager(model, storage);
+        logic.execute("filter-students al/Sec 2");
+
+        assertThrows(CommandException.class, () -> logic.execute("edit-student sid/S-0008 al/Sec 1"));
+        assertArrayEquals(original, Files.readAllBytes(storage.getAddressBookFilePath()));
+        StorageManager restartedStorage = createStorage();
+        Model restarted = new MainApp().initModelManager(restartedStorage, new UserPrefs());
+        assertEquals("Sec 2", restarted.findStudent("S-0008").orElseThrow().getAcademicLevel().toString());
+        assertTrue(restartedStorage.getDataRecoveryReason().isEmpty());
+    }
+
+    @Test
     void initModelManager_invalidGuardianWithAssignments_publishesNoPartialRecords() throws Exception {
         assertRecovery("{\"students\":[{\"id\":\"S-0502\",\"name\":\"Mei Lin\",\"academicLevel\":\"Sec 2\"}],"
                 + "\"guardians\":[{\"id\":\"G-0502\",\"name\":true,\"phone\":\"91234567\"}],"

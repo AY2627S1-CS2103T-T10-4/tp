@@ -63,8 +63,9 @@ Successful filtering opens Students and displays `Filtered by group: MAT — Mat
 the existing student profile by permanent ID. A previous selection is retained only if it remains visible;
 otherwise the profile shows the existing empty-selection state.
 
-`list-students` restores the full list and hides the summary. Its existing workspace behavior is unchanged:
-it does not itself switch tabs. A subsequent name search also replaces the predicate and clears this summary.
+`list-students` restores the full list, hides the summary and opens the Students workspace.
+A subsequent name search also replaces the predicate, clears this summary and opens Students,
+including when no students match. Invalid query/list arguments preserve the current workspace.
 `LogicManager.revealRequestedStudent()` clears the predicate and summary when a successful command requests
 a student hidden by the filter, after any required save succeeds.
 
