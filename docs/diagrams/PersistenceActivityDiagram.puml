@@ -1,0 +1,19 @@
+@startuml
+!include mentora-style.puml
+skinparam activityBackgroundColor #F1F5F9
+skinparam activityBorderColor #475569
+start
+if () then ([register changed])
+    :Save complete register;
+    if () then ([IOException])
+        :Restore in-memory snapshot;
+        :Report save error;
+        stop
+    else ([save succeeded])
+    endif
+else ([register unchanged])
+endif
+:Reveal requested student if hidden;
+:Return result;
+stop
+@enduml
