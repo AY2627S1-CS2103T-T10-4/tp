@@ -34,7 +34,7 @@ documenting a limitation does not remove the requirement. Future stories are lab
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
 From the repository root, run `./gradlew check shadowJar` on macOS/Linux or
 `.\gradlew.bat check shadowJar` in Windows PowerShell. The output is
-`build/libs/addressbook.jar`; launch it with `java -jar addressbook.jar` from the directory in which
+`build/libs/mentora.jar`; launch it with `java -jar mentora.jar` from the directory in which
 you want Mentora to store its data. The first build needs access to dependency repositories.
 Normal application use and built-in command help work offline.
 
@@ -280,3 +280,264 @@ an empty catalogue.
 This requires the coordinator to remove assignments explicitly but prevents an apparently small
 catalogue change from discarding many students' tuition arrangements.
 
+### Filtering and selection
+
+Student and guardian lists are ordered by normalized name, then numeric ID. A name search replaces
+that entity's current filter. `filter-students` accepts exactly one Subject group or one academic
+level, replaces the current student filter and displays its description. It rejects Class groups
+and combined filters. It tests explicit Subject assignments, not the subject implied by a class
+code. `list-students` and `list-guardians` reset their respective filters; filters do not alter saved
+records and are not persisted.
+
+The full register remains available even when the displayed list is empty. When a successful result
+requests a student hidden by the filter, `LogicManager.revealRequestedStudent` clears the student
+filter after any required save. Assignment changes re-evaluate the current predicate because the
+student object itself may be unchanged. MainWindow then refreshes the profile explicitly.
+
+Workspace changes are requests in `CommandResult`, not implicit effects of every command:
+
+| Successful command | Workspace behaviour |
+| --- | --- |
+| `link-guardian`, `unlink-guardian`, `assign-group`, `unassign-group`, `filter-students`, `list-students`, `find-student` | Switch to Students. |
+| `list-guardians`, `find-guardian` | Switch to Guardians. |
+| `list-groups`, `add-group`, `delete-group` | Switch to Groups. |
+| `add-student`, `edit-student`, `view-student` | Request student selection, but keep the current workspace. |
+| `delete-student`, `add-guardian`, `edit-guardian` | Keep the current workspace. |
+| `help`, `exit` | Open help or close the application, respectively. |
+
+Consequently, a student command can change the underlying Students view while another workspace
+remains visible. This is a current navigation limitation, not a guarantee that all commands reveal
+their result automatically. Deleting the selected student clears its selection only after successful
+saving; deleting another student preserves the current selection.
+
+### Saving, rollback and recovery
+
+![Activity diagram of saving a changed register and restoring memory on a save failure](images/PersistenceActivityDiagram.png)
+
+*Figure 10. Persistence after a mutating command executes successfully. Parsing, the recovery guard, snapshot creation and domain rejection precede this flow. Read-only commands bypass it, and disk rollback is not provided.*
+
+The command boundary is:
+
+1. Parse the input. Parse failures stop before command execution.
+2. Execute read-only commands without saving. For a mutating command, first reject recovery mode.
+3. Copy the complete register before executing the mutation. Commands reject invalid domain requests
+   before changing the model.
+4. Compare the resulting register with the snapshot. An unchanged result, such as setting the same
+   phone number, does not cause a write.
+5. Save a changed register once. If saving throws `IOException`, restore the in-memory snapshot and
+   throw a command-specific `CommandException` retaining the original cause.
+6. Only after success, reveal a requested hidden student and return the result for the UI to apply.
+
+**Current disk-write limitation:** `FileUtil.writeToFile` writes directly to the destination.
+The in-memory rollback does not undo a partial disk write and does not provide crash-safe or atomic
+storage. A save error is not a guarantee that the original file is intact. Atomic replacement with
+a temporary file is a required follow-up to meet NFR07 fully; it is not implemented here.
+
+On startup there are three distinct outcomes:
+
+| File state | Current behaviour |
+| --- | --- |
+| Confirmed missing path | Load two sample students and five default groups. The register file is first written after a command changes register data. |
+| Valid JSON register | Load and validate all data, then permit commands and saving. |
+| Unreadable or invalid register | Preserve the input file, load an empty recovery register with default groups, display the recovery error and disable register mutations and saves for the session. |
+
+Recovery mode still permits list, find, filter, view, help and exit commands (subject to their normal
+validation and whether a target exists). The footer displays `Saving disabled`. To recover, close
+Mentora, preserve the problematic file, restore a valid backup or deliberately replace it, then
+restart. Editing the file while Mentora remains open does not clear the latched recovery state.
+Preference errors are handled separately: defaults may be used and rewritten, so the register's
+preserve-on-load-failure guarantee does not apply to `preferences.json`.
+
+**Design choice:** Snapshot the complete register for save-error rollback. This is simple and keeps
+relationships and the catalogue together, at a cost proportional to register size. Per-command
+inverse operations would reduce copying but would require every mutation to implement a correct
+inverse. These snapshots are temporary; they do not implement user-visible undo/redo.
+
+### Known limitations
+
+These are implementation gaps or release constraints, not changes to the feature specification:
+
+* **Persistence:** partial disk writes remain possible after an I/O failure or interruption (NFR07).
+  Backups and restoration are manual. The ordinary `Saved locally` footer text is static, not a
+  per-command write acknowledgement; startup does not display the specification's loaded-record count.
+* **Navigation:** several student commands preserve the current workspace even when they select a
+  student. Guardian detail selection has no dedicated typed `view-guardian` command. Use the current
+  workspace table above when testing keyboard workflows.
+* **Feedback differences:** empty-value feedback can be a field-validation message instead of a
+  format message. Deletion reports `Student S-9999 does not exist.` for an unknown ID and confirms
+  guardian retention when the deleted student had a guardian link.
+* **Long sessions:** assignment updates refresh filters by wrapping the previous predicate. Many
+  repeated updates can build a deep call chain; resetting/reapplying the filter removes the chain.
+  This needs a bounded refresh implementation rather than an assumption of unlimited session length.
+* **Record limits:** one guardian per student; no guardian deletion, name editing, student-phone
+  clearing, enrolment-status field, archiving, class filtering, combined filtering, contact-list export,
+  spreadsheet import or user-visible undo/redo. Two students with the same normalized name and level
+  cannot be distinguished by the current duplicate rule.
+* **Compatibility:** legacy `persons` data is ignored rather than migrated. ID generation is based on
+  current-process state and loaded IDs; it is not a permanent historical ID registry. Extreme numeric
+  suffixes are not a supported way to extend the generator.
+* **Release verification:** the build targets Java 25 and bundles JavaFX 17 platform libraries for
+  Windows, macOS and Linux. Platform/CPU compatibility, timing, display scaling and keyboard acceptance
+  must be checked on the intended release package; the targets below are not claims of universal testing.
+
+### Extending the implementation
+
+For a new command, add its command and parser, a route in `AddressBookParser`, built-in help and
+tests. Mark it read-only only if it does not mutate register data. Keep reference and uniqueness
+checks in the domain layer. Return UI requests through `CommandResult`; add command-specific
+save-failure feedback in LogicManager when needed. For a new stored field or relationship, update
+copy/reset/equality, JSON conversion, compatibility checks and round-trip tests together.
+
+Focused handover notes remain useful for implementation history:
+[student creation](feature-handover/AddStudentHandover.md),
+[student editing](feature-handover/EditStudentHandover.md),
+[student deletion](feature-handover/DeleteStudentHandover.md),
+[guardian creation](feature-handover/AddGuardianHandover.md),
+[guardian phone updates](UpdateGuardianPhoneHandover.md),
+[linking](feature-handover/LinkGuardianHandover.md),
+[unlinking](feature-handover/UnlinkGuardianHandover.md),
+[assignment](feature-handover/AssignGroupHandover.md),
+[unassignment](feature-handover/UnassignGroupHandover.md),
+[group creation](feature-handover/AddGroupHandover.md),
+[group deletion](feature-handover/DeleteGroupHandover.md), and
+[filtering](feature-handover/FilterStudentsHandover.md).
+Their release-specific plans should be read alongside the current code and feature specification.
+
+## Documentation, logging, testing and release checks
+
+See the [documentation guide](Documentation.md), [logging guide](Logging.md),
+[testing guide](Testing.md) and [DevOps guide](DevOps.md).
+
+The test suite covers value validation, parser rejection, domain invariants, Logic/Storage
+integration and JavaFX rendering/selection. Useful regression entry points include:
+
+| Area | Test classes |
+| --- | --- |
+| Complete register and relationships | `AddressBookStudentTest`, `AddressBookGuardianTest`, `AddressBookGuardianLinkTest`, `AddressBookAssignmentTest` |
+| Assignment commands and saved data | `AssignGroupIntegrationTest`, `UnassignGroupIntegrationTest`, `GroupCrudIntegrationTest` |
+| Guardian linking and search | `LinkGuardianIntegrationTest`, `UnlinkGuardianIntegrationTest`, `FindGuardianIntegrationTest`, `ListGuardiansLogicIntegrationTest` |
+| Invalid data and failed saves | `MainAppRecoveryTest`, `LogicManagerRecoveryTest`, `JsonAddressBookStorageTest`, `JsonSerializableAddressBookTest`, `StorageManagerTest` |
+| Display and selection | `MainWindowTest`, `AssignGroupUiTest`, `UnassignGroupUiTest`, `UnlinkGuardianUiTest`, `FilterStudentsUiTest`, `EditGuardianPhoneUiTest`, `HelpCommandUiTest` |
+
+Run `./gradlew check coverage shadowJar` (Windows PowerShell: `.\gradlew.bat check coverage shadowJar`)
+before a release. UI tests require a graphical display; the Linux CI job uses Xvfb. Review the Gradle
+test report and coverage report, then perform the manual scenarios below on the packaged JAR.
+Passing unit tests does not establish the timing, operating-system or display-scaling NFRs.
+
+### Maintaining the diagrams
+
+Edit the `.puml` source, then regenerate the matching PNG; do not edit only the image. The coordinated diagram update uses
+`mentora-style.puml` for the ten current design diagrams; regenerate each image when its source is updated. Older AB3 tutorial/proposal assets left in
+`docs/diagrams` are not current Mentora design diagrams and are not embedded here.
+
+From the repository root, with a local PlantUML JAR, render a changed diagram using:
+
+```text
+java -jar /path/to/plantuml.jar -charset UTF-8 -failfast2 -tpng -o ../images docs/diagrams/ModelClassDiagram.puml
+```
+
+Replace the JAR path with your installation path (quote it if it contains spaces). The output
+directory is relative to the source diagram's directory. Use PlantUML 1.2025.10 for consistent output. Re-render every diagram that includes
+`mentora-style.puml` when changing that shared style. Inspect the generated images
+at the guide's normal reading width, check links and table rendering, and preview printing before
+publishing. Prefer splitting an oversized diagram to shrinking its text.
+
+## Appendix: Requirements
+
+### Product scope
+
+**Target user:** A coordinator at a small private tuition centre in Singapore who manages roughly
+30–200 secondary-school student records and their guardian contacts, types comfortably, and works
+alone with a local desktop data set. Records may describe enrolled or prospective students, but the
+current model does not store that distinction as an enrolment-status field.
+
+**Value proposition:** Keep student details, shared guardian contacts and tuition-group assignments
+together, and retrieve or update them using short typed commands.
+
+The current product manages contact and basic administrative data. It does not manage lessons,
+attendance, grades, fees, payroll or accounting, send messages, or provide multi-user synchronization.
+It is not intended to replace a full school-management system. Future stories below are possible
+extensions, not claims that these features are available now.
+
+### User stories
+
+Each row completes “As a **role**, I want to **action**, so that I can **benefit**.” Priority is
+independent of implementation status: **High** means required for the current contact-management
+scope, **Medium** means desirable, and **Low** means a possible later extension. The Current table
+records available capabilities; any partial coverage is stated explicitly. Existing story IDs are
+retained for traceability; gaps in numbering occur because future stories are in a separate table.
+
+#### Current capabilities
+
+| ID / priority | As a… | I want to… | So that I can… |
+| --- | --- | --- | --- |
+| US01 / High | new coordinator | view built-in command help and examples | learn or recall command usage while offline. |
+| US02 / High | coordinator | add a student with a name and academic level | create a basic record for that learner. |
+| US03 / High | coordinator | update a student's academic level | keep the record accurate after progression or correction. |
+| US04 / High | coordinator | delete a student while retaining shared guardians | remove an unwanted record without disrupting siblings' contacts. |
+| US05 / High | coordinator | add a guardian with a name and phone number | retain a reusable administrative contact. |
+| US06 / High | coordinator | update a guardian's phone once | use the updated contact for every linked student. |
+| US07 / High | coordinator | link a student to an existing guardian | find the correct responsible adult from the student's profile. |
+| US08 / High | coordinator | link siblings to one guardian record | avoid maintaining duplicate copies of the same contact. |
+| US09 / High | coordinator | assign a student to configured subject and class groups | record the student's tuition arrangements. |
+| US10 / High | coordinator | view group assignments in a student's profile | understand that student's current tuition arrangements. |
+| US11 / High | coordinator | list all registered students | browse the complete register after searching or filtering. |
+| US12 / High | coordinator | search students by a whole or partial name | answer enquiries without scanning every record. |
+| US13 / High | coordinator | open a student profile by stable ID | inspect the level, student phone, assignments and linked guardian together. |
+| US14 / High | coordinator | perform core record tasks using typed commands | reduce repeated switching between keyboard and mouse. |
+| US15 / High | coordinator | receive success feedback or an explanation of rejection | determine whether a requested change took effect and correct invalid input. |
+| US16 / High | coordinator | have changed records saved locally and loaded on restart | continue work without an account or a manual save step. |
+| US17 / Medium | coordinator | search guardians by name | find an existing contact before creating another record. |
+| US18 / Medium | coordinator | filter students by one subject or academic level | review a relevant cohort. |
+| US19 / Medium | coordinator | edit a student by ID using a command | update a record without first locating its row in a list. |
+| US25 / High | coordinator | have Singapore phone formats checked before saving | correct malformed contact numbers before relying on them. |
+| US31 / High | coordinator | create groups and delete unused groups | adapt the catalogue while protecting existing assignments. |
+| US32 / High | coordinator | unlink an incorrectly linked guardian without deleting records | link the correct guardian afterwards. |
+| US33 / High | coordinator | remove an obsolete group assignment | keep a student's tuition arrangements current. |
+| US34 / High | coordinator | list configured group codes, labels and kinds | choose an unambiguous group for assignment. |
+| US35 / Medium | coordinator | list guardians and inspect their linked students | reuse existing family contacts accurately. |
+| US36 / High | coordinator | add or update an optional student phone independently of the guardian phone | retain a direct student contact without changing the guardian's contact. |
+| US37 / High | coordinator | have invalid loaded data preserved with saving disabled | restore the original data without an empty recovery register overwriting it. |
+| US38 / High | coordinator | receive duplicate-record and invalid-relationship errors | avoid conflicting contacts or references to missing records. |
+
+US14 is only partially satisfied across workspaces: typed commands cover record mutations and
+queries, but navigation and guardian-detail selection have the limitations described above. US16
+does not imply atomic disk writes; NFR07 remains partially unmet. The other stories describe
+capabilities, not a claim that every edge case is defect-free.
+
+#### Future capabilities — not implemented
+
+| ID / priority | As a… | I want to… | So that I can… |
+| --- | --- | --- | --- |
+| US20 / Medium | coordinator | change a prospective student's status to active | record confirmed enrolment explicitly. |
+| US21 / Medium | coordinator | list only students marked active | focus daily work on enrolled learners. |
+| US22 / Medium | coordinator | archive withdrawn or graduated students | retain their history outside active-student results. |
+| US23 / Medium | coordinator | retrieve guardians for a selected class | identify the audience for a class announcement. |
+| US24 / Medium | coordinator | copy a class contact list with each shared guardian once | prepare an external message without duplicate recipients. |
+| US26 / Low | coordinator | link multiple guardians to one student | retain more than one responsible contact. |
+| US27 / Low | coordinator | record a student's school | retain additional administrative context. |
+| US28 / Low | coordinator | filter students by class or enrolment status | retrieve cohorts beyond the existing subject and level filters. |
+| US29 / Low | coordinator | review a report of incomplete or potentially duplicate records | find data-quality issues beyond the current strict duplicate checks. |
+| US30 / Low | coordinator | import and export contact lists | move data between Mentora and existing spreadsheets. |
+
+### Use cases
+
+For all use cases, **System:** Mentora. **Actor:** tuition-centre coordinator.
+**MSS** means main success scenario. Each extension is attached to an MSS step; “ends” terminates
+the current attempt and “resumes at step N” returns to that MSS step. A coordinator may abandon an
+attempt; previously completed commands remain saved. Multi-command workflows are not a single
+transaction. These use cases describe current capabilities, not the future stories above.
+
+The following shared extensions apply to every use case that modifies data. They supplement the
+numbered, case-specific extensions without repeating the same failure paths in each case:
+
+* **\*a.** A request has invalid syntax, missing fields or invalid field values.
+  * **\*a1.** Mentora explains the error without changing the register.
+  * The use case resumes at the request step that failed.
+* **\*b.** A modifying request is attempted in recovery mode.
+  * **\*b1.** Mentora rejects it and explains that local data must be restored and the application restarted.
+  * The use case ends.
+* **\*c.** Saving a changed register fails.
+  * **\*c1.** Mentora restores the in-memory state immediately before that command and reports the save failure.
+  * The use case ends. Earlier successful commands remain completed. Disk contents may need restoration
+    because writes are not atomic; the use case does not promise a disk rollback.
