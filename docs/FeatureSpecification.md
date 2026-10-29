@@ -185,7 +185,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Command format:** `list-students`
 - **Example commands:** `list-students`
 - **Parameters:** None.
-- **Outputs:** The main panel shows ID, name, academic level, and guardian status for every student; the result says `Listed 18 student(s).` An empty database says `No students registered.`
+- **Outputs:** Each student list row shows ID, name, and academic level. Guardian information is shown in the student profile, not in the list rows. The result says `Listed 18 student(s).` An empty database says `No students registered.`
 - **Duplicate handling:** Not applicable.
 - **Possible errors:** Extra input reports `Invalid command format. Use: list-students`.
 
