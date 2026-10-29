@@ -99,7 +99,7 @@ To add or replace the student's own number, use `edit-student sid/S-0007 p/98765
 
 Format: `list-students`
 
-Shows every registered student's ID, name and academic level, sorted by normalized name and then ID. Use it to return to the full list after a search. Guardian status is not displayed in this increment.
+Shows every registered student's ID, name and academic level, sorted by normalized name and then ID. Use it to return to the full list after a search. Guardian information is shown in the student profile, not in the list rows.
 
 The result reports the number of students, for example `Listed 8 student(s).` If there are none, it says `No students registered.`
 
