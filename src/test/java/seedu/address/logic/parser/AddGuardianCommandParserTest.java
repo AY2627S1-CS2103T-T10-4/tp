@@ -51,6 +51,8 @@ class AddGuardianCommandParserTest {
     @Test
     void parse_validPhoneWithTrailingText_failure() {
         assertParseFailure(parser, "n/Ann p/61239999 extra", AddGuardianCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Ann p/+6591234567 extra", AddGuardianCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "n/Ann p/+65 91234567 extra", AddGuardianCommand.MESSAGE_USAGE);
     }
 
     @Test
