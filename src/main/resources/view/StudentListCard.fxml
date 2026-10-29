@@ -10,7 +10,7 @@
   <padding>
     <Insets top="9" right="14" bottom="9" left="14" />
   </padding>
-  <VBox alignment="CENTER_LEFT" spacing="3" HBox.hgrow="ALWAYS">
+  <VBox alignment="CENTER_LEFT" minWidth="0" spacing="3" HBox.hgrow="ALWAYS">
     <Label fx:id="id" styleClass="student-id" />
     <Label fx:id="name" maxWidth="Infinity" styleClass="student-name" HBox.hgrow="ALWAYS" />
   </VBox>
