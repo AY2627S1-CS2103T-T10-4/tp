@@ -3,12 +3,16 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
+import seedu.address.model.group.GroupAssignment;
+import seedu.address.model.group.GroupCode;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentId;
@@ -17,15 +21,23 @@ import seedu.address.model.student.StudentName;
 class AssignGroupCommandParserTest {
     @Test
     void parse_validOrdersCasingAndWhitespace_assignsConfiguredGroup() throws Exception {
-        for (String input : new String[] {"assign-group sid/S-0601 g/mat", "ASSIGN-GROUP G/MAT SID/S-0601",
-            "assign-group g/S2-MAT-A sid/S-0601", "assign-group\tSID/ S-0601\nG/ mat "}) {
+        String[][] testCases = {
+            {"assign-group sid/S-0601 g/mat", "MAT"},
+            {"ASSIGN-GROUP G/MAT SID/S-0601", "MAT"},
+            {"assign-group g/S2-MAT-A sid/S-0601", "S2-MAT-A"},
+            {"assign-group\tSID/ S-0601\nG/ mat ", "MAT"}
+        };
+        for (String[] testCase : testCases) {
+            String input = testCase[0];
             ModelManager model = model();
+            StudentId studentId = model.findStudent("S-0601").orElseThrow().getId();
+            GroupAssignment expectedAssignment = new GroupAssignment(studentId, new GroupCode(testCase[1]));
             Command command = new AddressBookParser().parseCommand(input);
             CommandResult result = command.execute(model);
 
             assertEquals("S-0601", result.getSelectedStudentId());
             assertEquals(CommandResult.Workspace.STUDENTS, result.getWorkspace());
-            assertEquals(1, model.getAddressBook().getGroupAssignments().size());
+            assertEquals(Set.of(expectedAssignment), model.getAddressBook().getGroupAssignments(), input);
         }
     }
 
