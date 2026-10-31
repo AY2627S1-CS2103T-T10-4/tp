@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,7 @@ import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupAssignment;
 import seedu.address.model.group.GroupCatalogue;
 import seedu.address.model.group.GroupCode;
+import seedu.address.model.group.GroupKind;
 import seedu.address.model.student.Student;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -122,6 +124,29 @@ class UnassignGroupIntegrationTest {
         json.fieldNames().forEachRemaining(properties::add);
         assertEquals(Set.of("students", "guardians", "groups", "guardianLinks", "groupAssignments"), properties);
         properties.forEach(property -> assertTrue(json.get(property).isArray(), property));
+    }
+
+    @Test
+    void execute_customCatalogue_preservesExactCatalogueAfterReload() throws Exception {
+        List<Group> expectedCatalogue = new ArrayList<>(originalCatalogue);
+        expectedCatalogue.add(new Group(new GroupCode("HIS"), "History enrichment", GroupKind.SUBJECT));
+        AddressBook expectedRegister = new AddressBook(originalRegister);
+        expectedRegister.setGroups(expectedCatalogue);
+        model.setAddressBook(expectedRegister);
+        JsonAddressBookStorage realData = new JsonAddressBookStorage(data.getAddressBookFilePath());
+        realData.saveAddressBook(expectedRegister);
+
+        CommandResult result = logic.execute("unassign-group sid/S-0007 g/MAT");
+        ReadOnlyAddressBook reloaded = realData.readAddressBook().orElseThrow();
+
+        assertSuccess(result, "MAT");
+        assertEquals(1, data.saveAttempts);
+        assertEquals(Set.of(assignment(targetStudent, "S2-MAT-A"), assignment(otherStudent, "MAT")),
+                reloaded.getGroupAssignments());
+        assertEquals(expectedCatalogue, reloaded.getGroupCatalogue().getGroups());
+        assertEquals(originalRegister.getStudentList(), reloaded.getStudentList());
+        assertEquals(originalRegister.getGuardianList(), reloaded.getGuardianList());
+        assertEquals(originalRegister.getGuardianLinks(), reloaded.getGuardianLinks());
     }
 
     @Test
@@ -332,7 +357,7 @@ class UnassignGroupIntegrationTest {
         assertEquals(originalRegister.getStudentList(), actual.getStudentList());
         assertEquals(originalRegister.getGuardianList(), actual.getGuardianList());
         assertEquals(originalRegister.getGuardianLinks(), actual.getGuardianLinks());
-        assertEquals(originalCatalogue, model.getGroupCatalogue().getGroups());
+        assertEquals(originalCatalogue, actual.getGroupCatalogue().getGroups());
     }
 
     private static void assertRegisterEquals(ReadOnlyAddressBook expected, ReadOnlyAddressBook actual) {
@@ -340,6 +365,7 @@ class UnassignGroupIntegrationTest {
         assertEquals(expected.getGuardianList(), actual.getGuardianList());
         assertEquals(expected.getGuardianLinks(), actual.getGuardianLinks());
         assertEquals(expected.getGroupAssignments(), actual.getGroupAssignments());
+        assertEquals(expected.getGroupCatalogue(), actual.getGroupCatalogue());
     }
 
     private static void assertSuccess(CommandResult result, String groupCode) {
