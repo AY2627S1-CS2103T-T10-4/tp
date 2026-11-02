@@ -60,6 +60,22 @@ My AI-assisted work included:
 
 This acknowledgement covers AI-generated material incorporated into my contributions as well as AI assistance used during design, planning and testing. I contributed to clarifying the specifications through the grill-me sessions and wrote code myself when the AI-generated implementation was incorrect.
 
+**Matthew's notable uses of AI (@matthewtansh)**
+
+I used **OpenAI Codex** throughout my contributions to Mentora, including generating, modifying and refining Java code, automated tests and documentation. My use covered both AI-generated material incorporated into my contributions and AI assistance used to understand requirements, investigate bugs and review changes.
+
+My usual workflow involved supplying the project's direction, feature specifications or reported issues, then asking Codex to explain the existing implementation and help implement the required changes. I asked follow-up questions about behaviour, requested automated and GUI testing, and used the findings to direct further corrections. Codex also suggested implementation details, test cases and documentation improvements that I had not specified initially.
+
+My AI-assisted work included:
+
+- **Requirements and implementation:** I supplied specifications for student-name search and filtering students by subject group or academic level. Codex helped interpret these requirements against the existing codebase and generated or modified the supporting parser, command and model code.
+- **Testing:** I requested checks of command behaviour, edge cases and the running application. Codex generated and updated automated tests, ran regression checks, and interacted with the JavaFX GUI to verify visible results, tab navigation and error handling. These checks included preserving previous results when invalid commands were rejected.
+- **Debugging and quality assurance:** I provided bug reports and requested investigation and fixes. Codex helped identify causes and implement corrections, including student list/search commands not switching to the Students tab and invalid student searches returning a full-name validation message instead of the documented query message.
+- **Documentation:** I supplied the project direction and documentation requirements. Codex helped draft and refine Developer Guide requirements, update feature handover notes, and correct inconsistencies between the feature specification and User Guide. It also reviewed the User Guide and Developer Guide against the current implementation to identify outdated descriptions.
+- **Code review and project workflow:** Codex assisted with preliminary code and pull request reviews, checking whether changes addressed reported issues, and reviewing CI configuration. It also helped draft GitHub issue descriptions, pull request descriptions and commit messages, explain Git workflows, and resolve documentation merge conflicts when requested.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. I supplied requirements and issue context, directed the scope of the requested work and requested follow-up explanations and checks, while Codex contributed substantial implementation, testing and documentation work. I retain responsibility for the contributions attributed to me; AI-generated output and successful tests do not by themselves establish that a change is correct.
+
 ## Setting up and getting started
 
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
