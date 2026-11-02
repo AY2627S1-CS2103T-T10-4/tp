@@ -33,6 +33,69 @@ documenting a limitation does not remove the requirement. Future stories are lab
   preliminary pull request reviews. UI icons were designed manually by Valentino using Adobe
   Photoshop and were not AI-generated.
 
+**Gabriel's notable uses of AI (@HIIMHEY)**
+
+I used **OpenAI ChatGPT and OpenAI Codex extensively** throughout my contributions to Mentora, including generating, modifying and refining substantial portions of Java code, automated tests and documentation.
+
+My typical workflow involved first proposing requirements, implementation approaches, test ideas or possible solutions myself, then using AI to critique, refine and improve those proposals before assisting with their implementation. AI also helped identify issues or alternatives I had not initially considered.
+
+My AI-assisted work included:
+
+- **Implementation:** I proposed feature requirements, implementation approaches and design decisions for group-related functionality, guardian functionality and the JavaFX user interface. ChatGPT helped evaluate and refine my approaches, while Codex assisted with generating, modifying and implementing code based on the resulting designs.
+- **Testing:** I identified behaviours, edge cases and testing objectives that needed coverage. AI helped refine my test designs, identify missing equivalence partitions, boundary cases and weaknesses in existing assertions, and generate or strengthen parser, model, storage, integration and JavaFX UI tests.
+- **Debugging and quality assurance:** I reported observed bugs, unexpected behaviour and suspected causes, and proposed possible fixes. AI helped investigate these problems, challenge or validate my hypotheses, identify underlying causes, suggest improvements and implement selected corrections. It also assisted with automated testing, GUI testing and regression verification.
+- **Documentation:** I proposed the content, structure and technical explanations for documentation relating to my contributions. AI helped review, refine, organize and draft User Guide and Developer Guide material, including diagrams and explanations, based on my inputs and the project's implementation and requirements.
+- **Code review and project management:** AI assisted with preliminary code and pull request reviews, checking changes against requirements, evaluating implementation risks, and drafting GitHub issue descriptions, pull request descriptions and commit messages. I participated in deciding the scope and direction of changes and handled consequential Git and GitHub workflow actions.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. Although AI generated substantial portions of the resulting code, tests and documentation, I contributed the initial requirements, ideas and engineering direction for much of this work, evaluated AI recommendations, and retained responsibility for the changes attributed to me.
+
+**Raynor's notable uses of AI (@raynor-koh)**
+
+I used AI extensively throughout my contributions to Mentora, including to help design the software, plan and implement features, and generate and exercise test cases. My use covered both AI-generated code and tests incorporated into my contributions and AI assistance used to reason about specifications, design choices and edge cases.
+
+My usual feature workflow began with a **grill-me session**: I discussed the feature with AI and answered its questions to clarify the intended behaviour and align on the specifications. I then used AI to turn the clarified requirements into an implementation plan. After that, I used a cheaper AI model to implement the code based on the plan. When the generated code was incorrect, I wrote some of the code myself to address the problem.
+
+My AI-assisted work included:
+
+- **Architecture and object-oriented design:** I used AI to help design the application's architecture and object-oriented classes. This assistance helped me think through how the application could be structured and how responsibilities could be organized among classes.
+- **Specifications and implementation planning:** Before implementing features, I used grill-me sessions to work through the requirements and clarify expected behaviour. I then used AI to produce an implementation plan that reflected the specifications discussed in those sessions.
+- **Feature implementation:** I used a cheaper AI model to write code based on the implementation plans. AI-generated code did not always implement the intended behaviour correctly, so I also wrote code myself in cases where its output was inadequate.
+- **Testing and edge cases:** I used AI to generate test cases and assist with testing edge-case scenarios. This helped me consider inputs and situations beyond the basic expected flow when checking feature behaviour.
+
+This acknowledgement covers AI-generated material incorporated into my contributions as well as AI assistance used during design, planning and testing. I contributed to clarifying the specifications through the grill-me sessions and wrote code myself when the AI-generated implementation was incorrect.
+
+**Matthew's notable uses of AI (@matthewtansh)**
+
+I used **OpenAI Codex** throughout my contributions to Mentora, including generating, modifying and refining Java code, automated tests and documentation. My use covered both AI-generated material incorporated into my contributions and AI assistance used to understand requirements, investigate bugs and review changes.
+
+My usual workflow involved supplying the project's direction, feature specifications or reported issues, then asking Codex to explain the existing implementation and help implement the required changes. I asked follow-up questions about behaviour, requested automated and GUI testing, and used the findings to direct further corrections. Codex also suggested implementation details, test cases and documentation improvements that I had not specified initially.
+
+My AI-assisted work included:
+
+- **Requirements and implementation:** I supplied specifications for student-name search and filtering students by subject group or academic level. Codex helped interpret these requirements against the existing codebase and generated or modified the supporting parser, command and model code.
+- **Testing:** I requested checks of command behaviour, edge cases and the running application. Codex generated and updated automated tests, ran regression checks, and interacted with the JavaFX GUI to verify visible results, tab navigation and error handling. These checks included preserving previous results when invalid commands were rejected.
+- **Debugging and quality assurance:** I provided bug reports and requested investigation and fixes. Codex helped identify causes and implement corrections, including student list/search commands not switching to the Students tab and invalid student searches returning a full-name validation message instead of the documented query message.
+- **Documentation:** I supplied the project direction and documentation requirements. Codex helped draft and refine Developer Guide requirements, update feature handover notes, and correct inconsistencies between the feature specification and User Guide. It also reviewed the User Guide and Developer Guide against the current implementation to identify outdated descriptions.
+- **Code review and project workflow:** Codex assisted with preliminary code and pull request reviews, checking whether changes addressed reported issues, and reviewing CI configuration. It also helped draft GitHub issue descriptions, pull request descriptions and commit messages, explain Git workflows, and resolve documentation merge conflicts when requested.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. I supplied requirements and issue context, directed the scope of the requested work and requested follow-up explanations and checks, while Codex contributed substantial implementation, testing and documentation work. I retain responsibility for the contributions attributed to me; AI-generated output and successful tests do not by themselves establish that a change is correct.
+
+**Christian's notable uses of AI (@Chrsxndr)**
+
+I used **OpenAI ChatGPT and OpenAI Codex extensively** throughout my contributions to Mentora. This included generating, modifying and refining substantial portions of Java code, automated tests, documentation and UML diagrams, as well as assistance with debugging, preliminary code reviews and release preparation.
+
+My usual workflow involved supplying feature specifications, reported issues, teammate feedback and course requirements, then asking AI to explain the existing implementation, propose an approach and implement the requested changes. I asked follow-up questions about behaviour and workflow, directed changes in scope and requested further checks. AI also supplied implementation details, test cases and explanations that I had not independently designed beforehand.
+
+My AI-assisted work included:
+
+- **Implementation:** ChatGPT and Codex helped interpret requirements and generate or modify code for opening student profiles, linking and unlinking guardians, guardian-name searching, profile refresh and related validation and feedback fixes. I supplied task context and team constraints, including when UI changes were permitted, and requested revisions following teammate reviews.
+- **Testing and debugging:** Codex generated and updated parser, command, model, storage, integration and JavaFX UI tests, investigated failures and ran regression checks. I also tested my assigned features in the application and supplied observations and screenshots. AI helped assess those observations, identify possible causes and draft reproducible bug reports. Automated checks and my application testing were separate sources of evidence.
+- **Documentation and diagrams:** AI helped draft and update feature handovers, assigned Developer Guide sections, UML diagrams, User Guide corrections and release notes. It compared documentation with the implementation and proposed corrections to outdated descriptions; I supplied the assigned scope and requested alignment with the team's documentation work.
+- **Code review and project workflow:** AI assisted with preliminary PR reviews, checking proposed fixes against issues and specifications, and drafting review comments, issue descriptions, PR descriptions and commit messages. Codex also helped resolve merge conflicts and prepare branches and commits. I used these explanations and review findings when coordinating with teammates and managing PRs.
+- **Release preparation and CI:** AI helped investigate GitHub Actions failures, update CI configuration, inspect release JARs and run automated verification. I requested these checks and used their results to guide release preparation; checks that could not be completed were not evidence of a successful release verification.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, explain, review and verify them**. AI performed substantial implementation and verification work, while I supplied requirements and constraints, reported observed behaviour, directed follow-up changes and coordinated with teammates. I retain responsibility for the contributions attributed to me; AI-generated output, AI reviews and successful tests do not by themselves establish correctness.
+
 ## Setting up and getting started
 
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.

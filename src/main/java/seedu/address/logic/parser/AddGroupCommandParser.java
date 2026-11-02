@@ -5,7 +5,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP_KIND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP_LABEL;
 
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +26,7 @@ public class AddGroupCommandParser implements Parser<AddGroupCommand> {
     public AddGroupCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String canonicalArguments = canonicalizePrefixes(args);
-        verifyNoUnknownPrefixes(canonicalArguments);
+        verifyPrefixes(canonicalArguments);
         ArgumentMultimap arguments = tokenizeArguments(canonicalArguments);
         verifyArgumentStructure(arguments);
         return createCommand(arguments);
@@ -36,11 +38,15 @@ public class AddGroupCommandParser implements Parser<AddGroupCommand> {
                 .replaceAll("(?i)(^|\\s)k/", "$1k/");
     }
 
-    private static void verifyNoUnknownPrefixes(String arguments) throws ParseException {
+    private static void verifyPrefixes(String arguments) throws ParseException {
         Matcher prefixes = PREFIX.matcher(arguments);
+        Set<String> seenPrefixes = new HashSet<>();
         while (prefixes.find()) {
             String prefix = prefixes.group(1);
             if (!prefix.equals("g/") && !prefix.equals("l/") && !prefix.equals("k/")) {
+                throw new ParseException(AddGroupCommand.MESSAGE_USAGE);
+            }
+            if (!seenPrefixes.add(prefix)) {
                 throw new ParseException(AddGroupCommand.MESSAGE_USAGE);
             }
         }
