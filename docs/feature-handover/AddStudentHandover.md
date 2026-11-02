@@ -1,5 +1,9 @@
 # Student-only model migration handover
 
+> Historical record of the student-only migration increment. The command set, student-only storage,
+> sample startup and remaining work below describe that checkpoint. For the current model and startup
+> behaviour, see the [Developer Guide](../DeveloperGuide.md); for commands, see the [User Guide](../UserGuide.md).
+
 ## Implemented
 
 - Added `StudentId`, `StudentName`, `AcademicLevel`, and immutable `Student` values in `model/student/`.

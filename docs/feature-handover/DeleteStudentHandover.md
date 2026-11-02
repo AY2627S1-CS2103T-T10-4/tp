@@ -7,7 +7,7 @@ title: Delete Student Handover
 
 ## Implemented
 
-The `delete-student sid/STUDENT_ID` command resolves a student against the complete register, independent of Search, and removes that student and their group assignments. Other students, assignments and all guardian records are retained. The command result clears selection only when the deleted student was selected before execution; deleting another student preserves the open profile, filter and workspace.
+The `delete-student sid/STUDENT_ID` command resolves a student against the complete register, independent of Search, and removes that student, their group assignments and their guardian link. Other students, assignments, guardian links and all guardian records are retained. The command result clears selection only when the deleted student was selected before execution; deleting another student preserves the open profile, filter and workspace.
 
 The parser validates lookup IDs as text and the command reuses the matched record's StudentId. Neither path constructs a lookup ID or advances the ID generator. Command/prefix names ignore case; exactly one nonempty `sid/` value is required. Malformed, repeated or unknown prefixes and extra text are rejected.
 
@@ -22,7 +22,7 @@ Success reports `Deleted student S-0007: Mei Lin.` If a guardian was linked, it 
 | `logic/commands/DeleteStudentCommand.java` | Calls authoritative `Model.findStudent(String)`, deletes by the matched ID, and requests conditional selection clearing. |
 | `logic/commands/CommandResult.java` | Preserves workspace/selection APIs and adds the clear flag and conditional ID to value equality/hash and diagnostics. |
 | `logic/LogicManager.java` | Retains recovery protection and complete snapshot rollback; supplies delete-specific save feedback. |
-| `model/AddressBook.java`, `model/Model.java`, `model/ModelManager.java` | Existing deletion removes only the student's assignments and record. No JSON schema change is needed. |
+| `model/AddressBook.java`, `model/Model.java`, `model/ModelManager.java` | Deletion removes the student's record, assignments and guardian link while retaining shared guardian records. No JSON schema change is needed. |
 | `ui/MainWindow.java`, `ui/StudentListPanel.java`, `ui/StudentDetailsPanel.java` | Apply clearing metadata against the pre-command selection through the existing restoration/refresh helper. No second selection pipeline is introduced. |
 | `docs/UserGuide.md` | Documents the current command and its persistence behavior. |
 
@@ -47,8 +47,8 @@ were not tested. See the [combined verification record](AssignGroupHandover.md#v
 ## Integration notes
 
 - Keep deletion keyed by stable ID; row positions can change as lists are sorted or filtered.
-- `LogicManager` snapshots students, guardians and assignments. Future mutations inherit complete rollback; add their operation-specific save feedback without replacing the common guard.
-- When guardian relationships are added, deletion should remove only the student's relationship and retain shared guardian records and other students' links.
+- `LogicManager` snapshots the complete register, including the catalogue, students, guardians, assignments and guardian links. Future mutations inherit complete rollback; add their operation-specific save feedback without replacing the common guard.
+- Deletion removes only the target student's guardian link and retains shared guardian records and other students' links.
 - Student profiles already exist as the selection-driven details pane. Clearing selection clears the displayed profile; no separate window is involved.
 - Normal direct file writes remain non-atomic. In-memory rollback and pre-write failure tests do not guarantee intact disk contents after a partial write.
 

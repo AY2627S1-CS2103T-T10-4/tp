@@ -5,6 +5,10 @@ title: Person to Student Migration Handover
 
 # Person to Student Migration Handover
 
+> Historical record of the student-only migration increment. The command set, student-only storage,
+> sample startup and next steps below describe that checkpoint. For the current model and startup
+> behaviour, see the [Developer Guide](../DeveloperGuide.md); for commands, see the [User Guide](../UserGuide.md).
+
 ## Completed in this increment
 
 - The active `AddressBook`, `Model`, `ModelManager`, `Logic`, and `LogicManager` data flow now stores and exposes students only.
