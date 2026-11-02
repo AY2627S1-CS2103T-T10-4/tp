@@ -76,6 +76,22 @@ My AI-assisted work included:
 
 This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. I supplied requirements and issue context, directed the scope of the requested work and requested follow-up explanations and checks, while Codex contributed substantial implementation, testing and documentation work. I retain responsibility for the contributions attributed to me; AI-generated output and successful tests do not by themselves establish that a change is correct.
 
+**Christian's notable uses of AI (@Chrsxndr)**
+
+I used **OpenAI ChatGPT and OpenAI Codex extensively** throughout my contributions to Mentora. This included generating, modifying and refining substantial portions of Java code, automated tests, documentation and UML diagrams, as well as assistance with debugging, preliminary code reviews and release preparation.
+
+My usual workflow involved supplying feature specifications, reported issues, teammate feedback and course requirements, then asking AI to explain the existing implementation, propose an approach and implement the requested changes. I asked follow-up questions about behaviour and workflow, directed changes in scope and requested further checks. AI also supplied implementation details, test cases and explanations that I had not independently designed beforehand.
+
+My AI-assisted work included:
+
+- **Implementation:** ChatGPT and Codex helped interpret requirements and generate or modify code for opening student profiles, linking and unlinking guardians, guardian-name searching, profile refresh and related validation and feedback fixes. I supplied task context and team constraints, including when UI changes were permitted, and requested revisions following teammate reviews.
+- **Testing and debugging:** Codex generated and updated parser, command, model, storage, integration and JavaFX UI tests, investigated failures and ran regression checks. I also tested my assigned features in the application and supplied observations and screenshots. AI helped assess those observations, identify possible causes and draft reproducible bug reports. Automated checks and my application testing were separate sources of evidence.
+- **Documentation and diagrams:** AI helped draft and update feature handovers, assigned Developer Guide sections, UML diagrams, User Guide corrections and release notes. It compared documentation with the implementation and proposed corrections to outdated descriptions; I supplied the assigned scope and requested alignment with the team's documentation work.
+- **Code review and project workflow:** AI assisted with preliminary PR reviews, checking proposed fixes against issues and specifications, and drafting review comments, issue descriptions, PR descriptions and commit messages. Codex also helped resolve merge conflicts and prepare branches and commits. I used these explanations and review findings when coordinating with teammates and managing PRs.
+- **Release preparation and CI:** AI helped investigate GitHub Actions failures, update CI configuration, inspect release JARs and run automated verification. I requested these checks and used their results to guide release preparation; checks that could not be completed were not evidence of a successful release verification.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, explain, review and verify them**. AI performed substantial implementation and verification work, while I supplied requirements and constraints, reported observed behaviour, directed follow-up changes and coordinated with teammates. I retain responsibility for the contributions attributed to me; AI-generated output, AI reviews and successful tests do not by themselves establish correctness.
+
 ## Setting up and getting started
 
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
