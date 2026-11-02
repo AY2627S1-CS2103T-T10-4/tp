@@ -29,6 +29,22 @@ documenting a limitation does not remove the requirement. Future stories are lab
   [course UML reference](https://se-education.org/se-book/uml/); the requirements format follows the
   [course requirements reference](https://se-education.org/se-book/specifyingRequirements/).
 
+**Gabriel's notable uses of AI (@HIIMHEY)**
+
+I used **OpenAI ChatGPT and OpenAI Codex extensively** throughout my contributions to Mentora, including generating, modifying and refining substantial portions of Java code, automated tests and documentation.
+
+My typical workflow involved first proposing requirements, implementation approaches, test ideas or possible solutions myself, then using AI to critique, refine and improve those proposals before assisting with their implementation. AI also helped identify issues or alternatives I had not initially considered.
+
+My AI-assisted work included:
+
+- **Implementation:** I proposed feature requirements, implementation approaches and design decisions for group-related functionality, guardian functionality and the JavaFX user interface. ChatGPT helped evaluate and refine my approaches, while Codex assisted with generating, modifying and implementing code based on the resulting designs.
+- **Testing:** I identified behaviours, edge cases and testing objectives that needed coverage. AI helped refine my test designs, identify missing equivalence partitions, boundary cases and weaknesses in existing assertions, and generate or strengthen parser, model, storage, integration and JavaFX UI tests.
+- **Debugging and quality assurance:** I reported observed bugs, unexpected behaviour and suspected causes, and proposed possible fixes. AI helped investigate these problems, challenge or validate my hypotheses, identify underlying causes, suggest improvements and implement selected corrections. It also assisted with automated testing, GUI testing and regression verification.
+- **Documentation:** I proposed the content, structure and technical explanations for documentation relating to my contributions. AI helped review, refine, organize and draft User Guide and Developer Guide material, including diagrams and explanations, based on my inputs and the project's implementation and requirements.
+- **Code review and project management:** AI assisted with preliminary code and pull request reviews, checking changes against requirements, evaluating implementation risks, and drafting GitHub issue descriptions, pull request descriptions and commit messages. I participated in deciding the scope and direction of changes and handled consequential Git and GitHub workflow actions.
+
+This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. Although AI generated substantial portions of the resulting code, tests and documentation, I contributed the initial requirements, ideas and engineering direction for much of this work, evaluated AI recommendations, and retained responsibility for the changes attributed to me.
+
 ## Setting up and getting started
 
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
