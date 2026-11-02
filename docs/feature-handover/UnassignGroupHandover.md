@@ -13,7 +13,7 @@ The checkpoint details below describe the original Feature 10 implementation.
 
 Owner: **Gabriel Chan (HIIMHEY)** · [Issue #72](https://github.com/AY2627S1-CS2103T-T10-4/tp/issues/72) · [PR #73](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/73) · v1.4 Alpha.
 
-This handover describes source checkpoint `2a725351`, which includes unlink-guardian from [PR #70](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/70). See the [User Guide](../UserGuide.md) and [feature specification](../FeatureSpecification.md) for the user-facing contract.
+This handover describes source checkpoint `2a725351`, which includes unlink-guardian from [PR #70](https://github.com/AY2627S1-CS2103T-T10-4/tp/pull/70). See the [User Guide](../UserGuide.md) and [feature specification](FeatureSpecification.md) for the user-facing contract.
 
 ## Scope and command contract
 

@@ -11,7 +11,7 @@ This document maps the JavaFX interface to its implementation classes and FXML f
 
 The main window is arranged from top to bottom as follows:
 
-1. **Brand header, navigation, and menus** — the `src/main/resources/images/mentora_logo.png` brand asset and Mentora identity on the left; Students and Groups navigation tabs sit beside the existing File and Help actions.
+1. **Brand header, navigation, and menus** — the Mentora identity on the left; Students, Guardians, and Groups navigation tabs sit beside the File and Help actions.
 2. **Command area** — the primary keyboard-first input. A command can be submitted with Enter or the Run button.
 3. **Result strip** — success and error feedback from the most recently executed command.
 4. **Student workspace** — a student list on the left and the selected student's details on the right.
@@ -23,12 +23,12 @@ The window defaults to `1000 × 650` and restores larger saved dimensions. Previ
 
 | Visible component | Java class | FXML | Responsibility |
 |---|---|---|---|
-| Application window and navigation tabs | `MainWindow` | `MainWindow.fxml` | Composes the screen, keeps File/Help behavior, switches the Students and Groups workspaces, binds the student count, and connects student selection to the details panel. |
+| Application window and navigation tabs | `MainWindow` | `MainWindow.fxml` | Composes the screen, switches the Students, Guardians, and Groups workspaces, and coordinates selection and counts. |
 | Command input and Run button | `CommandBox` | `CommandBox.fxml` | Accepts commands, executes them on Enter or button press, clears successful input, and marks invalid input. |
 | Latest command result | `ResultDisplay` | `ResultDisplay.fxml` | Reserves one line of content when empty, measures wrapped or multi-line feedback, and supplies the preferred content height used by the complete result row. |
 | Student list | `StudentListPanel` | `StudentListPanel.fxml` | Owns the student list and stable-ID selection behavior. Each row uses the card component below. |
 | Student list row | `StudentCard` | `StudentListCard.fxml` | Arranges the existing student ID and name as a padded summary on the left and academic level in an aligned right column. |
-| Configured groups | `GroupListPanel` | `GroupListPanel.fxml` | Displays the fixed catalogue's code, label, kind, order, and actual count in the Groups workspace. |
+| Configured groups | `GroupListPanel` | `GroupListPanel.fxml` | Displays the current catalogue's code, label, kind, order, and count in the Groups workspace. |
 | Selected student details | `StudentDetailsPanel` | `StudentDetailsPanel.fxml` | Shows ID, name, academic level, student phone (or `Phone: none`) and assignments, or an empty state; the profile scrolls as one unit when space is limited. |
 | Persistence footer | `StatusBarFooter` | `StatusBarFooter.fxml` | Shows the active JSON path and keyboard hints; during recovery it shows Saving disabled and retains the load-failure reason in a tooltip. |
 | Help window | `HelpWindow` | `HelpWindow.fxml` | Preserves the existing F1 help action and link-copy behavior. |
@@ -76,23 +76,23 @@ complete register and previous selection without applying the deletion result.
 Retired Person UI classes and compatibility APIs remain in source for existing test migration, but they are not attached to the window or exposed through the command parser. Student commands select rows by stable student ID; the Person index selection from PR #45 is no longer used.
 
 For the command-driven selection API and Feature 13 integration notes, see
-[Open Student Profile Handover](feature-handover/OpenStudentProfileHandover.md).
+[Open Student Profile Handover](OpenStudentProfileHandover.md).
 
 For the student-only model migration and PR #45 selection compatibility, see
-[Person to Student Migration Handover](feature-handover/PersonToStudentMigrationHandover.md).
+[Person to Student Migration Handover](PersonToStudentMigrationHandover.md).
 
 For stable-ID student deletion, assignment cleanup and conditional selection clearing, see
-[Delete Student Handover](feature-handover/DeleteStudentHandover.md).
+[Delete Student Handover](DeleteStudentHandover.md).
 
 For student academic-level updates and stable-ID profile refresh, see
-[Edit Student Handover](feature-handover/EditStudentHandover.md).
+[Edit Student Handover](EditStudentHandover.md).
 
 `ResultDisplay` measures the rendered feedback whenever its text, font, or available width changes. `MainWindow` binds the enclosing result row to that preferred content height plus the row's vertical padding, so the label, background, border, and workspace position resize together. The `RESULT` heading retains its preferred width while long feedback, including unassignment errors, wraps beside it.
 
 On a failed data load, `Logic#getDataRecoveryReason()` exposes the storage session's recovery state. `MainWindow`
 shows the exact recovery explanation in the initial result strip and constructs a write-disabled footer. Read-only
 commands may update the result strip, but the footer remains `Saving disabled` with the original failure reason.
-Mutating commands are rejected before execution. See [Recovery and write protection](feature-handover/AssignGroupHandover.md#recovery-and-write-protection).
+Mutating commands are rejected before execution. See [Recovery and write protection](AssignGroupHandover.md#recovery-and-write-protection).
 
 ## Student workspace layout
 
@@ -100,7 +100,7 @@ Features 18/19 add `studentFilterSummaryLabel` above the student list. Successfu
 or `filter-students al/LEVEL` requests the Students workspace and shows the active group/level summary.
 `list-students` clears the predicate, hides/unmanages the summary, and opens the Students workspace.
 Assignment-only rollback refreshes group-filter membership as well as restoring relationships; see
-[Filter Students Handover](feature-handover/FilterStudentsHandover.md) for the API, regression tests and review fixes.
+[Filter Students Handover](FilterStudentsHandover.md) for the API, regression tests and review fixes.
 
 The student workspace follows the established Mentora contact-screen composition while retaining student terminology and fields. List entries are full-width cards with consistent padding, dividers, selection highlighting, and aligned summary columns. The profile pane keeps its inset content area, title hierarchy, separator and grouped field spacing, with the added Assignments section. One `profileScrollPane` contains all profile fields so long valid names cannot push assignments or the footer offscreen. There are no nested scrolling regions in the profile.
 
@@ -119,7 +119,7 @@ The Groups workspace remains managed while active so it occupies the workspace a
 
 `list-groups` returns a `CommandResult.Workspace.GROUPS` navigation request. `assign-group` and `unassign-group` request `STUDENTS` and a stable student ID. `find-student` and `list-students` also request `STUDENTS`, including empty results. `MainWindow` switches tabs after successful execution and any required save, without interpreting feedback text or replacing the Student panels. Commands that do not request a workspace retain `UNCHANGED` navigation. Invalid list arguments leave the current workspace intact. Repeated commands and tab switches reuse the same panels.
 
-See [Assign Group Handover](feature-handover/AssignGroupHandover.md) for catalogue, assignment, persistence and refresh contracts. The Student UI change is limited to the Assignments section and the selection/refresh hooks above.
+See [Assign Group Handover](AssignGroupHandover.md) for catalogue, assignment, persistence and refresh contracts. The Student UI change is limited to the Assignments section and the selection/refresh hooks above.
 
 ## Styling
 

@@ -33,7 +33,7 @@ renders the canonical phone or `Phone: none` through `StudentDetailsPanel` and
 - Persistence failure rolls back and says `Could not save changes. Student ID was not updated.`
 
 The complete user-facing command contract, duplicate rules, and error messages are in
-`docs/FeatureSpecification.md`; examples are also in `docs/UserGuide.md`.
+`docs/feature-handover/FeatureSpecification.md`; examples are also in `docs/UserGuide.md`.
 
 ## Tests and verification
 

@@ -77,7 +77,9 @@ public class GuardianListPanel extends UiPart<Region> {
                 return;
             }
             int linkedStudentCount = linkedStudentCountProvider.applyAsInt(guardian);
-            setGraphic(new GuardianCard(guardian, linkedStudentCount).getRoot());
+            Region card = new GuardianCard(guardian, linkedStudentCount).getRoot();
+            card.maxWidthProperty().bind(widthProperty());
+            setGraphic(card);
             setText(null);
         }
     }

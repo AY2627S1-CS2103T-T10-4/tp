@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -86,6 +87,8 @@ class ListGuardiansUiTest {
             assertFalse(groupsWorkspace.isVisible());
             assertEquals("Listed 2 guardian(s).", label(stage, "#resultDisplay").getText());
             assertEquals("2 guardians", label(stage, "#guardianCountLabel").getText());
+            assertEquals(Pos.CENTER_RIGHT, label(stage, "#guardianPhoneHeader").getAlignment());
+            assertEquals(Pos.CENTER_RIGHT, label(stage, "#guardianStudentsHeader").getAlignment());
             ListView<?> guardians = (ListView<?>) stage.getScene().lookup("#guardianListView");
             assertEquals(2, guardians.getItems().size());
             assertEquals(anita, guardians.getItems().getFirst());

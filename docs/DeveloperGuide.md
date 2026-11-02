@@ -10,7 +10,7 @@ single tuition-centre coordinator. The Java packages retain the inherited `seedu
 commands are still supported.
 
 Read the [User Guide](UserGuide.md) for command usage and the
-[MVP feature specification](FeatureSpecification.md) for the product contract. Where implementation
+[MVP feature specification](feature-handover/FeatureSpecification.md) for the product contract. Where implementation
 falls short of that contract, this guide records the gap in [Known limitations](#known-limitations);
 documenting a limitation does not remove the requirement. Future stories are labelled separately.
 
@@ -28,6 +28,10 @@ documenting a limitation does not remove the requirement. Future stories are lab
 * Diagrams are rendered with [PlantUML](https://plantuml.com/). Their notation follows the
   [course UML reference](https://se-education.org/se-book/uml/); the requirements format follows the
   [course requirements reference](https://se-education.org/se-book/specifyingRequirements/).
+* **Valentino's notable uses of AI:** ChatGPT Codex was used to generate most of the code and
+  boilerplate from high-level architecture and implementation plans designed by Valentino, and for
+  preliminary pull request reviews. UI icons were designed manually by Valentino using Adobe
+  Photoshop and were not AI-generated.
 
 **Gabriel's notable uses of AI (@HIIMHEY)**
 
@@ -457,7 +461,7 @@ Focused handover notes remain useful for implementation history:
 [student editing](feature-handover/EditStudentHandover.md),
 [student deletion](feature-handover/DeleteStudentHandover.md),
 [guardian creation](feature-handover/AddGuardianHandover.md),
-[guardian phone updates](UpdateGuardianPhoneHandover.md),
+[guardian phone updates](feature-handover/UpdateGuardianPhoneHandover.md),
 [linking](feature-handover/LinkGuardianHandover.md),
 [unlinking](feature-handover/UnlinkGuardianHandover.md),
 [assignment](feature-handover/AssignGroupHandover.md),
@@ -1140,7 +1144,7 @@ Keep both links for the save/reload and unlink checks below.
 | `assign-group sid/SID_B g/S3-PHY-B` | `Assigned group S3-PHY-B (Secondary 3 Physics B) to student SID_B.` | Ben is selected and shows the Class assignment; his IP 4 level is unchanged. |
 | `filter-students g/PHY` | `Found 1 student(s) assigned to PHY.` | Only Amy is listed; summary is `Filtered by group: PHY — Physics`. |
 | `filter-students g/S3-PHY-B` | `Group S3-PHY-B is a Class group; use the academic-level filter.` | The previous PHY filter/results remain. |
-| `filter-students g/PHY al/Sec 3` | `Invalid command format. Use: filter-students g/GROUP_CODE` | Two individually valid criteria cannot be combined; previous results remain. |
+| `filter-students g/PHY al/Sec 3` | `Invalid command format. Use: filter-students g/GROUP_CODE or filter-students al/ACADEMIC_LEVEL` | Two individually valid criteria cannot be combined; previous results remain. |
 | `view-student sid/SID_B` | `Opened profile for SID_B.` | Hidden Ben is revealed and selected; both students return and the filter clears. |
 | `delete-group g/PHY` | `Group PHY is assigned to 1 student(s). Remove those assignments before deleting it.` | Group and Amy’s assignment remain; Ben’s selection/details are unchanged. |
 

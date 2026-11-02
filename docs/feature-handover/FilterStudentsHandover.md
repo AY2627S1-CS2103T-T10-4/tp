@@ -34,8 +34,8 @@ uncommitted working tree, verified on **22 October 2026**. Both variants share o
 | Unknown group | `Group CODE is not configured. Run list-groups to see available groups.` |
 | Class group | `Group S2-MAT-A is a Class group; use the academic-level filter.` |
 | Invalid level value | `Academic level must be Sec 1-5 or IP 1-6.` |
-| Invalid group syntax | `Invalid command format. Use: filter-students g/GROUP_CODE` |
-| Invalid level syntax | `Invalid command format. Use: filter-students al/ACADEMIC_LEVEL` |
+| Invalid group syntax | `Invalid command format. Use: filter-students g/GROUP_CODE or filter-students al/ACADEMIC_LEVEL` |
+| Invalid level syntax | `Invalid command format. Use: filter-students g/GROUP_CODE or filter-students al/ACADEMIC_LEVEL` |
 
 Missing/empty values, repeated/additional prefixes and unexpected preamble are format errors.
 A slash remaining inside a parsed value is malformed syntax: `g//MAT`, `g/MATg/SCI` and

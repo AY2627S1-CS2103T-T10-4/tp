@@ -71,7 +71,7 @@ increment, or defer the guardian/profile clauses until those models are integrat
      `FeatureSpecification.md`, clearly marking the guardian/profile clauses as
      dependent on those features, or revise the feature contract if this increment
      is intended to ship without them.
-   - Link this plan from `docs/UI.md` only if handover plans are being indexed
+   - Link this plan from `docs/feature-handover/UI.md` only if handover plans are being indexed
      there; otherwise this file lives with the feature handovers.
 
 ## Out of scope / integration points

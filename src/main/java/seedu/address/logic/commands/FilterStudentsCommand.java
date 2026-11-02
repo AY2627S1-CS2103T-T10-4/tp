@@ -19,9 +19,8 @@ import seedu.address.model.student.Student;
 /** Filters the Student workspace by one subject group or academic level. */
 public class FilterStudentsCommand extends Command {
     public static final String COMMAND_WORD = "filter-students";
-    public static final String MESSAGE_USAGE_GROUP = "Invalid command format. Use: filter-students g/GROUP_CODE";
-    public static final String MESSAGE_USAGE_ACADEMIC_LEVEL =
-            "Invalid command format. Use: filter-students al/ACADEMIC_LEVEL";
+    public static final String MESSAGE_USAGE = "Invalid command format. Use: filter-students g/GROUP_CODE"
+            + " or filter-students al/ACADEMIC_LEVEL";
     public static final String MESSAGE_FOUND_GROUP = "Found %d student(s) assigned to %s.";
     public static final String MESSAGE_NO_GROUP_MATCHES = "No students are assigned to %s.";
     public static final String MESSAGE_FOUND_ACADEMIC_LEVEL = "Found %d student(s) at %s.";

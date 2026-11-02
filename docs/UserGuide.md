@@ -183,8 +183,8 @@ the list is empty and the result is `No students are assigned to MAT.` or `No st
 Unknown codes report `Group CODE is not configured. Run list-groups to see available groups.` A Class group
 reports `Group S2-MAT-A is a Class group; use the academic-level filter.` Invalid levels use the shared
 academic-level error. Missing, empty, repeated, mixed or extra parameters report the applicable format error:
-`Invalid command format. Use: filter-students g/GROUP_CODE` or
-`Invalid command format. Use: filter-students al/ACADEMIC_LEVEL`. Rejected filters preserve the tab and results.
+`Invalid command format. Use: filter-students g/GROUP_CODE or filter-students al/ACADEMIC_LEVEL`.
+Rejected filters preserve the tab and results.
 
 Assignment changes refresh group-filter membership. If a successful modifying or profile-opening command
 requests a student hidden by the filter, the filter is cleared to reveal that student. Failed saves restore the
@@ -342,11 +342,7 @@ Example result: `Created group PHY (Physics, Subject).` After saving succeeds, M
 
 Codes must be unique case-insensitively. Reusing a code reports `Group PHY is already configured.` Invalid values report `Group code must be 2-20 ASCII letters (A-Z or a-z), digits, or hyphens, start with a letter, and end with a letter or digit.`, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.`
 
-Missing, empty, repeated, or unknown parameters show:
-
-> Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND<br>
-> GROUP_KIND must be Subject or Class.<br>
-> Example: add-group g/PHY l/Physics k/Subject
+Missing, empty, repeated, or unknown parameters report `Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND`.
 
 If saving fails, the group is removed from memory again and the result says `Could not save changes. No group was created.` Group creation is unavailable during storage recovery.
 
