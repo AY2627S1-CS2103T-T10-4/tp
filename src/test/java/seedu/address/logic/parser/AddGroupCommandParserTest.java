@@ -41,9 +41,46 @@ class AddGroupCommandParserTest {
     }
 
     @Test
+    void parse_tabSeparatedRepeatedPrefixes_reportsUsage() {
+        for (String input : new String[] {"g/PHY l/Physics\tl/Chemistry k/Subject",
+            "g/PHY\tg/SCI l/Physics k/Subject", "g/PHY l/Physics k/Subject\tk/Class",
+            "g/PHY k/Subject l/Physics\tg/SCI", "g/PHY k/Subject l/Physics\tk/Class",
+            "K/Subject G/PHY L/Physics\tL/Chemistry"}) {
+            assertError(input, AddGroupCommand.MESSAGE_USAGE);
+        }
+    }
+
+    @Test
+    void parse_spaceSeparatedRepeatedLabelAndKind_reportsUsage() {
+        assertError("g/PHY l/Physics l/Chemistry k/Subject", AddGroupCommand.MESSAGE_USAGE);
+        assertError("g/PHY l/Physics k/Subject k/Class", AddGroupCommand.MESSAGE_USAGE);
+    }
+
+    @Test
+    void parse_labelWhitespaceAndSlashes_preservesNormalizedValues() throws Exception {
+        String[][] labels = {
+            {"Physics   Mathematics", "Physics Mathematics"},
+            {"Physics\tMathematics", "Physics Mathematics"},
+            {"Physics/Math", "Physics/Math"},
+            {"Physics / Mathematics", "Physics / Mathematics"}
+        };
+        for (String[] label : labels) {
+            AddGroupCommand expected = new AddGroupCommand(
+                    new Group(new GroupCode("PHY"), label[1], GroupKind.SUBJECT));
+            assertEquals(expected, parser.parse("g/phy l/" + label[0] + " k/subject"));
+        }
+    }
+
+    @Test
+    void parse_tabSeparatedUniquePrefix_reportsUsage() {
+        assertError("g/PHY\tl/Physics k/Subject", AddGroupCommand.MESSAGE_USAGE);
+    }
+
+    @Test
     void parse_missingRepeatedUnknownOrPreamble_reportsUsage() {
         for (String input : new String[] {" g/PHY l/Physics", " g/PHY g/SCI l/Physics k/Subject",
-            " g/PHY l/Physics k/Subject x/value", "unexpected g/PHY l/Physics k/Subject",
+            " g/PHY l/Physics k/Subject x/value", " g/PHY l/Physics\tx/value k/Subject",
+            "unexpected g/PHY l/Physics k/Subject",
             " g/PHY l/Physics k/", " g/ l/Physics k/Subject", " g/PHY l/ k/Subject"}) {
             assertError(input, AddGroupCommand.MESSAGE_USAGE);
         }
