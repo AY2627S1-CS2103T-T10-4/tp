@@ -28,10 +28,19 @@ documenting a limitation does not remove the requirement. Future stories are lab
 * Diagrams are rendered with [PlantUML](https://plantuml.com/). Their notation follows the
   [course UML reference](https://se-education.org/se-book/uml/); the requirements format follows the
   [course requirements reference](https://se-education.org/se-book/specifyingRequirements/).
-* **Valentino's notable uses of AI:** ChatGPT Codex was used to generate most of the code and
-  boilerplate from high-level architecture and implementation plans designed by Valentino, and for
-  preliminary pull request reviews. UI icons were designed manually by Valentino using Adobe
-  Photoshop and were not AI-generated.
+
+**Valentino's notable uses of AI (@valentinonathan)**
+
+I used **OpenAI ChatGPT and OpenAI Codex extensively** to generate most of the Java code, tests and documentation for my contributions. I planned the high-level architecture, implementation direction and intended behaviour, then used AI to implement the changes and generate boilerplate.
+
+My AI-assisted work included:
+
+- Implementing group features and UI fixes based on my requirements and designs.
+- Generating tests, investigating bugs and checking edge cases.
+- Reviewing documentation, command syntax and in-application help content.
+- Conducting preliminary PR reviews and assisting with Git workflows.
+
+I reviewed and directed revisions to the generated work and retain responsibility for my contributions. All icons in my contributions were designed manually using Adobe Photoshop and were not AI-generated.
 
 **Gabriel's notable uses of AI (@HIIMHEY)**
 
