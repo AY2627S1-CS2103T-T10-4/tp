@@ -45,6 +45,21 @@ My AI-assisted work included:
 
 This acknowledgement covers both **AI-generated material incorporated into my contributions** and **AI assistance used to develop, review and verify them**. Although AI generated substantial portions of the resulting code, tests and documentation, I contributed the initial requirements, ideas and engineering direction for much of this work, evaluated AI recommendations, and retained responsibility for the changes attributed to me.
 
+**Raynor's notable uses of AI (@raynor-koh)**
+
+I used AI extensively throughout my contributions to Mentora, including to help design the software, plan and implement features, and generate and exercise test cases. My use covered both AI-generated code and tests incorporated into my contributions and AI assistance used to reason about specifications, design choices and edge cases.
+
+My usual feature workflow began with a **grill-me session**: I discussed the feature with AI and answered its questions to clarify the intended behaviour and align on the specifications. I then used AI to turn the clarified requirements into an implementation plan. After that, I used a cheaper AI model to implement the code based on the plan. When the generated code was incorrect, I wrote some of the code myself to address the problem.
+
+My AI-assisted work included:
+
+- **Architecture and object-oriented design:** I used AI to help design the application's architecture and object-oriented classes. This assistance helped me think through how the application could be structured and how responsibilities could be organized among classes.
+- **Specifications and implementation planning:** Before implementing features, I used grill-me sessions to work through the requirements and clarify expected behaviour. I then used AI to produce an implementation plan that reflected the specifications discussed in those sessions.
+- **Feature implementation:** I used a cheaper AI model to write code based on the implementation plans. AI-generated code did not always implement the intended behaviour correctly, so I also wrote code myself in cases where its output was inadequate.
+- **Testing and edge cases:** I used AI to generate test cases and assist with testing edge-case scenarios. This helped me consider inputs and situations beyond the basic expected flow when checking feature behaviour.
+
+This acknowledgement covers AI-generated material incorporated into my contributions as well as AI assistance used during design, planning and testing. I contributed to clarifying the specifications through the grill-me sessions and wrote code myself when the AI-generated implementation was incorrect.
+
 ## Setting up and getting started
 
 Follow [Setting up and getting started](SettingUp.md). Use **JDK 25** for the current source build.
