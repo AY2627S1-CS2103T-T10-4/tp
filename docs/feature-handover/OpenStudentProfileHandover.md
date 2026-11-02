@@ -60,7 +60,7 @@ through automated tests.
 
 The student model, permanent IDs, academic levels, assignments, and guardian records
 are not implemented by this change. Keeping this increment independent of those
-models avoids duplicating teammates' work. See [UI README](../UI.md) for the overall
+models avoids duplicating teammates' work. See [UI README](UI.md) for the overall
 component map.
 
 ## High-level structure
@@ -88,7 +88,7 @@ Java paths below are relative to `src/main/java/seedu/address/`.
 | `ui/MainWindow.java` | Forwards successful command-result selection requests to the list panel. |
 | `ui/PersonListPanel.java` | Adds `selectPerson(Index)` to validate, select, and scroll to a visible row. |
 | `ui/PersonDetailsPanel.java` | Unchanged. Its existing `setPerson(Person)` method displays name, phone, email, address, and tags. |
-| `docs/UI.md` | Links to this handover. |
+| `docs/feature-handover/UI.md` | Links to this handover. |
 
 `Index` implements equality without overriding `hashCode`, so `CommandResult`
 hashes the numeric index value to keep equal results' hash codes consistent.

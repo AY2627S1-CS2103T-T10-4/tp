@@ -16,8 +16,10 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.FilterStudentsCommand;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -50,9 +52,11 @@ class FilterStudentsUiTest {
             Stage stage = new Stage();
             MainWindow window = new MainWindow(stage, logic, testFolder.resolve("students.json"));
             window.fillInnerParts();
+            stage.getScene().getRoot().applyCss();
             ToggleButton studentsTab = (ToggleButton) stage.getScene().lookup("#studentsTab");
             ToggleButton groupsTab = (ToggleButton) stage.getScene().lookup("#groupsTab");
             Label summary = window.getStudentFilterSummaryLabel();
+            assertEquals(Region.USE_PREF_SIZE, ((Label) stage.getScene().lookup("#studentSectionTitle")).getMinWidth());
 
             groupsTab.fire();
             submit(stage, "filter-students g/MAT");
@@ -76,13 +80,13 @@ class FilterStudentsUiTest {
             assertEquals("Group S2-MAT-A is a Class group; use the academic-level filter.", feedback(stage));
 
             submit(stage, "filter-students g//MAT");
-            assertEquals("Invalid command format. Use: filter-students g/GROUP_CODE", feedback(stage));
+            assertEquals(FilterStudentsCommand.MESSAGE_USAGE, feedback(stage));
             assertTrue(groupsTab.isSelected());
             assertEquals(List.of("Amy Tan", "Mei Lin"), visibleNames(logic));
             assertEquals("Filtered by academic level: Sec 2", summary.getText());
 
             submit(stage, "filter-students al/Sec 2 /extra");
-            assertEquals("Invalid command format. Use: filter-students al/ACADEMIC_LEVEL", feedback(stage));
+            assertEquals(FilterStudentsCommand.MESSAGE_USAGE, feedback(stage));
             assertTrue(groupsTab.isSelected());
             assertEquals(List.of("Amy Tan", "Mei Lin"), visibleNames(logic));
             assertEquals("Filtered by academic level: Sec 2", summary.getText());

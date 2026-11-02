@@ -9,9 +9,9 @@
   * It helps coordinators keep related student and guardian information together, retrieve the right contacts quickly, and maintain accurate enrolment-related records without relying on cumbersome spreadsheets or mouse-heavy systems.
 * Mentora's implemented MVP includes:
   * adding, updating, viewing, searching, and deleting student records;
-  * adding guardian records;
-  * linking a student to one guardian while allowing siblings to share the same guardian record;
-  * browsing five configured subject or class groups and assigning them to students;
+  * adding, finding, and updating guardian records;
+  * linking or unlinking a student's guardian while allowing siblings to share one guardian record;
+  * creating, browsing, and deleting subject or class groups and assigning or unassigning students;
   * displaying a student's academic level, assignments, and linked guardian; and
   * saving records locally, restoring them when the application is reopened, and protecting an unreadable data file from being overwritten.
 * Mentora is optimized for **fast typed commands** and clear feedback, while retaining a graphical interface for viewing student profiles and contact information.

@@ -16,6 +16,10 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.student.AcademicLevel;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.StudentId;
+import seedu.address.model.student.StudentName;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -42,6 +46,31 @@ class GroupCrudIntegrationTest {
         assertEquals("Deleted group PHY: Physics (Subject).", deleted.getFeedbackToUser());
         assertEquals(CommandResult.Workspace.GROUPS, deleted.getWorkspace());
         assertEquals(5, model.getGroupCatalogue().size());
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
+    }
+
+    @Test
+    void execute_createdGroup_isImmediatelyAssignableAndProtectedFromDeletion() throws Exception {
+        Path dataPath = testFolder.resolve("group-availability.json");
+        ModelManager model = new ModelManager();
+        Student student = new Student(new StudentId("S-1001"), new StudentName("Mei Lin"),
+                new AcademicLevel("Sec 2"));
+        model.addStudent(student);
+        Logic logic = logic(model, new JsonAddressBookStorage(dataPath));
+
+        logic.execute("add-group g/PHY l/Physics k/Subject");
+        assertEquals(0, model.getAddressBook().getGroupAssignments().size());
+        logic.execute("assign-group sid/S-1001 g/phy");
+        logic.execute("filter-students g/PHY");
+        assertEquals(java.util.List.of(student), logic.getStudentList());
+        CommandException assigned = assertThrows(CommandException.class, () ->
+                logic.execute("delete-group g/PHY"));
+        assertEquals("Group PHY is assigned to 1 student(s). Remove those assignments before deleting it.",
+                assigned.getMessage());
+
+        logic.execute("unassign-group sid/S-1001 g/PHY");
+        logic.execute("delete-group g/phy");
+        assertEquals(student, model.findStudent("S-1001").orElseThrow());
         assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
     }
 

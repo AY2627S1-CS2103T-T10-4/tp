@@ -12,9 +12,7 @@ import seedu.address.model.group.Group;
 public class AddGroupCommand extends Command {
     public static final String COMMAND_WORD = "add-group";
     public static final String MESSAGE_USAGE =
-            "Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND\n"
-                    + "GROUP_KIND must be Subject or Class.\n"
-                    + "Example: add-group g/PHY l/Physics k/Subject";
+            "Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND";
     public static final String MESSAGE_SUCCESS = "Created group %s (%s, %s).";
     public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. No group was created.";
 

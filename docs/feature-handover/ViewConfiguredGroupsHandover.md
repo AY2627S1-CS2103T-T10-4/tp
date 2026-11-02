@@ -96,7 +96,7 @@ See the [testing guide](../Testing.md) for the repository workflow.
 
 ## Future integration
 
-Follow the [Feature Specification](../FeatureSpecification.md) when implementing the remaining work:
+Follow the [Feature Specification](FeatureSpecification.md) when implementing the remaining work:
 
 1. **Data and model:** agree on the deployed catalogue and its data source, then connect ownership/access through
    the application model and startup. This PR selects no configuration format or production dataset.
@@ -115,7 +115,7 @@ Follow the [Feature Specification](../FeatureSpecification.md) when implementing
 - `MainWindow` and `PersonListPanel` currently display `Person` objects. Contact count, selection and
   `PersonDetailsPanel` are connected to that list. Group display needs explicit view transitions, updated
   headings/counts and safe selection handling without accumulating panels or listeners. Current `ListCommand`
-  only resets the Person filter; it does not request a view change. See the [UI guide](../UI.md).
+  only resets the Person filter; it does not request a view change. See the [UI guide](UI.md).
 - `DeleteCommand` and `EditCommand` resolve indexes against `Model#getFilteredPersonList()`. Replacing only
   the visible panel could leave hidden contacts editable or deletable. Resolve this before enabling group view.
 - `LogicManager` currently saves after every successful command, including read-only commands.

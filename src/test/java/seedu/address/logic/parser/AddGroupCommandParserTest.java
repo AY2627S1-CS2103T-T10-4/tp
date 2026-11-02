@@ -41,6 +41,18 @@ class AddGroupCommandParserTest {
     }
 
     @Test
+    void parse_boundaryValues_countUnicodeCharacters() throws Exception {
+        String twentyCharacterCode = "A" + "1".repeat(19);
+        String eightyCharacterLabel = "😀".repeat(80);
+
+        parser.parse("g/AB l/A k/Subject");
+        parser.parse("g/" + twentyCharacterCode + " l/" + eightyCharacterLabel + " k/Class");
+        assertError("g/A l/A k/Subject", GroupCode.MESSAGE_NEW_CODE_CONSTRAINTS);
+        assertError("g/A" + "1".repeat(20) + " l/A k/Subject", GroupCode.MESSAGE_NEW_CODE_CONSTRAINTS);
+        assertError("g/AB l/" + "😀".repeat(81) + " k/Subject", Group.MESSAGE_LABEL_CONSTRAINTS);
+    }
+
+    @Test
     void parse_missingRepeatedUnknownOrPreamble_reportsUsage() {
         for (String input : new String[] {" g/PHY l/Physics", " g/PHY g/SCI l/Physics k/Subject",
             " g/PHY l/Physics k/Subject x/value", "unexpected g/PHY l/Physics k/Subject",
@@ -50,12 +62,11 @@ class AddGroupCommandParserTest {
     }
 
     @Test
-    void parse_invalidFormat_usageExplainsKindAndProvidesExample() {
+    void parse_invalidFormat_reportsExactUsage() {
         ParseException error = assertThrows(ParseException.class, () -> parser.parse(" g/PHY l/Physics"));
 
-        assertEquals("Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND\n"
-                + "GROUP_KIND must be Subject or Class.\n"
-                + "Example: add-group g/PHY l/Physics k/Subject", error.getMessage());
+        assertEquals("Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND",
+                error.getMessage());
     }
 
     private void assertError(String input, String message) {

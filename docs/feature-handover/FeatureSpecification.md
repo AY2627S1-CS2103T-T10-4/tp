@@ -31,7 +31,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 1. Student record management
 
 ### Add student
-![](./mockup/add-student.png)
+![](../mockup/add-student.png)
 - **Feature:** Add student
 - **Purpose:** Creates a student record with its generated ID, name, academic level, and optional independent student contact number. The new student initially has no guardian and no assignments.
 - **Command format:** `add-student n/NAME al/ACADEMIC_LEVEL [p/PHONE]`
@@ -42,7 +42,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** If saving fails after validation, the in-memory change is rolled back and the result panel says `Could not save changes. No student was added.`
 
 ### Update academic level
-![](./mockup/update-academic-level.png)
+![](../mockup/update-academic-level.png)
 - **Feature:** Update student academic level
 - **Purpose:** Changes only a registered student's academic level; its guardian and assignments remain unchanged.
 - **Command format:** `edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL`
@@ -63,7 +63,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** Unknown IDs use the student-not-found message; invalid phone values use the shared phone error; malformed parameters show `Invalid command format. Use: edit-student sid/STUDENT_ID al/ACADEMIC_LEVEL or edit-student sid/STUDENT_ID p/PHONE`. A save failure retains the previous record and says `Could not save changes. Student S-0007 was not updated.`
 
 ### Delete student
-![](./mockup/delete-student.png)
+![](../mockup/delete-student.png)
 - **Feature:** Delete student
 - **Purpose:** Permanently removes a student record created by mistake. If linked, only the relationship is removed; the guardian and that guardian's links to other students are retained.
 - **Command format:** `delete-student sid/STUDENT_ID`
@@ -76,7 +76,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 2. Guardian record management
 
 ### Add guardian
-![](./mockup/add-guardian.png)
+![](../mockup/add-guardian.png)
 - **Feature:** Add guardian
 - **Purpose:** Creates a reusable guardian contact record that may subsequently be linked to one or more students.
 - **Command format:** `add-guardian n/NAME p/PHONE`
@@ -87,7 +87,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** A save failure creates no record and says `Could not save changes. No guardian was added.`
 
 ### Update guardian phone
-![](./mockup/update-guardian-phone.png)
+![](../mockup/update-guardian-phone.png)
 - **Feature:** Update guardian phone
 - **Purpose:** Changes a guardian's single source of contact information; every linked student profile consequently displays the new number.
 - **Command format:** `edit-guardian gid/GUARDIAN_ID p/PHONE`
@@ -100,7 +100,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 3. Student-guardian relationships
 
 ### Link guardian
-![](./mockup/link-guardian.png)
+![](../mockup/link-guardian.png)
 - **Feature:** Link student to guardian
 - **Purpose:** Creates the student's one permitted guardian relationship. The guardian can be linked to any number of students, supporting siblings.
 - **Command format:** `link-guardian sid/STUDENT_ID gid/GUARDIAN_ID`
@@ -111,7 +111,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** Unknown student or guardian IDs use the corresponding not-found message. A save failure creates no link and says `Could not save changes. The guardian link was not created.`
 
 ### Unlink guardian
-![](./mockup/unlink-guardian.png)
+![](../mockup/unlink-guardian.png)
 - **Feature:** Remove student-guardian link
 - **Purpose:** Removes the one relationship when it was entered incorrectly, while preserving both records. This is required to correct a link before another guardian can be linked.
 - **Command format:** `unlink-guardian sid/STUDENT_ID`
@@ -124,7 +124,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 4. Subject and class group management
 
 ### View configured groups
-![](./mockup/view-configured-groups.png)
+![](../mockup/view-configured-groups.png)
 - **Feature:** Browse configured groups
 - **Purpose:** Shows every configured subject and class group available for assignment, including groups created by the user.
 - **Command format:** `list-groups`
@@ -142,7 +142,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Parameters:** `g/` uses the new-code form of `GROUP_CODE`; `l/` is a 1-80 character label after whitespace normalization; `k/` is `Subject` or `Class`, case-insensitively. Prefixes may appear in any order. The code is stored uppercase and the kind is displayed canonically.
 - **Outputs:** On success: `Created group PHY (Physics, Subject).` The Groups view refreshes and selects the new group. It is immediately available to assignment commands; a new Subject group is also available to subject filtering.
 - **Duplicate handling:** Codes are unique case-insensitively. Reusing a configured code is rejected with `Group PHY is already configured.`
-- **Possible errors:** Invalid values use the exact shared code error, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.` Missing, empty, repeated, or unknown parameters show the documented command format, kind rule, and example. A save failure rolls back the addition and reports `Could not save changes. No group was created.` Group creation is unavailable during storage recovery.
+- **Possible errors:** Invalid values use the exact shared code error, `Group label must be 1-80 characters.`, or `Group kind must be Subject or Class.` Missing, empty, repeated, or unknown parameters report `Invalid command format. Use: add-group g/GROUP_CODE l/GROUP_LABEL k/GROUP_KIND`. A save failure rolls back the addition and reports `Could not save changes. No group was created.` Group creation is unavailable during storage recovery.
 
 ### Delete group
 - **Feature:** Delete configured group
@@ -155,7 +155,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** An unknown code uses the shared group-not-configured message. A group with assignments is retained and reports `Group S3-PHY-B is assigned to 4 student(s). Remove those assignments before deleting it.` Missing, empty, repeated, or unknown parameters report `Invalid command format. Use: delete-group g/GROUP_CODE`. A save failure restores the group and reports `Could not save changes. Group S3-PHY-B was not deleted.` Group deletion is unavailable during storage recovery and has no undo command.
 
 ### Assign group
-![](./mockup/assign-group.png)
+![](../mockup/assign-group.png)
 - **Feature:** Assign student to subject or class group
 - **Purpose:** Adds one existing configured group to a student's profile. A student may hold multiple distinct assignments, such as `MAT` and `S2-MAT-A`.
 - **Command format:** `assign-group sid/STUDENT_ID g/GROUP_CODE`
@@ -166,7 +166,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** Unknown ID, unavailable group, format problems, and save failures respectively show the exact shared message or `Could not save changes. The group was not assigned.`
 
 ### Remove group assignment
-![](./mockup/remove-group-assignment.png)
+![](../mockup/remove-group-assignment.png)
 - **Feature:** Remove student group assignment
 - **Purpose:** Removes an obsolete subject or class assignment without changing the configured group catalogue. This is necessary when a student changes subject or class.
 - **Command format:** `unassign-group sid/STUDENT_ID g/GROUP_CODE`
@@ -179,7 +179,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 5. Student browsing and search
 
 ### List students
-![](./mockup/list-students.png)
+![](../mockup/list-students.png)
 - **Feature:** Browse all students
 - **Purpose:** Shows every registered student, sorted by normalized name and then ID, so the coordinator can scan records.
 - **Command format:** `list-students`
@@ -190,7 +190,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** Extra input reports `Invalid command format. Use: list-students`.
 
 ### Search students by name
-![](./mockup/search-students-by-name.png)
+![](../mockup/search-students-by-name.png)
 - **Feature:** Search students
 - **Purpose:** Narrows the main list to students whose normalized name contains the normalized query as a case-insensitive substring.
 - **Command format:** `find-student n/QUERY`
@@ -201,7 +201,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** An invalid or omitted query reports its exact shared error or the format error.
 
 ### Open student profile
-![](./mockup/open-student-profile.png)
+![](../mockup/open-student-profile.png)
 - **Feature:** View student profile
 - **Purpose:** Opens a full read-only profile for one student, including academic level, student phone or `Phone: none`, every assignment (code and label), and the linked guardian's name and canonical phone number, or `Guardian: none`. Student and guardian phone numbers are independent.
 - **Command format:** `view-student sid/STUDENT_ID`
@@ -214,7 +214,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 ## 6. Keyboard-first operation, help, and local storage
 
 ### Command help
-![](./mockup/command-help.png)
+![](../mockup/command-help.png)
 - **Feature:** Command help
 - **Purpose:** Lets a keyboard-only user discover the command syntax and validation rules.
 - **Command format:** `help [COMMAND]`
@@ -225,7 +225,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Possible errors:** An unrecognised command says `No help is available for "COMMAND". Run help to see all commands.` More than one word reports `Invalid command format. Use: help [COMMAND]`.
 
 ### Local storage and reload
-![](./mockup/load-storage-and-reload.png)
+![](../mockup/load-storage-and-reload.png)
 - **Feature:** Automatic local persistence
 - **Purpose:** Saves the whole model after every successful state-changing command and reloads it when Mentora reopens; no account, network, or manual save command is needed.
 - **Command format:** No user-entered persistence command. `exit` closes the application after pending writes have completed.

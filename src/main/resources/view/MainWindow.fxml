@@ -76,16 +76,15 @@
           <StackPane fx:id="studentWorkspace">
             <SplitPane dividerPositions="0.43" styleClass="workspace">
               <VBox minWidth="320" styleClass="list-panel">
-                <HBox alignment="CENTER_LEFT" styleClass="panel-heading">
-                  <Label text="Students" styleClass="section-title" />
-                  <Region HBox.hgrow="ALWAYS" />
+                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="panel-heading">
+                  <Label fx:id="studentSectionTitle" text="Students" minWidth="-Infinity" styleClass="section-title" />
+                  <Label fx:id="studentFilterSummaryLabel" managed="false" visible="false" minWidth="0"
+                         maxWidth="Infinity" styleClass="helper-label" HBox.hgrow="ALWAYS" />
                   <Label fx:id="studentCountLabel" text="0 students" styleClass="record-count" />
                 </HBox>
-                <Label fx:id="studentFilterSummaryLabel" managed="false" visible="false"
-                       styleClass="helper-label" wrapText="true" />
                 <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
                   <Label text="STUDENT ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                  <Label text="LEVEL" minWidth="94" />
+                  <Label text="LEVEL" alignment="CENTER_RIGHT" minWidth="94" />
                 </HBox>
                 <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
               </VBox>
@@ -102,8 +101,8 @@
                 </HBox>
                 <HBox alignment="CENTER_LEFT" styleClass="list-column-header">
                   <Label text="GUARDIAN ID / NAME" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                  <Label text="PHONE" minWidth="116" />
-                  <Label text="STUDENTS" minWidth="64" />
+                  <Label id="guardianPhoneHeader" text="PHONE" alignment="CENTER_RIGHT" minWidth="116" />
+                  <Label id="guardianStudentsHeader" text="STUDENTS" alignment="CENTER_RIGHT" minWidth="84" />
                 </HBox>
                 <StackPane fx:id="guardianListPanelPlaceholder" VBox.vgrow="ALWAYS" />
               </VBox>

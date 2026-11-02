@@ -64,7 +64,7 @@ public final class Group {
 
     /** Returns whether the normalized label is suitable for a newly configured group. */
     public static boolean isValidNewLabel(String label) {
-        return label != null && !label.isBlank() && label.length() <= 80;
+        return label != null && !label.isBlank() && label.codePointCount(0, label.length()) <= 80;
     }
 
     /**

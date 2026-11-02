@@ -28,7 +28,7 @@ public class FilterStudentsCommandParserTest {
             "g/MAT extra", "g/MAT al/Sec 2", "g//MAT", "g/MAT/", "g/MATg/SCI"
         };
         for (String arguments : invalidArguments) {
-            assertParseFailure(parser, arguments, FilterStudentsCommand.MESSAGE_USAGE_GROUP);
+            assertParseFailure(parser, arguments, FilterStudentsCommand.MESSAGE_USAGE);
         }
     }
 
@@ -46,7 +46,7 @@ public class FilterStudentsCommandParserTest {
             "al/Sec 2 /extra", "al//Sec 2", "al/Sec 2 1/foo", "al/Sec 2g/MAT"
         };
         for (String arguments : invalidArguments) {
-            assertParseFailure(parser, arguments, FilterStudentsCommand.MESSAGE_USAGE_ACADEMIC_LEVEL);
+            assertParseFailure(parser, arguments, FilterStudentsCommand.MESSAGE_USAGE);
         }
     }
 

@@ -26,31 +26,31 @@ public class FilterStudentsCommandParser implements Parser<FilterStudentsCommand
         Matcher prefixes = PREFIX.matcher(canonical);
         while (prefixes.find()) {
             if (!prefixes.group(1).equals("g/") && !prefixes.group(1).equals("al/")) {
-                throw usageFor(canonical);
+                throw usage();
             }
         }
 
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + canonical, PREFIX_GROUP, PREFIX_ACADEMIC_LEVEL);
         if (!arguments.getPreamble().isEmpty()) {
-            throw usageFor(canonical);
+            throw usage();
         }
         try {
             arguments.verifyNoDuplicatePrefixesFor(PREFIX_GROUP, PREFIX_ACADEMIC_LEVEL);
         } catch (ParseException e) {
-            throw usageFor(canonical);
+            throw usage();
         }
 
         Optional<String> groupCode = arguments.getValue(PREFIX_GROUP);
         Optional<String> academicLevel = arguments.getValue(PREFIX_ACADEMIC_LEVEL);
         if (groupCode.isPresent() == academicLevel.isPresent()) {
-            throw usageFor(canonical);
+            throw usage();
         }
         if (groupCode.isPresent()) {
             String code = groupCode.orElseThrow().strip();
             boolean containsWhitespace = code.codePoints()
                     .anyMatch(value -> Character.isWhitespace(value) || Character.isSpaceChar(value));
             if (code.isBlank() || containsWhitespace || code.contains("/")) {
-                throw new ParseException(FilterStudentsCommand.MESSAGE_USAGE_GROUP);
+                throw usage();
             }
             return new FilterStudentsCommand(new GroupCode(code));
         }
@@ -58,7 +58,7 @@ public class FilterStudentsCommandParser implements Parser<FilterStudentsCommand
         String level = academicLevel.orElseThrow().strip();
         // A remaining delimiter belongs to malformed or additional command syntax, not a level value.
         if (level.isBlank() || level.contains("/")) {
-            throw new ParseException(FilterStudentsCommand.MESSAGE_USAGE_ACADEMIC_LEVEL);
+            throw usage();
         }
         try {
             return new FilterStudentsCommand(new AcademicLevel(level));
@@ -67,14 +67,7 @@ public class FilterStudentsCommandParser implements Parser<FilterStudentsCommand
         }
     }
 
-    private static ParseException usageFor(String args) {
-        Matcher groupPrefix = Pattern.compile("(?i)(?:^|\\s)g/").matcher(args);
-        Matcher academicLevelPrefix = Pattern.compile("(?i)(?:^|\\s)al/").matcher(args);
-        int groupPosition = groupPrefix.find() ? groupPrefix.start() : Integer.MAX_VALUE;
-        int academicLevelPosition = academicLevelPrefix.find() ? academicLevelPrefix.start() : Integer.MAX_VALUE;
-        String usage = academicLevelPosition < groupPosition
-                ? FilterStudentsCommand.MESSAGE_USAGE_ACADEMIC_LEVEL
-                : FilterStudentsCommand.MESSAGE_USAGE_GROUP;
-        return new ParseException(usage);
+    private static ParseException usage() {
+        return new ParseException(FilterStudentsCommand.MESSAGE_USAGE);
     }
 }
