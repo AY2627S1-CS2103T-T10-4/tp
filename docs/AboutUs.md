@@ -17,7 +17,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/valentino-nathan.md)]
 
 * Role: Project Advisor
-* Responsibility: UI
+* Responsibilities: User interface and navigation; guardian registration and listing; group creation and deletion.
 
 ### Christian Alexander
 
@@ -27,16 +27,17 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/chrsxndr.md)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: Student profiles; guardian linking, unlinking, and search; offline help; release documentation and CI.
 
 ### Gabriel Chan
 
 <img src="images/hiimhey.png" width="200px">
 
 [[github](https://github.com/HIIMHEY)]
+[[portfolio](team/hiimhey.md)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Group catalogue and assignments; data-loading recovery; regression testing; manual-testing documentation.
 
 ### Koh Wee Sheng Raynor
 
@@ -46,7 +47,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/raynor-koh.md)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: Student records and persistence; student and guardian phone support; model and persistence documentation.
 
 ### Matthew Tan
 
@@ -56,4 +57,4 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/matthewtansh.md)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: Student search, listing, and filtering; command validation and navigation; requirements documentation.
