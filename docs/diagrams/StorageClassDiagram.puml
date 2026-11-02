@@ -1,44 +1,25 @@
 @startuml
-!include style.puml
-skinparam arrowThickness 1.1
-skinparam arrowColor STORAGE_COLOR
-skinparam classBackgroundColor STORAGE_COLOR
-skinparam ArrowFontStyle plain
-skinparam nodesep 30
-skinparam ranksep 40
-
-title Storage component (partial)
-
-package Storage as StoragePackage {
-    interface Storage <<interface>>
-    class StorageManager
-
-    package "User preferences storage" #F4F6F6 {
-        class JsonUserPrefsStorage
-    }
-
-    package "Register storage" #F4F6F6 {
-        class JsonAddressBookStorage
-        class JsonSerializableAddressBook
-        class JsonAdaptedStudent
-        class JsonAdaptedGuardian
-        class JsonAdaptedGuardianLink
-        class JsonAdaptedGroupAssignment
-    }
+!include mentora-style.puml
+interface Storage <<interface>>
+class StorageManager
+class JsonUserPrefsStorage
+class JsonAddressBookStorage
+class JsonSerializableAddressBook {
+    +toModelType(): AddressBook
 }
+class JsonAdaptedStudent
+class JsonAdaptedGuardian
+class JsonAdaptedGroup
+class JsonAdaptedGuardianLink
+class JsonAdaptedGroupAssignment
 
 StorageManager .up.|> Storage
-StorageManager -down-> "1" JsonUserPrefsStorage : userPrefsStorage
-StorageManager -down-> "1" JsonAddressBookStorage : addressBookStorage
-
-JsonAddressBookStorage .down.> JsonSerializableAddressBook : reads / creates for saving
-JsonSerializableAddressBook -down-> "0..*" JsonAdaptedStudent : students
-JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGuardian : guardians
-JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGuardianLink : guardianLinks
-JsonSerializableAddressBook -down-> "0..*" JsonAdaptedGroupAssignment : groupAssignments
-
-caption
-Model types, JSON utilities and legacy compatibility classes are omitted.
-Relationship adapters store IDs/codes, not references to other adapters.
-end caption
+StorageManager --> "1" JsonUserPrefsStorage : userPrefsStorage
+StorageManager --> "1" JsonAddressBookStorage : addressBookStorage
+JsonAddressBookStorage ..> JsonSerializableAddressBook : reads / creates for saving
+JsonSerializableAddressBook "1" *-- "0..*" JsonAdaptedStudent : students
+JsonSerializableAddressBook "1" *-- "0..*" JsonAdaptedGuardian : guardians
+JsonSerializableAddressBook "1" *-- "0..*" JsonAdaptedGroup : groups
+JsonSerializableAddressBook "1" *-- "0..*" JsonAdaptedGuardianLink : guardianLinks
+JsonSerializableAddressBook "1" *-- "0..*" JsonAdaptedGroupAssignment : groupAssignments
 @enduml
