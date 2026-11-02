@@ -14,6 +14,10 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.guardian.Guardian;
+import seedu.address.model.guardian.GuardianId;
+import seedu.address.model.guardian.GuardianName;
+import seedu.address.model.guardian.GuardianPhone;
 import seedu.address.model.student.AcademicLevel;
 import seedu.address.model.student.Student;
 import seedu.address.model.student.StudentName;
@@ -56,6 +60,22 @@ class JsonAddressBookStorageTest {
         source.addStudent(new Student(new StudentName("Mei Lin"), new AcademicLevel("Sec 2")));
         storage.saveAddressBook(source);
         assertEquals(source, new AddressBook(storage.readAddressBook().orElseThrow()));
+    }
+
+    @Test
+    void guardianWithSupplementaryUnicodeName_roundTrips() throws Exception {
+        Path file = testFolder.resolve("guardians.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        String name = "𐐀".repeat(41);
+        AddressBook source = new AddressBook();
+        source.addGuardian(new Guardian(new GuardianId("G-0001"), new GuardianName(name),
+                new GuardianPhone("91234567")));
+
+        storage.saveAddressBook(source);
+        AddressBook restored = new AddressBook(storage.readAddressBook().orElseThrow());
+
+        assertEquals(name, restored.getGuardianList().getFirst().getName().toString());
+        assertEquals(source, restored);
     }
 
     @Test

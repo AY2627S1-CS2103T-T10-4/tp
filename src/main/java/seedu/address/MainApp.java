@@ -19,7 +19,6 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -62,12 +61,12 @@ public class MainApp extends Application {
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
+     * An empty address book will be used if {@code storage}'s address book is not found,
      * or an empty recovery model is used after a load failure has disabled data writes in {@code storage}.
      *
      * @param storage Session storage that latches load failures and rejects later register writes.
      * @param userPrefs Preferences already initialized independently of the register.
-     * @return The fully loaded model, sample model, or empty write-disabled recovery model.
+     * @return The fully loaded model, empty model, or empty write-disabled recovery model.
      */
     Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
@@ -77,10 +76,10 @@ public class MainApp extends Application {
         try {
             addressBookOptional = storage.readAddressBook();
             if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with sample students.");
+                logger.info("Starting with an empty register; data file not found at "
+                        + storage.getAddressBookFilePath() + ".");
             }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
+            initialData = addressBookOptional.orElseGet(AddressBook::new);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Starting an empty recovery model with saving disabled. Reason: " + e.getMessage());

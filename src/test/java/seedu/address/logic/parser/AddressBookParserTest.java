@@ -17,12 +17,15 @@ class AddressBookParserTest {
     @Test
     void parseCommand_sharedCommandsAreSupported() throws Exception {
         assertInstanceOf(ExitCommand.class, parser.parseCommand("exit"));
+        assertInstanceOf(ExitCommand.class, parser.parseCommand("  exit  "));
         assertInstanceOf(HelpCommand.class, parser.parseCommand("help"));
     }
 
     @Test
     void parseCommand_exitWithArguments_throwsParseException() {
-        assertThrows(ParseException.class, ExitCommand.MESSAGE_USAGE, () -> parser.parseCommand("exit extra"));
+        for (String input : new String[] {"exit extra", "exit 123", "exit n/value"}) {
+            assertThrows(ParseException.class, ExitCommand.MESSAGE_USAGE, () -> parser.parseCommand(input));
+        }
     }
 
     @Test

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,14 +26,13 @@ class MainAppRecoveryTest {
     private Path testFolder;
 
     @Test
-    void initModelManager_missingFile_loadsSamplesAndAllowsNormalSaving() throws Exception {
+    void initModelManager_missingFile_startsEmptyAndAllowsNormalSaving() throws Exception {
         StorageManager storage = createStorage();
 
         Model model = new MainApp().initModelManager(storage, new UserPrefs());
 
         assertTrue(storage.getDataRecoveryReason().isEmpty());
-        assertEquals(List.of("Mei Lin", "S. Kumar"), model.getStudentList().stream()
-                .map(student -> student.getName().toString()).toList());
+        assertTrue(model.getStudentList().isEmpty());
         assertFalse(Files.exists(storage.getAddressBookFilePath()));
         new LogicManager(model, storage).execute("add-student n/Amy Tan al/Sec 3");
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
