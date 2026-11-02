@@ -113,7 +113,7 @@ A student with the same normalized name and academic level is rejected with, for
 
 The optional student phone uses the same Singapore number validation and canonical `+65 XXXXXXXX` display as a guardian phone. It is stored on the student record, is not required to be unique, and is separate from a linked guardian's number. Without a number the profile says `Phone: none`. Successful creation with a number reports `Added student S-0007: Amy Tan (Sec 2) with phone +65 81234567.`
 
-**MVP limitation:** This rule also rejects two different students who share both their name and academic level. The MVP does not yet provide a way to distinguish them.
+**Duplicate limitation:** This rule also rejects two different students who share both their name and academic level. Mentora does not provide a way to distinguish them.
 
 ### Updating academic level or phone: `edit-student`
 {: #updating-academic-level-edit-student}
@@ -231,7 +231,7 @@ Examples:
 
 Creates a guardian record and reports its ID, for example `Added guardian G-0003: Anita Lim (+65 91234567).` Guardians are saved independently. Browse them with `list-guardians` or search their names with `find-guardian`.
 
-Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number in the MVP.
+Phone numbers must be unique after normalization. If the number is already recorded, the result identifies the existing guardian: `A guardian with phone +65 91234567 already exists (G-0003). Link that guardian instead.` Different guardians may have the same name, but cannot have the same phone number.
 
 ### Listing guardians: `list-guardians`
 
@@ -287,7 +287,7 @@ Links an existing student to an existing guardian. After saving succeeds, Mentor
 
 Example result: `Linked student S-0007 (Mei Lin) to guardian G-0003 (Anita Lim, +65 91234567).`
 
-Each student can have **one guardian** in the MVP. A guardian can be linked to multiple students: for example, `link-guardian sid/S-0008 gid/G-0003` links a second student to the same guardian.
+Each student can have **one guardian**. A guardian can be linked to multiple students: for example, `link-guardian sid/S-0008 gid/G-0003` links a second student to the same guardian.
 
 Repeating a link reports `Student S-0007 is already linked to guardian G-0003.` Trying to link a different guardian while a link exists reports `Student S-0007 already has guardian G-0003. Unlink it before linking another guardian.`
 
@@ -483,9 +483,9 @@ Closes the application and reports `Closing Mentora.` Successful data-changing c
 
 ## Scope and limitations
 
-The MVP supports student records, one guardian per student, shared guardians, creation and safe deletion of subject/class groups, group assignments, student-name and guardian-name search, subject/level filtering, profiles, command help, and local storage for one coordinator at a time.
+Mentora supports student records, one guardian per student, shared guardians, creation and safe deletion of subject/class groups, group assignments, student-name and guardian-name search, subject/level filtering, profiles, command help, and local storage for one coordinator at a time.
 
-The following are **not included in the MVP**:
+The following are **not supported**:
 
 * Multiple guardians per student or editing an existing group's code, label, or kind.
 * Editing student or guardian names, clearing a student's recorded phone, or deleting guardian records.
@@ -510,11 +510,11 @@ Mentora does not manage attendance, lesson content, grades, fees, payroll, or ac
 
 **Can I keep a withdrawn student's record without showing it in the main list?** Archiving and active-only lists are deferred. Deletion is permanent and is not an archive operation.
 
-**Can two guardians use the same number?** The MVP treats the normalized phone number as unique, so separate guardian records cannot share a number.
+**Can two guardians use the same number?** Mentora treats the normalized phone number as unique, so separate guardian records cannot share a number.
 
 ## Command summary
 
-These are the commands supported by the current MVP build. Replace example IDs with IDs from your own records.
+These are the commands supported by the current build. Replace example IDs with IDs from your own records.
 
 | Action | Format | Example |
 |---|---|---|
