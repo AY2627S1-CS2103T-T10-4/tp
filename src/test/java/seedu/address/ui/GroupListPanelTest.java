@@ -18,6 +18,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollToEvent;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import seedu.address.model.group.ConfiguredGroups;
 import seedu.address.model.group.Group;
 import seedu.address.model.group.GroupCatalogue;
@@ -99,6 +101,54 @@ class GroupListPanelTest {
     }
 
     @Test
+    void resize_longValidCode_keepsFullTextAndKindInsideRow() {
+        JavaFxTestUtils.runOnFxThread(() -> {
+            String code = "W".repeat(20);
+            Group group = new Group(new GroupCode(code), "Wide Code", GroupKind.SUBJECT);
+            GroupListPanel panel = new GroupListPanel(new GroupCatalogue(List.of(group)));
+            // Resize the content directly because native window resizing waits for a later pulse.
+            javafx.scene.Group host = new javafx.scene.Group(panel.getRoot());
+            host.setAutoSizeChildren(false);
+            Scene scene = new Scene(host, 900, 523);
+            scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            try {
+                stage.show();
+                for (double width : new double[] {900, 804, 900}) {
+                    panel.getRoot().resize(width, 523);
+                    panel.getRoot().applyCss();
+                    panel.getRoot().layout();
+                    ListView<?> list = (ListView<?>) panel.getRoot().lookup("#groupListView");
+                    assertEquals(width, list.getWidth(), 1.0, "List must respond to resizing");
+                    ListCell<?> cell = list.lookupAll(".list-cell").stream()
+                            .filter(node -> node instanceof ListCell<?> candidate && !candidate.isEmpty())
+                            .map(node -> (ListCell<?>) node)
+                            .findFirst()
+                            .orElseThrow();
+                    Node row = cell.getGraphic();
+                    Label codeLabel = (Label) row.lookup("#groupCode");
+                    Bounds codeBounds = assertRenderedTextFits(codeLabel, code);
+                    Bounds labelBounds = assertRenderedTextFits((Label) row.lookup("#groupLabel"), "Wide Code");
+                    Bounds kindBounds = assertRenderedTextFits((Label) row.lookup("#groupKind"), "Subject");
+
+                    assertEquals(120, codeLabel.getWidth(), 1.0, "Code column must not widen");
+                    assertContains(row.localToScene(row.getLayoutBounds()), codeBounds);
+                    assertContains(cell.localToScene(cell.getLayoutBounds()), codeBounds);
+                    assertTrue(codeBounds.getMaxX() <= labelBounds.getMinX(), "Code overlaps label");
+                    assertTrue(labelBounds.getMaxX() <= kindBounds.getMinX(), "Label overlaps kind");
+                    Node viewport = list.lookup(".clipped-container");
+                    Bounds viewportBounds = viewport.localToScene(viewport.getClip().getBoundsInParent());
+                    assertContains(viewportBounds, codeBounds);
+                    assertContains(viewportBounds, kindBounds);
+                }
+            } finally {
+                stage.close();
+            }
+        });
+    }
+
+    @Test
     void refreshAndSelectGroupCode_updatesRenderedCatalogueAndSelection() {
         JavaFxTestUtils.runOnFxThread(() -> {
             GroupListPanel panel = new GroupListPanel(ConfiguredGroups.getCatalogue());
@@ -136,6 +186,28 @@ class GroupListPanelTest {
             assertEquals(target, list.getSelectionModel().getSelectedItem());
             assertEquals(groups.indexOf(target), scrollTargets[0]);
         });
+    }
+
+    private static Bounds assertRenderedTextFits(Label label, String expected) {
+        Text renderedText = (Text) label.lookup(".text");
+        assertEquals(expected, renderedText.getText(), "Rendered text must not be ellipsized");
+        // Layout bounds retain the full text extent even when a clip hides part of it.
+        Bounds textBounds = renderedText.localToScene(renderedText.getLayoutBounds());
+        assertTrue(textBounds.getWidth() > 0 && textBounds.getHeight() > 0);
+        assertContains(label.localToScene(label.getLayoutBounds()), textBounds);
+        for (Node node = renderedText; node != null; node = node.getParent()) {
+            if (node.getClip() != null) {
+                assertContains(node.localToScene(node.getClip().getBoundsInParent()), textBounds);
+            }
+        }
+        return textBounds;
+    }
+
+    private static void assertContains(Bounds outer, Bounds inner) {
+        // Allow subpixel layout rounding without depending on platform font metrics.
+        assertTrue(inner.getMinX() >= outer.getMinX() - 1.0 && inner.getMaxX() <= outer.getMaxX() + 1.0
+                && inner.getMinY() >= outer.getMinY() - 1.0 && inner.getMaxY() <= outer.getMaxY() + 1.0,
+                "Rendered text " + inner + " extends outside " + outer);
     }
 
     private static String displayedRow(Node row) {
