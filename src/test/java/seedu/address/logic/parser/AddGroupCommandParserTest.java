@@ -51,7 +51,7 @@ class AddGroupCommandParserTest {
         assertError("g/A" + "1".repeat(20) + " l/A k/Subject", GroupCode.MESSAGE_NEW_CODE_CONSTRAINTS);
         assertError("g/AB l/" + "😀".repeat(81) + " k/Subject", Group.MESSAGE_LABEL_CONSTRAINTS);
     }
-    
+
     @Test
     void parse_tabSeparatedRepeatedPrefixes_reportsUsage() {
         for (String input : new String[] {"g/PHY l/Physics\tl/Chemistry k/Subject",
