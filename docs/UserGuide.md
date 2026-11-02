@@ -177,7 +177,11 @@ filter and considers the complete register. Results appear once each, sorted by 
 ID. Select a row to open its profile. Run `list-students` to restore all students and clear the filter summary;
 `find-student` also replaces the filter. Filtering never saves or changes stored records.
 
-Example results are `Found 2 student(s) assigned to MAT.` and `Found 3 student(s) at Sec 2.` With no matches,
+![Mentora Students workspace filtered to Sec 2, showing Amy Tan and Daniel Lim with Amy's profile selected](images/FilteredStudents.png)
+
+_The Sec 2 filter shows Amy Tan and Daniel Lim, with Amy's profile selected. [View full-size screenshot](images/FilteredStudents.png)._
+
+Example results are `Found 2 student(s) assigned to MAT.` and `Found 2 student(s) at Sec 2.` With no matches,
 the list is empty and the result is `No students are assigned to MAT.` or `No students are at Sec 2.`
 
 Unknown codes report `Group CODE is not configured. Run list-groups to see available groups.` A Class group
@@ -490,7 +494,7 @@ The following are **not included in the MVP**:
 * Class guardian contact lists and deduplicated, copyable lists for announcements.
 * Importing or exporting contact lists and general incomplete-record reporting.
 
-**Unicode length limits:** Student and guardian names, and both name-search queries, allow up to 80 Unicode code points after whitespace normalization. A supplementary Unicode letter counts as one code point. Group labels still use UTF-16 code units for their 80-character limit, so supplementary characters count as two toward that limit.
+**Unicode length limits:** Student and guardian names, both name-search queries and group labels allow up to 80 Unicode code points after whitespace normalization. A supplementary Unicode character counts as one code point toward these limits.
 
 Mentora does not manage attendance, lesson content, grades, fees, payroll, or accounting. It does not send WhatsApp, SMS, or email messages or provide real-time collaboration between staff.
 
