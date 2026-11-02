@@ -76,6 +76,7 @@ public class GroupListPanel extends UiPart<Region> {
             code.getStyleClass().add("contact-phone");
             code.setMinWidth(120);
             code.setPrefWidth(120);
+            code.setWrapText(true);
             Label label = new Label(group.getLabel());
             label.setId("groupLabel");
             label.getStyleClass().add("detail-value");
