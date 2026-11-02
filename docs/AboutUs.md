@@ -16,7 +16,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/valentinonathan)]
 [[portfolio](team/valentino-nathan.md)]
 
-* Role: Project Advisor
+* Role: Developer
 * Responsibilities: User interface and navigation; guardian registration and listing; group creation and deletion.
 
 ### Christian Alexander
