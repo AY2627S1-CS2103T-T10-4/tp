@@ -232,6 +232,7 @@ The application generates immutable identifiers (`S-0001`, `S-0002`, ... for stu
 - **Example commands:** `exit`
 - **Parameters:** `exit` accepts none; extra input gives `Invalid command format. Use: exit`.
 - **Outputs:** A successful modifying command reports its domain success message only; the status bar shows `Saved locally`. On launch after a valid load it shows `Loaded 18 students and 12 guardians from local storage.` `exit` says `Closing Mentora.`
+- **Implementation gap:** The current build does not show the startup loaded-record count. Its normal `Saved locally` footer is static, so command results must be checked for save failures. The loaded-count requirement above remains unmet; see the [Developer Guide's known limitations](../DeveloperGuide.md#known-limitations).
 - **Duplicate handling:** The persisted model is validated against the same student, guardian, link, and assignment uniqueness rules before it replaces the in-memory model.
 - **Possible errors:** A write error rolls back the triggering command and shows its specified `Could not save changes...` message. If the data file is malformed, has duplicate IDs, dangling guardian IDs, unknown group codes, or cannot be read, Mentora preserves the original file, starts with an empty recovery model, disables saving, and displays `Could not load local data. Your original data file was not changed; restore or replace it before saving.` This prevents corrupt data from being overwritten.
 
